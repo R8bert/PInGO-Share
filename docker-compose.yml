@@ -1,0 +1,30 @@
+
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./uploads:/app/uploads
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: filesharing
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
