@@ -15,4 +15,14 @@ export default defineConfig({
         'images': path.resolve(__dirname, '/src/assets/images'),
         },
     },
+    server: {
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8080',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+        }
+    },
+
 })

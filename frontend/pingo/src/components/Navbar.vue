@@ -3,7 +3,8 @@
     <!-- Logo positioned in top-left corner -->
     <div class="fixed top-4 left-4 z-50">
       <router-link to="/" class="flex items-center space-x-2">
-        <CloudArrowUpIcon class="h-8 w-8 text-blue-600" />
+        <img v-if="logoPath" :src="logoPath ? `http://localhost:8080${logoPath}` : ''" class="h-8 w-8" alt="Logo" @error="handleImageError" />
+        <CloudArrowUpIcon v-else class="h-8 w-8 text-blue-600" />
         <span class="text-2xl font-extrabold text-gray-900">PinGO File Transfer</span>
       </router-link>
     </div>
@@ -93,14 +94,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ArrowUpTrayIcon, CogIcon, UserIcon, CloudArrowUpIcon, Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
+import axios from 'axios'
 
 const isMenuOpen = ref(false)
+const logoPath = ref<string | null>(null)
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
 }
+
+const loadSettings = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/settings')
+    logoPath.value = response.data.logo || null
+  } catch (error) {
+    console.error('Error loading settings:', error)
+  }
+}
+
+const handleImageError = () => {
+  console.error('Logo image failed to load:', logoPath.value)
+  logoPath.value = null // Fallback to icon
+}
+
+onMounted(() => {
+  loadSettings()
+})
 </script>
 
 <style scoped>

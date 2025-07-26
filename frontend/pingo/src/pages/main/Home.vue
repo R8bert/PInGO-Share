@@ -1,113 +1,71 @@
 <template>
   <div class="min-h-screen relative overflow-hidden" :style="{ '--button-from': buttonFromColor, '--button-to': buttonToColor }">
-    <!-- Dynamic background with overlay -->
+    <!-- Dynamic background with no overlay -->
     <div class="absolute inset-0 z-0">
       <img 
         ref="backgroundImage"
-        src="https://4kwallpapers.com/images/wallpapers/poppy-flower-black-3840x2160-17227.jpg" 
+        :src="backgroundPath ? `http://localhost:8080${backgroundPath}` : ''"
         class="w-full h-full object-cover"
         alt="Background"
+        @error="handleImageError"
       />
-      <div class="absolute inset-0 bg-gradient-to-br from-blue-900/70 to-purple-900/70"></div>
     </div>
 
-    <!-- Main content -->
-    <div class="relative z-10 min-h-screen px-4 py-8">
-      <div class="max-w-7xl mx-auto">
-        <!-- Upload box (left side) -->
-        <div class="w-full sm:w-1/2 md:w-1/3 bg-white/90 backdrop-blur-lg shadow-xl rounded-xl p-6 space-y-6 animate-fade-in relative overflow-hidden">
-          
+    <!-- Main content with logo placeholder -->
+    <div class="relative z-10 min-h-screen px-4 py-16">
+      <!-- Logo placeholder -->
+      <div class="absolute top-4 left-4 z-20">
+        <router-link to="/" class="flex items-center space-x-2">
+          <img v-if="logoPath" :src="logoPath ? `http://localhost:8080${logoPath}` : ''" class="h-8 w-8" alt="Logo" @error="handleImageError" />
+          <CloudArrowUpIcon v-else class="h-8 w-8 text-blue-600" />
+          <span class="text-2xl font-extrabold text-gray-900">PinGO File Transfer</span>
+        </router-link>
+      </div>
+
+      <div class="flex justify-between w-full">
+        <!-- Upload box -->
+        <div class="max-w-md w-full bg-white/90 backdrop-blur-lg shadow-xl rounded-xl p-6 space-y-6 animate-fade-in relative overflow-hidden ml-0 mt-4">
           <!-- Animated layer with icons at 45° -->
-          <div
-            v-if="selectedFile"
-            class="absolute inset-0 -z-10 opacity-10 pointer-events-none"
-          >
+          <div v-if="selectedFile" class="absolute inset-0 -z-10 opacity-10 pointer-events-none">
             <div class="absolute -inset-[100%] origin-center rotate-45">
-              <div
-                class="w-full h-full animate-diagonal-scroll bg-repeat"
-                :style="{ backgroundImage: `url(${getFileIcon()})`, backgroundSize: '80px 80px' }"
-              />
+              <div class="w-full h-full animate-diagonal-scroll bg-repeat" :style="{ backgroundImage: `url(${getFileIcon()})`, backgroundSize: '80px 80px' }" />
             </div>
           </div>
 
-          <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight relative z-10">
-            Share Files Effortlessly
-          </h1>
-          <p class="text-gray-500 text-sm relative z-10">
-            Upload files securely with a single click or drag-and-drop
-          </p>
+          <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight relative z-10">Share Files Effortlessly</h1>
+          <p class="text-gray-500 text-sm relative z-10">Upload files securely with a single click or drag-and-drop</p>
 
           <!-- Drag-and-drop zone -->
-          <div
-            @dragover.prevent
-            @drop.prevent="onDrop"
-            @dragenter="isDragging = true"
-            @dragleave="isDragging = false"
+          <div @dragover.prevent @drop.prevent="onDrop" @dragenter="isDragging = true" @dragleave="isDragging = false"
             class="relative border-2 border-dashed border-gray-300 p-6 rounded-xl text-center cursor-pointer transition-all duration-300 hover:border-blue-400 hover:bg-blue-50/50"
-            :class="{ 'border-blue-400 bg-blue-50/50 scale-105': isDragging }"
-            @click="triggerFileInput"
-          >
-            <input
-              type="file"
-              ref="fileInput"
-              @change="onFileChange"
-              class="hidden"
-              aria-label="Select file to upload"
-            />
+            :class="{ 'border-blue-400 bg-blue-50/50 scale-105': isDragging }" @click="triggerFileInput">
+            <input type="file" ref="fileInput" @change="onFileChange" class="hidden" aria-label="Select file to upload" />
             <div class="flex flex-col items-center space-y-2">
-              <CloudArrowUpIcon
-                class="w-10 h-10 text-gray-400 transition-colors duration-300"
-                :class="{ 'text-blue-500': isDragging }"
-              />
-              <p class="text-sm font-medium text-gray-600">
-                <span class="text-blue-500 underline hover:text-blue-600">Choose a file</span>
-                or drag it here
-              </p>
-              <p
-                v-if="selectedFile"
-                class="mt-1 text-sm font-semibold text-gray-800 truncate max-w-xs"
-              >
-                {{ selectedFile.name }}
-              </p>
+              <CloudArrowUpIcon class="w-10 h-10 text-gray-400 transition-colors duration-300" :class="{ 'text-blue-500': isDragging }" />
+              <p class="text-sm font-medium text-gray-600"><span class="text-blue-500 underline hover:text-blue-600">Choose a file</span> or drag it here</p>
+              <p v-if="selectedFile" class="mt-1 text-sm font-semibold text-gray-800 truncate max-w-xs">{{ selectedFile.name }}</p>
             </div>
-            <div
-              v-if="isDragging"
-              class="absolute inset-0 rounded-xl bg-blue-100 opacity-20 animate-pulse"
-            />
+            <div v-if="isDragging" class="absolute inset-0 rounded-xl bg-blue-100 opacity-20 animate-pulse" />
           </div>
 
           <!-- Preview section -->
           <div v-if="selectedFile" class="space-y-4">
-            <button
-              v-if="['mp4', 'pdf'].includes(getFileExtension())"
-              @click="togglePreview"
+            <button v-if="['mp4', 'pdf'].includes(getFileExtension())" @click="togglePreview"
               :class="`w-full text-white py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200 ${isPreviewing ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`"
-              :disabled="isUploading"
-              aria-label="Toggle preview"
-            >
+              :disabled="isUploading" aria-label="Toggle preview">
               {{ isPreviewing ? 'Hide Preview' : 'Show Preview' }}
             </button>
 
             <!-- Video preview for .mp4 -->
             <div v-if="isPreviewing && getFileExtension() === 'mp4'" class="w-full">
-              <video
-                ref="videoPreview"
-                controls
-                class="w-full rounded-lg shadow-md"
-                :src="previewUrl"
-                @loadedmetadata="updateVideoMetadata"
-              >
+              <video ref="videoPreview" controls class="w-full rounded-lg shadow-md" :src="previewUrl" @loadedmetadata="updateVideoMetadata">
                 Your browser does not support the video tag.
               </video>
             </div>
 
             <!-- PDF preview for .pdf -->
             <div v-if="isPreviewing && getFileExtension() === 'pdf'" class="w-full">
-              <object
-                :data="previewUrl"
-                type="application/pdf"
-                class="w-full h-96 rounded-lg shadow-md"
-              >
+              <object :data="previewUrl" type="application/pdf" class="w-full h-96 rounded-lg shadow-md">
                 <p>Your browser does not support PDF preview. <a :href="previewUrl" download>Download the PDF</a> to view it.</p>
               </object>
             </div>
@@ -115,89 +73,43 @@
 
           <!-- Email field -->
           <div class="relative">
-            <input
-              v-model="email"
-              type="email"
-              placeholder="Recipient's email (optional)"
+            <input v-model="email" type="email" placeholder="Recipient's email (optional)"
               class="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all duration-200"
-              aria-label="Recipient's email"
-            />
-            <EnvelopeIcon
-              class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-            />
+              aria-label="Recipient's email" />
+            <EnvelopeIcon class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           </div>
 
           <!-- Upload button -->
-          <button
-            :disabled="!selectedFile || isUploading"
-            @click="handleUpload"
+          <button :disabled="!selectedFile || isUploading" @click="handleUpload"
             class="w-full bg-gradient-to-r from-[var(--button-from)] to-[var(--button-to)] text-white py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5"
-            aria-label="Upload file"
-          >
+            aria-label="Upload file">
             {{ isUploading ? 'Uploading...' : 'Share Now' }}
           </button>
 
           <!-- Progress bar -->
-          <div
-            v-if="progress > 0 && progress < 100"
-            class="w-full bg-gray-100 rounded-full h-2 overflow-hidden"
-          >
-            <div
-              class="bg-gradient-to-r from-[var(--button-from)] to-[var(--button-to)] h-full transition-all duration-300"
-              :style="{ width: progress + '%' }"
-            />
+          <div v-if="progress > 0 && progress < 100" class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+            <div class="bg-gradient-to-r from-[var(--button-from)] to-[var(--button-to)] h-full transition-all duration-300"
+              :style="{ width: progress + '%' }" />
           </div>
         </div>
 
-        <!-- File info section (right side) -->
+        <!-- File info section -->
         <div v-if="selectedFile" class="mt-6 sm:mt-0 sm:absolute sm:top-8 sm:right-8 w-full sm:w-1/2 md:w-2/5 bg-white/90 backdrop-blur-lg shadow-xl rounded-xl p-6 space-y-6">
           <h2 class="text-xl font-semibold text-gray-900">Share Details</h2>
           <div class="space-y-4">
-            <div>
-              <p class="text-gray-500 text-sm">File Name:</p>
-              <p class="text-gray-800 font-medium truncate">{{ selectedFile.name }}</p>
-            </div>
-            <div>
-              <p class="text-gray-500 text-sm">Size:</p>
-              <p class="text-gray-800 font-medium">{{ formatFileSize(selectedFile.size) }}</p>
-            </div>
-            <div>
-              <p class="text-gray-500 text-sm">Type:</p>
-              <p class="text-gray-800 font-medium">{{ selectedFile.type || 'Unknown' }}</p>
-            </div>
-            <div>
-              <p class="text-gray-500 text-sm">Extension:</p>
-              <p class="text-gray-800 font-medium">{{ getFileExtension() }}</p>
-            </div>
-            <div>
-              <p class="text-gray-500 text-sm">Last Modified:</p>
-              <p class="text-gray-800 font-medium">{{ new Date(selectedFile.lastModified).toLocaleString() }}</p>
-            </div>
-            <div>
-              <p class="text-gray-500 text-sm">Creation Date:</p>
-              <p class="text-gray-800 font-medium">{{ new Date(selectedFile.lastModified).toLocaleString() }}</p> <!-- Fallback to lastModified -->
-            </div>
-            <div v-if="videoMetadata.duration">
-              <p class="text-gray-500 text-sm">Duration:</p>
-              <p class="text-gray-800 font-medium">{{ formatDuration(videoMetadata.duration) }}</p>
-            </div>
-            <div v-if="email">
-              <p class="text-gray-500 text-sm">Recipient:</p>
-              <p class="text-gray-800 font-medium">{{ email }}</p>
-            </div>
+            <div><p class="text-gray-500 text-sm">File Name:</p><p class="text-gray-800 font-medium truncate">{{ selectedFile.name }}</p></div>
+            <div><p class="text-gray-500 text-sm">Size:</p><p class="text-gray-800 font-medium">{{ formatFileSize(selectedFile.size) }}</p></div>
+            <div><p class="text-gray-500 text-sm">Type:</p><p class="text-gray-800 font-medium">{{ selectedFile.type || 'Unknown' }}</p></div>
+            <div><p class="text-gray-500 text-sm">Extension:</p><p class="text-gray-800 font-medium">{{ getFileExtension() }}</p></div>
+            <div><p class="text-gray-500 text-sm">Last Modified:</p><p class="text-gray-800 font-medium">{{ new Date(selectedFile.lastModified).toLocaleString() }}</p></div>
+            <div><p class="text-gray-500 text-sm">Creation Date:</p><p class="text-gray-800 font-medium">{{ new Date(selectedFile.lastModified).toLocaleString() }}</p></div>
+            <div v-if="videoMetadata.duration"><p class="text-gray-500 text-sm">Duration:</p><p class="text-gray-800 font-medium">{{ formatDuration(videoMetadata.duration) }}</p></div>
+            <div v-if="email"><p class="text-gray-500 text-sm">Recipient:</p><p class="text-gray-800 font-medium">{{ email }}</p></div>
           </div>
           <div v-if="message" class="text-center text-sm animate-slide-up">
-            <p :class="message.type === 'success' ? 'text-green-600' : 'text-red-600'">
-              {{ message.text }}
-            </p>
-            <a
-              v-if="message.type === 'success' && downloadUrl"
-              :href="downloadUrl"
-              target="_blank"
-              class="text-blue-500 underline hover:text-blue-600 text-xs break-all"
-            >
-              {{ downloadUrl }}
-            </a>
+            <p :class="message.type === 'success' ? 'text-green-600' : 'text-red-600'">{{ message.text }}</p>
+            <a v-if="message.type === 'success' && downloadUrl" :href="downloadUrl" target="_blank"
+              class="text-blue-500 underline hover:text-blue-600 text-xs break-all">{{ downloadUrl }}</a>
           </div>
         </div>
       </div>
@@ -241,9 +153,11 @@ const isPreviewing = ref(false)
 const previewUrl = ref<string | undefined>(undefined)
 const videoPreview = ref<HTMLVideoElement | null>(null)
 const backgroundImage = ref<HTMLImageElement | null>(null)
-const buttonFromColor = ref<string>('#3b82f6') // Default blue-500
-const buttonToColor = ref<string>('#6366f1')   // Default indigo-600
+const buttonFromColor = ref<string>('#3b82f6')
+const buttonToColor = ref<string>('#6366f1')
 const videoMetadata = ref<VideoMetadata>({ duration: 0 })
+const logoPath = ref<string | null>(null)
+const backgroundPath = ref<string | null>(null)
 
 const iconMap: Record<string, string> = {
   pdf: filePdfIcon,
@@ -280,7 +194,7 @@ const onFileChange = (e: Event) => {
     isDragging.value = false
     message.value = null
     updatePreviewUrl()
-    videoMetadata.value.duration = 0 // Reset duration
+    videoMetadata.value.duration = 0
   }
 }
 
@@ -291,7 +205,7 @@ const onDrop = (e: DragEvent) => {
     isDragging.value = false
     message.value = null
     updatePreviewUrl()
-    videoMetadata.value.duration = 0 // Reset duration
+    videoMetadata.value.duration = 0
   }
 }
 
@@ -308,27 +222,17 @@ const handleUpload = async () => {
 
   try {
     const res = await axios.post('http://localhost:8080/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (event) => {
-        if (event.total) {
-          progress.value = Math.round((event.loaded * 100) / event.total)
-        }
+        if (event.total) progress.value = Math.round((event.loaded * 100) / event.total)
       },
     })
 
     downloadUrl.value = `http://localhost:8080${res.data.download_url}`
-    message.value = {
-      text: 'File uploaded successfully!',
-      type: 'success',
-    }
+    message.value = { text: 'File uploaded successfully!', type: 'success' }
   } catch (err) {
     console.error('Upload error:', err)
-    message.value = {
-      text: 'Upload failed. Please try again.',
-      type: 'error',
-    }
+    message.value = { text: 'Upload failed. Please try again.', type: 'error' }
   } finally {
     isUploading.value = false
   }
@@ -345,30 +249,30 @@ const getFileExtension = () => {
 }
 
 const updatePreviewUrl = () => {
-  if (selectedFile.value) {
-    previewUrl.value = URL.createObjectURL(selectedFile.value)
-  } else {
-    previewUrl.value = undefined
-  }
+  if (selectedFile.value) previewUrl.value = URL.createObjectURL(selectedFile.value)
+  else previewUrl.value = undefined
 }
 
 const togglePreview = () => {
   isPreviewing.value = !isPreviewing.value
-  if (isPreviewing.value && videoPreview.value) {
-    videoPreview.value.play().catch(err => console.error('Autoplay blocked:', err))
-  } else if (!isPreviewing.value && videoPreview.value) {
+  if (isPreviewing.value && videoPreview.value) videoPreview.value.play().catch(err => console.error('Autoplay blocked:', err))
+  else if (!isPreviewing.value && videoPreview.value) {
     videoPreview.value.pause()
     videoPreview.value.currentTime = 0
   }
 }
 
 const updateVideoMetadata = () => {
-  if (videoPreview.value && getFileExtension() === 'mp4') {
-    videoMetadata.value.duration = videoPreview.value.duration
-  }
+  if (videoPreview.value && getFileExtension() === 'mp4') videoMetadata.value.duration = videoPreview.value.duration
 }
 
-// Cleanup object URL on unmount or file change
+const handleImageError = () => {
+  console.error('Image failed to load:', backgroundPath.value || logoPath.value)
+  if (!backgroundPath.value) console.error('Background image not set')
+  if (!logoPath.value) logoPath.value = null // Fallback to icon
+}
+
+// Cleanup
 watch(selectedFile, () => {
   if (previewUrl.value) {
     URL.revokeObjectURL(previewUrl.value)
@@ -378,22 +282,20 @@ watch(selectedFile, () => {
     videoPreview.value.pause()
     videoPreview.value.currentTime = 0
   }
-  videoMetadata.value.duration = 0 // Reset duration on file change
+  videoMetadata.value.duration = 0
 })
 
 onUnmounted(() => {
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value)
-  }
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   if (videoPreview.value) {
     videoPreview.value.pause()
     videoPreview.value.currentTime = 0
   }
 })
 
-// Dynamic color adaptation based on background
 onMounted(async () => {
-  if (backgroundImage.value) {
+  await loadSettings()
+  if (backgroundImage.value && backgroundPath.value) {
     await backgroundImage.value.decode()
     const colorThief = new ColorThief()
     const [r, g, b] = colorThief.getColor(backgroundImage.value)
@@ -412,15 +314,24 @@ onMounted(async () => {
   }
 })
 
-// Helper functions for color conversion
+const loadSettings = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/settings')
+    console.log('Loaded settings:', response.data) // Debug log
+    logoPath.value = response.data.logo || null
+    backgroundPath.value = response.data.backgroundImage || null
+  } catch (error) {
+    console.error('Error loading settings:', error)
+  }
+}
+
 function rgbToHsl(r: number, g: number, b: number) {
   r /= 255; g /= 255; b /= 255
   const max = Math.max(r, g, b), min = Math.min(r, g, b)
-  let h, s, l = (max + min) / 2
+  let h = 0, s = 0, l = (max + min) / 2
 
-  if (max === min) {
-    h = s = 0
-  } else {
+  if (max === min) h = s = 0
+  else {
     const d = max - min
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
     switch (max) {
@@ -430,16 +341,14 @@ function rgbToHsl(r: number, g: number, b: number) {
     }
     h /= 6
   }
-
   return { h: h * 360, s, l }
 }
 
 function hslToRgb(h: number, s: number, l: number) {
   h /= 360; s /= 100; l /= 100
   let r, g, b
-  if (s === 0) {
-    r = g = b = l
-  } else {
+  if (s === 0) r = g = b = l
+  else {
     const hue2rgb = (p: number, q: number, t: number) => {
       if (t < 0) t += 1
       if (t > 1) t -= 1
@@ -460,76 +369,28 @@ function hslToRgb(h: number, s: number, l: number) {
 
 <style scoped>
 /* Fade in and slide up animations */
-.animate-fade-in {
-  animation: fadeIn 0.6s ease-in-out;
-}
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-slide-up {
-  animation: slideUp 0.4s ease-in-out;
-}
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+.animate-fade-in { animation: fadeIn 0.6s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slide-up { animation: slideUp 0.4s ease-in-out; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Continuous diagonal scroll effect */
-@keyframes diagonal-scroll {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: -240px 240px;
-  }
-}
-.animate-diagonal-scroll {
-  animation: diagonal-scroll 10s linear infinite;
-}
+@keyframes diagonal-scroll { 0% { background-position: 0 0; } 100% { background-position: -240px 240px; } }
+.animate-diagonal-scroll { animation: diagonal-scroll 10s linear infinite; }
 
 /* Ensure overlay covers the entire dialog */
-.absolute.inset-0 {
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
+.absolute.inset-0 { top: 0; left: 0; right: 0; bottom: 0; }
 
 /* Styles for icons and overlay */
-.bg-repeat {
-  background-repeat: repeat;
-}
+.bg-repeat { background-repeat: repeat; }
 
 /* Extended container to cover corners when rotated */
-.absolute.inset-100p {
-  top: -100%;
-  left: -100%;
-  right: -100%;
-  bottom: -100%;
-}
+.absolute.inset-100p { top: -100%; left: -100%; right: -100%; bottom: -100%; }
 
 /* Responsive adjustments */
 @media (max-width: 640px) {
-  .sm\:absolute {
-    position: relative;
-    top: auto;
-    right: auto;
-    width: 100%;
-    margin-top: 1.5rem;
-  }
+  .sm\:absolute { position: relative; top: auto; right: auto; width: 100%; margin-top: 1.5rem; }
+  .max-w-md { max-width: 100%; }
 }
 
 /* Dynamic button styles */
@@ -537,7 +398,5 @@ button {
   background: var(--button-from);
   background: linear-gradient(to right, var(--button-from), var(--button-to));
 }
-button:hover {
-  opacity: 0.9;
-}
+button:hover { opacity: 0.9; }
 </style>

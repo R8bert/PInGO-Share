@@ -37,15 +37,31 @@
               </select>
             </div>
             <div>
+              <label for="logo" class="block text-sm font-medium text-gray-700">Logo</label>
+              <input
+                id="logo"
+                type="file"
+                accept="image/*"
+                @change="handleLogoUpload"
+                class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
               <label for="backgroundImage" class="block text-sm font-medium text-gray-700">Background Image</label>
               <input
                 id="backgroundImage"
-                type="text"
-                v-model="settings.backgroundImage"
+                type="file"
+                accept="image/*"
+                @change="handleBackgroundUpload"
                 class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="URL to custom image"
               />
             </div>
+            <button
+              @click="saveSettings"
+              class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-md text-sm font-medium hover:from-indigo-700 hover:to-purple-700"
+            >
+              Save Settings
+            </button>
           </div>
         </div>
 
@@ -109,13 +125,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import axios from 'axios'
 
 // Tipuri
 interface Settings {
   theme: 'light' | 'dark' | 'system'
-  backgroundImage: string
+  logo: File | null
+  backgroundImage: File | null
 }
 
 interface Profile {
@@ -138,7 +155,8 @@ const tabs = ['Branding & UI', 'Users', 'My Profile']
 const activeTab = ref('Branding & UI')
 const settings = reactive<Settings>({
   theme: 'light',
-  backgroundImage: '',
+  logo: null,
+  backgroundImage: null,
 })
 const profile = reactive<Profile>({
   email: '',
@@ -148,10 +166,37 @@ const users = ref<User[]>([{ id: '1', name: 'User 1' }])
 const message = ref<Message | null>(null)
 
 // Funcții
+const handleLogoUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    settings.logo = target.files[0]
+  }
+}
+
+const handleBackgroundUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    settings.backgroundImage = target.files[0]
+  }
+}
+
 const saveSettings = async () => {
+  const formData = new FormData()
+  formData.append('theme', settings.theme)
+  if (settings.logo) formData.append('logo', settings.logo)
+  if (settings.backgroundImage) formData.append('backgroundImage', settings.backgroundImage)
+
   try {
-    await axios.post('http://localhost:8080/settings', settings)
+    const response = await axios.post('http://localhost:8080/settings/save', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
     message.value = { text: 'Settings saved successfully!', type: 'success' }
+    console.log('Saved settings response:', response.data)
+    settings.logo = null // Clear only if uploaded
+    settings.backgroundImage = null // Clear only if uploaded
+    await loadSettings() // Reload to update UI
   } catch (error) {
     console.error('Error saving settings:', error)
     message.value = { text: 'Failed to save settings.', type: 'error' }
@@ -182,6 +227,21 @@ const inviteUser = async () => {
 const removeUser = (id: string) => {
   users.value = users.value.filter(user => user.id !== id)
 }
+
+const loadSettings = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/settings')
+    console.log('Loaded settings:', response.data)
+    settings.theme = response.data.theme || 'light'
+    // Don't overwrite file inputs here, just UI state is handled by Home.vue/AppHeader.vue
+  } catch (error) {
+    console.error('Error loading settings:', error)
+  }
+}
+
+onMounted(() => {
+  loadSettings()
+})
 </script>
 
 <style scoped>
