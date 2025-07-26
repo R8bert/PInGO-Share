@@ -4,7 +4,7 @@
     <div class="absolute inset-0 z-0">
       <img 
         ref="backgroundImage"
-        :src="backgroundPath ? `http://localhost:8080${backgroundPath}` : ''"
+        :src="backgroundPath ? `http://localhost:8080${backgroundPath}` : 'https://4kwallpapers.com/images/wallpapers/jungle-tree-dark-3840x2160-22695.jpg'" 
         class="w-full h-full object-cover"
         alt="Background"
         @error="handleImageError"
@@ -91,6 +91,18 @@
             <div class="bg-gradient-to-r from-[var(--button-from)] to-[var(--button-to)] h-full transition-all duration-300"
               :style="{ width: progress + '%' }" />
           </div>
+
+          <!-- Upload Size Slider -->
+          <div v-if="selectedFile && maxUploadSize > 0" class="mt-4">
+            <p class="text-sm text-gray-600">Uploaded: {{ formatFileSize(selectedFile.size) }} / {{ formatFileSize(maxUploadSize) }}</p>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1 overflow-hidden border border-gray-300">
+              <div
+                class="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-in-out"
+                :style="{ width: `${Math.min((selectedFile.size / maxUploadSize) * 100, 100)}%` }"
+              ></div>
+            </div>
+            <p v-if="selectedFile.size > maxUploadSize" class="text-sm text-red-600 mt-1">File exceeds maximum upload size!</p>
+          </div>
         </div>
 
         <!-- File info section -->
@@ -158,6 +170,7 @@ const buttonToColor = ref<string>('#6366f1')
 const videoMetadata = ref<VideoMetadata>({ duration: 0 })
 const logoPath = ref<string | null>(null)
 const backgroundPath = ref<string | null>(null)
+const maxUploadSize = ref<number>(104857600) // Default 100 MB
 
 const iconMap: Record<string, string> = {
   pdf: filePdfIcon,
@@ -268,8 +281,8 @@ const updateVideoMetadata = () => {
 
 const handleImageError = () => {
   console.error('Image failed to load:', backgroundPath.value || logoPath.value)
-  if (!backgroundPath.value) console.error('Background image not set')
-  if (!logoPath.value) logoPath.value = null // Fallback to icon
+  if (!backgroundPath.value) backgroundPath.value = 'https://4kwallpapers.com/images/wallpapers/jungle-tree-dark-3840x2160-22695.jpg'
+  if (!logoPath.value) logoPath.value = null
 }
 
 // Cleanup
@@ -317,9 +330,10 @@ onMounted(async () => {
 const loadSettings = async () => {
   try {
     const response = await axios.get('http://localhost:8080/settings')
-    console.log('Loaded settings:', response.data) // Debug log
+    console.log('Loaded settings:', response.data)
     logoPath.value = response.data.logo || null
     backgroundPath.value = response.data.backgroundImage || null
+    maxUploadSize.value = response.data.maxUploadSize || 104857600 // Default 100 MB
   } catch (error) {
     console.error('Error loading settings:', error)
   }

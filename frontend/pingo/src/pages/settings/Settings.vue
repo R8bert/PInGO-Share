@@ -56,6 +56,20 @@
                 class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
+            <div>
+              <label for="maxUploadSize" class="block text-sm font-medium text-gray-700">Max Upload Size</label>
+              <select
+                id="maxUploadSize"
+                v-model="settings.maxUploadSize"
+                class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="1048576">1 MB</option> <!-- 1 MB = 1024 * 1024 bytes -->
+                <option value="10485760">10 MB</option> <!-- 10 MB -->
+                <option value="52428800">50 MB</option> <!-- 50 MB -->
+                <option value="104857600">100 MB</option> <!-- 100 MB -->
+                <option value="1073741824">1 GB</option> <!-- 1 GB -->
+              </select>
+            </div>
             <button
               @click="saveSettings"
               class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-md text-sm font-medium hover:from-indigo-700 hover:to-purple-700"
@@ -133,6 +147,7 @@ interface Settings {
   theme: 'light' | 'dark' | 'system'
   logo: File | null
   backgroundImage: File | null
+  maxUploadSize: string | number // Allow string from select for v-model
 }
 
 interface Profile {
@@ -157,6 +172,7 @@ const settings = reactive<Settings>({
   theme: 'light',
   logo: null,
   backgroundImage: null,
+  maxUploadSize: '104857600', // Default 100 MB
 })
 const profile = reactive<Profile>({
   email: '',
@@ -185,6 +201,7 @@ const saveSettings = async () => {
   formData.append('theme', settings.theme)
   if (settings.logo) formData.append('logo', settings.logo)
   if (settings.backgroundImage) formData.append('backgroundImage', settings.backgroundImage)
+  if (settings.maxUploadSize) formData.append('maxUploadSize', settings.maxUploadSize.toString()) // Convert to string for backend
 
   try {
     const response = await axios.post('http://localhost:8080/settings/save', formData, {
@@ -194,9 +211,9 @@ const saveSettings = async () => {
     })
     message.value = { text: 'Settings saved successfully!', type: 'success' }
     console.log('Saved settings response:', response.data)
-    settings.logo = null // Clear only if uploaded
-    settings.backgroundImage = null // Clear only if uploaded
-    await loadSettings() // Reload to update UI
+    settings.logo = null
+    settings.backgroundImage = null
+    await loadSettings()
   } catch (error) {
     console.error('Error saving settings:', error)
     message.value = { text: 'Failed to save settings.', type: 'error' }
@@ -233,7 +250,7 @@ const loadSettings = async () => {
     const response = await axios.get('http://localhost:8080/settings')
     console.log('Loaded settings:', response.data)
     settings.theme = response.data.theme || 'light'
-    // Don't overwrite file inputs here, just UI state is handled by Home.vue/AppHeader.vue
+    settings.maxUploadSize = response.data.maxUploadSize || '104857600' // Default 100 MB if not set
   } catch (error) {
     console.error('Error loading settings:', error)
   }
