@@ -4,10 +4,11 @@
     <div class="absolute inset-0 z-0">
       <img 
         ref="backgroundImage"
-        :src="backgroundPath ? `http://localhost:8080${backgroundPath}` : 'https://4kwallpapers.com/images/wallpapers/jungle-tree-dark-3840x2160-22695.jpg'" 
+        :src="`http://localhost:8080${backgroundPath}`"
         class="w-full h-full object-cover"
         alt="Background"
         @error="handleImageError"
+        @load="onBackgroundImageLoad"
       />
     </div>
 
@@ -24,7 +25,7 @@
 
       <div class="flex justify-between w-full">
         <!-- Upload box -->
-        <div class="max-w-md w-full bg-white/90 backdrop-blur-lg shadow-xl rounded-xl p-6 space-y-6 animate-fade-in relative overflow-hidden ml-0 mt-4">
+        <div :class="uploadBoxClasses" :style="uploadBoxStyle">
           <!-- Animated layer with icons at 45° -->
           <div v-if="selectedFile" class="absolute inset-0 -z-10 opacity-10 pointer-events-none">
             <div class="absolute -inset-[100%] origin-center rotate-45">
@@ -33,7 +34,7 @@
           </div>
 
           <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight relative z-10">Share Files Effortlessly</h1>
-          <p class="text-gray-500 text-sm relative z-10">Upload files securely with a single click or drag-and-drop</p>
+          <p class="text-gray-600 text-sm relative z-10">Upload files securely with a single click or drag-and-drop</p>
 
           <!-- Drag-and-drop zone -->
           <div @dragover.prevent @drop.prevent="onDrop" @dragenter="isDragging = true" @dragleave="isDragging = false"
@@ -51,7 +52,8 @@
           <!-- Preview section -->
           <div v-if="selectedFile" class="space-y-4">
             <button v-if="['mp4', 'pdf'].includes(getFileExtension())" @click="togglePreview"
-              :class="`w-full text-white py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200 ${isPreviewing ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`"
+              class="w-full text-white py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200"
+              :class="isPreviewing ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
               :disabled="isUploading" aria-label="Toggle preview">
               {{ isPreviewing ? 'Hide Preview' : 'Show Preview' }}
             </button>
@@ -79,12 +81,20 @@
             <EnvelopeIcon class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           </div>
 
-          <!-- Upload button -->
-          <button :disabled="!selectedFile || isUploading" @click="handleUpload"
-            class="w-full bg-gradient-to-r from-[var(--button-from)] to-[var(--button-to)] text-white py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5"
-            aria-label="Upload file">
-            {{ isUploading ? 'Uploading...' : 'Share Now' }}
-          </button>
+          <!-- Upload and Clear buttons -->
+          <div class="flex space-x-2">
+            <button :disabled="!selectedFile || isUploading" @click="handleUpload"
+              class="flex-1 bg-gradient-to-r from-[var(--button-from)] to-[var(--button-to)] text-white py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5"
+              aria-label="Upload file">
+              {{ isUploading ? 'Uploading...' : 'Share Now' }}
+            </button>
+            
+            <button v-if="selectedFile && !isUploading" @click="clearFile"
+              class="p-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-300 hover:scale-105"
+              aria-label="Clear selected file">
+              <XMarkIcon class="w-5 h-5" />
+            </button>
+          </div>
 
           <!-- Progress bar -->
           <div v-if="progress > 0 && progress < 100" class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -93,35 +103,469 @@
           </div>
 
           <!-- Upload Size Slider -->
-          <div v-if="selectedFile && maxUploadSize > 0" class="mt-4">
-            <p class="text-sm text-gray-600">Uploaded: {{ formatFileSize(selectedFile.size) }} / {{ formatFileSize(maxUploadSize) }}</p>
-            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1 overflow-hidden border border-gray-300">
-              <div
-                class="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-in-out"
-                :style="{ width: `${Math.min((selectedFile.size / maxUploadSize) * 100, 100)}%` }"
-              ></div>
+          <div v-if="selectedFile && maxUploadSize > 0" class="space-y-5">
+            <!-- Enhanced header with more sophistication -->
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-gray-50 rounded-2xl border border-gray-200/50 shadow-sm">
+              <div class="flex items-center space-x-3">
+                <div class="relative">
+                  <div class="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse shadow-lg"></div>
+                  <div class="absolute inset-0 w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 animate-ping opacity-30"></div>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-gray-800 tracking-wide">File Analysis</h3>
+                  <p class="text-xs text-gray-500 font-medium">Smart size detection</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div class="px-3 py-1.5 bg-white rounded-xl shadow-sm border border-gray-200">
+                  <span class="text-xs font-mono font-semibold text-gray-700">{{ formatFileSize(selectedFile.size) }}</span>
+                </div>
+                <div class="px-2 py-1 rounded-lg text-xs font-semibold"
+                  :class="{
+                    'bg-emerald-100 text-emerald-700': selectedFile.size <= maxUploadSize * 0.7,
+                    'bg-amber-100 text-amber-700': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                    'bg-red-100 text-red-700': selectedFile.size > maxUploadSize
+                  }"
+                >
+                  {{ Math.round((selectedFile.size / maxUploadSize) * 100) }}%
+                </div>
+              </div>
             </div>
-            <p v-if="selectedFile.size > maxUploadSize" class="text-sm text-red-600 mt-1">File exceeds maximum upload size!</p>
+            
+            <!-- Enhanced progress container with more details -->
+            <div class="relative p-6 bg-gradient-to-br from-gray-50 via-white to-gray-50 rounded-3xl border border-gray-200/50 shadow-lg">
+              <!-- Enhanced floating label with icon -->
+              <div class="absolute -top-3 left-6 px-3 py-1 bg-white rounded-2xl shadow-md border border-gray-200 flex items-center space-x-2">
+                <svg class="w-3 h-3 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                </svg>
+                <span class="text-xs font-semibold text-gray-600">Usage Monitor</span>
+              </div>
+              
+              <!-- Progress track with enhanced styling -->
+              <div class="relative w-full h-3 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner border border-gray-300/50 mt-4">
+                <!-- Multiple animated layers -->
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer-modern"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-blue-200/20 to-transparent animate-shimmer-modern" style="animation-delay: 1s;"></div>
+                
+                <!-- Main progress bar with enhanced gradients -->
+                <div
+                  class="h-full rounded-full relative overflow-hidden transition-all duration-1000 ease-out shadow-lg border border-white/50"
+                  :class="{
+                    'bg-gradient-to-r from-emerald-400 via-emerald-500 to-green-500': selectedFile.size <= maxUploadSize * 0.7,
+                    'bg-gradient-to-r from-amber-400 via-orange-500 to-red-500': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                    'bg-gradient-to-r from-red-500 via-pink-500 to-red-600 animate-pulse-glow': selectedFile.size > maxUploadSize
+                  }"
+                  :style="{ 
+                    width: `${Math.min((selectedFile.size / maxUploadSize) * 100, 100)}%`,
+                    filter: selectedFile.size > maxUploadSize ? 'drop-shadow(0 0 12px rgba(239, 68, 68, 0.7))' : 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.15))',
+                    boxShadow: selectedFile.size > maxUploadSize ? 'inset 0 1px 0 rgba(255,255,255,0.3), 0 0 20px rgba(239, 68, 68, 0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.3)'
+                  }"
+                >
+                  <!-- Enhanced animated highlights -->
+                  <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-slide-modern"></div>
+                  <div class="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-full"></div>
+                  
+                  <!-- Enhanced progress indicator dot with ripple effect -->
+                  <div class="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2">
+                    <div class="relative">
+                      <div class="w-5 h-5 rounded-full bg-white shadow-xl border-3 transition-all duration-300"
+                        :class="{
+                          'border-emerald-500 shadow-emerald-200': selectedFile.size <= maxUploadSize * 0.7,
+                          'border-orange-500 shadow-orange-200': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                          'border-red-500 animate-bounce shadow-red-200': selectedFile.size > maxUploadSize
+                        }"
+                      ></div>
+                      <!-- Ripple effect -->
+                      <div class="absolute inset-0 rounded-full animate-ping opacity-40"
+                        :class="{
+                          'bg-emerald-400': selectedFile.size <= maxUploadSize * 0.7,
+                          'bg-orange-400': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                          'bg-red-400': selectedFile.size > maxUploadSize
+                        }"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Enhanced progress details -->
+              <div class="flex justify-between items-center mt-4">
+                <div class="text-xs text-gray-500 font-medium">0%</div>
+                <div class="flex items-center space-x-3">
+                  <div class="px-3 py-1.5 bg-white rounded-xl shadow-sm border border-gray-200">
+                    <span class="text-xs font-bold"
+                      :class="{
+                        'text-emerald-600': selectedFile.size <= maxUploadSize * 0.7,
+                        'text-orange-600': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                        'text-red-600': selectedFile.size > maxUploadSize
+                      }"
+                    >
+                      {{ Math.min(Math.round((selectedFile.size / maxUploadSize) * 100), 100) }}%
+                    </span>
+                  </div>
+                  <div class="text-xs text-gray-400 font-mono">
+                    {{ formatFileSize(maxUploadSize) }} max
+                  </div>
+                </div>
+                <div class="text-xs text-gray-500 font-medium">100%</div>
+              </div>
+              
+              <!-- Speed indicator -->
+              <div class="mt-3 flex items-center justify-center">
+                <div class="px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200/50">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                    <span class="text-xs font-semibold text-blue-700">
+                      Upload speed: ~{{ Math.round(selectedFile.size / 1024 / 1024 * 8) }} Mbps
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Enhanced status card with more sophisticated design -->
+            <div class="relative overflow-hidden rounded-2xl transition-all duration-500 hover:scale-[1.02] transform"
+              :class="{
+                'bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 border-2 border-emerald-200': selectedFile.size <= maxUploadSize * 0.7,
+                'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-100 border-2 border-orange-200': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                'bg-gradient-to-br from-red-50 via-pink-50 to-red-100 border-2 border-red-200 animate-pulse-border': selectedFile.size > maxUploadSize
+              }"
+            >
+              <!-- Animated background pattern -->
+              <div class="absolute inset-0 opacity-30">
+                <div class="absolute top-0 right-0 w-32 h-32 rounded-full transform translate-x-16 -translate-y-16"
+                  :class="{
+                    'bg-gradient-to-br from-emerald-200 to-green-300': selectedFile.size <= maxUploadSize * 0.7,
+                    'bg-gradient-to-br from-orange-200 to-amber-300': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                    'bg-gradient-to-br from-red-200 to-pink-300': selectedFile.size > maxUploadSize
+                  }"
+                ></div>
+              </div>
+              
+              <div class="relative p-5">
+                <div class="flex items-center space-x-4">
+                  <!-- Enhanced status icon with multiple layers -->
+                  <div class="relative flex-shrink-0">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transform transition-transform duration-300 hover:scale-110"
+                      :class="{
+                        'bg-gradient-to-br from-emerald-400 to-green-600': selectedFile.size <= maxUploadSize * 0.7,
+                        'bg-gradient-to-br from-orange-400 to-amber-600': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                        'bg-gradient-to-br from-red-400 to-pink-600': selectedFile.size > maxUploadSize
+                      }"
+                    >
+                      <svg v-if="selectedFile.size <= maxUploadSize * 0.7" class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                      <svg v-else-if="selectedFile.size <= maxUploadSize" class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                      </svg>
+                      <svg v-else class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                    <!-- Glow effect -->
+                    <div class="absolute inset-0 rounded-2xl blur-lg opacity-50"
+                      :class="{
+                        'bg-emerald-400': selectedFile.size <= maxUploadSize * 0.7,
+                        'bg-orange-400': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                        'bg-red-400': selectedFile.size > maxUploadSize
+                      }"
+                    ></div>
+                  </div>
+                  
+                  <!-- Enhanced status text -->
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-2 mb-1">
+                      <p class="text-base font-bold"
+                        :class="{
+                          'text-emerald-800': selectedFile.size <= maxUploadSize * 0.7,
+                          'text-orange-800': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                          'text-red-800': selectedFile.size > maxUploadSize
+                        }"
+                      >
+                        <span v-if="selectedFile.size <= maxUploadSize * 0.7">✨ Optimal file size</span>
+                        <span v-else-if="selectedFile.size <= maxUploadSize">⚠️ Large file detected</span>
+                        <span v-else>🚫 File size exceeded</span>
+                      </p>
+                      <div class="px-2 py-0.5 rounded-full text-xs font-bold"
+                        :class="{
+                          'bg-emerald-200 text-emerald-800': selectedFile.size <= maxUploadSize * 0.7,
+                          'bg-orange-200 text-orange-800': selectedFile.size > maxUploadSize * 0.7 && selectedFile.size <= maxUploadSize,
+                          'bg-red-200 text-red-800': selectedFile.size > maxUploadSize
+                        }"
+                      >
+                        {{ selectedFile.size > maxUploadSize ? 'BLOCKED' : 'ALLOWED' }}
+                      </div>
+                    </div>
+                    
+                    <div class="space-y-1">
+                      <p class="text-sm text-gray-700 font-medium">
+                        {{ formatFileSize(Math.abs(maxUploadSize - selectedFile.size)) }} 
+                        {{ selectedFile.size > maxUploadSize ? 'over the limit' : 'remaining space' }}
+                      </p>
+                      <div class="flex items-center space-x-4 text-xs text-gray-600">
+                        <span>📁 {{ getFileExtension().toUpperCase() }} format</span>
+                        <span>⏱️ Est. {{ Math.ceil(selectedFile.size / 1024 / 1024) }}s upload</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- File info section -->
-        <div v-if="selectedFile" class="mt-6 sm:mt-0 sm:absolute sm:top-8 sm:right-8 w-full sm:w-1/2 md:w-2/5 bg-white/90 backdrop-blur-lg shadow-xl rounded-xl p-6 space-y-6">
-          <h2 class="text-xl font-semibold text-gray-900">Share Details</h2>
-          <div class="space-y-4">
-            <div><p class="text-gray-500 text-sm">File Name:</p><p class="text-gray-800 font-medium truncate">{{ selectedFile.name }}</p></div>
-            <div><p class="text-gray-500 text-sm">Size:</p><p class="text-gray-800 font-medium">{{ formatFileSize(selectedFile.size) }}</p></div>
-            <div><p class="text-gray-500 text-sm">Type:</p><p class="text-gray-800 font-medium">{{ selectedFile.type || 'Unknown' }}</p></div>
-            <div><p class="text-gray-500 text-sm">Extension:</p><p class="text-gray-800 font-medium">{{ getFileExtension() }}</p></div>
-            <div><p class="text-gray-500 text-sm">Last Modified:</p><p class="text-gray-800 font-medium">{{ new Date(selectedFile.lastModified).toLocaleString() }}</p></div>
-            <div><p class="text-gray-500 text-sm">Creation Date:</p><p class="text-gray-800 font-medium">{{ new Date(selectedFile.lastModified).toLocaleString() }}</p></div>
-            <div v-if="videoMetadata.duration"><p class="text-gray-500 text-sm">Duration:</p><p class="text-gray-800 font-medium">{{ formatDuration(videoMetadata.duration) }}</p></div>
-            <div v-if="email"><p class="text-gray-500 text-sm">Recipient:</p><p class="text-gray-800 font-medium">{{ email }}</p></div>
-          </div>
-          <div v-if="message" class="text-center text-sm animate-slide-up">
-            <p :class="message.type === 'success' ? 'text-green-600' : 'text-red-600'">{{ message.text }}</p>
-            <a v-if="message.type === 'success' && downloadUrl" :href="downloadUrl" target="_blank"
-              class="text-blue-500 underline hover:text-blue-600 text-xs break-all">{{ downloadUrl }}</a>
+        <!-- Enhanced File Info section -->
+        <div v-if="selectedFile" class="mt-6 sm:mt-0 sm:absolute sm:top-8 sm:right-8 w-full sm:w-auto sm:max-w-sm">
+          <!-- Ultra-modern card container with glassmorphism -->
+          <div :class="fileDetailsClasses" :style="fileDetailsStyle">
+            <!-- Animated background layers -->
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/10"></div>
+            <div class="absolute inset-0 bg-gradient-to-tl from-white/5 via-transparent to-white/5"></div>
+            
+            <!-- Premium glassmorphism header -->
+            <div class="relative border-b border-white/20" :style="{
+              backgroundColor: `rgba(255, 255, 255, ${(100 - uploadBoxTransparency) / 100 * 0.05})`,
+              backdropFilter: blurIntensity > 0 ? `blur(${blurIntensity * 0.5}px)` : 'none',
+              '-webkit-backdrop-filter': blurIntensity > 0 ? `blur(${blurIntensity * 0.5}px)` : 'none'
+            } as any">
+              <div class="flex items-center justify-between gap-8 p-6">
+                <div class="flex items-center space-x-3">
+                  <div class="relative">
+                    <div class="w-4 h-4 rounded-full bg-white/40 animate-pulse shadow-lg"></div>
+                    <div class="absolute inset-0 w-4 h-4 rounded-full bg-white/20 animate-ping opacity-30"></div>
+                  </div>
+                  <div>
+                    <h2 class="text-lg font-bold text-white tracking-tight">File Details</h2>
+                    <p class="text-xs text-white/70 font-medium">Smart analysis results</p>
+                  </div>
+                </div>
+                
+                <button @click="showDetails = !showDetails" 
+                  class="group relative p-2.5 rounded-3xl bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-500 border border-white/30 hover:border-white/40"
+                  :aria-label="showDetails ? 'Hide details' : 'Show details'">
+                  <svg class="w-5 h-5 text-white transition-all duration-500" 
+                    :class="{ 'rotate-180': !showDetails }" 
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7" />
+                  </svg>
+                  <!-- Button glow effect -->
+                  <div class="absolute inset-0 rounded-2xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                </button>
+              </div>
+              <!-- Subtle animated overlay -->
+              <div class="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 pointer-events-none"></div>
+            </div>
+            
+            <!-- Enhanced collapsible content -->
+            <div v-show="showDetails" class="relative p-6 space-y-5 animate-slide-down">
+              <!-- Premium file type indicator with enhanced animations -->
+              <div class="relative">
+                <div class="flex items-center justify-center p-6 rounded-3xl border border-white/20 shadow-inner" :style="fileDetailsItemStyle">
+                  <div class="text-center">
+                    <div class="relative mx-auto mb-4">
+                      <!-- Main icon container -->
+                      <div class="w-16 h-16 mx-auto rounded-3xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-2xl border border-white/30">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                      <!-- Floating particles -->
+                      <div class="absolute -top-2 -right-2 w-3 h-3 rounded-full bg-yellow-400/70 animate-bounce opacity-70"></div>
+                      <div class="absolute -bottom-1 -left-1 w-2 h-2 rounded-full bg-green-400/70 animate-pulse opacity-60"></div>
+                      <!-- Glow effect -->
+                      <div class="absolute inset-0 rounded-3xl bg-white/10 blur-xl opacity-50"></div>
+                    </div>
+                    <div class="space-y-2">
+                      <p class="text-lg font-bold text-white">.{{ getFileExtension().toUpperCase() }} Document</p>
+                      <div class="flex items-center justify-center space-x-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <p class="text-sm font-semibold text-white/80">{{ formatFileSize(selectedFile.size) }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Enhanced data grid with transparent styling -->
+              <div class="space-y-3">
+                <!-- File name with transparent styling -->
+                <div :class="fileDetailsItemClasses" :style="fileDetailsItemStyle">
+                  <div class="relative flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                        </svg>
+                      </div>
+                      <span class="text-sm font-bold text-white uppercase tracking-wider">File Name</span>
+                    </div>
+                    <div class="flex-1 text-right">
+                      <p class="text-sm font-bold text-white truncate max-w-36" :title="selectedFile.name">
+                        {{ selectedFile.name }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- File type with transparent design -->
+                <div :class="fileDetailsItemClasses" :style="fileDetailsItemStyle">
+                  <div class="relative flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12z" clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                      <span class="text-sm font-bold text-white uppercase tracking-wider">MIME Type</span>
+                    </div>
+                    <p class="text-sm font-bold text-white">{{ selectedFile.type || 'application/octet-stream' }}</p>
+                  </div>
+                </div>
+                
+                <!-- Modified date with transparent styling -->
+                <div :class="fileDetailsItemClasses" :style="fileDetailsItemStyle">
+                  <div class="relative flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                      <span class="text-sm font-bold text-white uppercase tracking-wider">Last Modified</span>
+                    </div>
+                    <p class="text-sm font-bold text-white">{{ formatDate(selectedFile.lastModified) }}</p>
+                  </div>
+                </div>
+                
+                <!-- Video duration with transparent styling -->
+                <div v-if="videoMetadata.duration" :class="fileDetailsItemClasses" :style="fileDetailsItemStyle">
+                  <div class="relative flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                      <span class="text-sm font-bold text-white uppercase tracking-wider">Duration</span>
+                    </div>
+                    <p class="text-sm font-bold text-white">{{ formatDuration(videoMetadata.duration) }}</p>
+                  </div>
+                </div>
+                
+                <!-- Recipient with transparent design -->
+                <div v-if="email" class="relative overflow-hidden p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                  <div class="relative flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        </svg>
+                      </div>
+                      <span class="text-sm font-bold text-white uppercase tracking-wider">Recipient</span>
+                    </div>
+                    <p class="text-sm font-bold text-white truncate max-w-32" :title="email">{{ email }}</p>
+                  </div>
+                </div>
+                
+                <!-- Security & performance indicator -->
+                <div class="relative overflow-hidden p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                  <div class="relative flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                      <span class="text-sm font-bold text-white uppercase tracking-wider">Security</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                      <p class="text-sm font-bold text-white">Encrypted</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Ultra-premium success/error message -->
+            <div v-if="message" class="p-6 pt-0">
+              <div class="relative overflow-hidden rounded-3xl p-6 animate-slide-up"
+                :class="{
+                  'bg-gradient-to-br from-emerald-50 via-green-100 to-emerald-200 border-2 border-emerald-300/50': message.type === 'success',
+                  'bg-gradient-to-br from-red-50 via-pink-100 to-red-200 border-2 border-red-300/50': message.type === 'error'
+                }"
+              >
+                <!-- Enhanced animated background pattern -->
+                <div class="absolute inset-0 opacity-30">
+                  <div class="w-full h-full bg-gradient-to-br from-white/60 via-transparent to-white/30 animate-shimmer-slow"></div>
+                </div>
+                
+                <!-- Floating decorative elements -->
+                <div class="absolute top-2 right-2 w-4 h-4 rounded-full opacity-20 animate-bounce"
+                  :class="{
+                    'bg-emerald-400': message.type === 'success',
+                    'bg-red-400': message.type === 'error'
+                  }"
+                  :style="message.type === 'success' ? `background-color: var(--primary-from)` : ''"
+                ></div>
+                <div class="absolute bottom-2 left-2 w-3 h-3 rounded-full opacity-15 animate-pulse"
+                  :class="{
+                    'bg-green-400': message.type === 'success',
+                    'bg-pink-400': message.type === 'error'
+                  }"
+                  :style="message.type === 'success' ? `background-color: var(--secondary-from)` : ''"
+                ></div>
+                
+                <div class="relative text-center">
+                  <!-- Enhanced status icon with glow -->
+                  <div class="relative mx-auto mb-4">
+                    <div class="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center shadow-2xl"
+                      :class="{
+                        'bg-gradient-to-br from-emerald-400 via-green-500 to-emerald-600': message.type === 'success',
+                        'bg-gradient-to-br from-red-400 via-pink-500 to-red-600': message.type === 'error'
+                      }"
+                      :style="message.type === 'success' ? `background: linear-gradient(to br, var(--primary-from), var(--secondary-from), var(--accent-from))` : ''"
+                    >
+                      <svg v-if="message.type === 'success'" class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                      <svg v-else class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                    <!-- Glow effect -->
+                    <div class="absolute inset-0 rounded-2xl blur-lg opacity-60"
+                      :class="{
+                        'bg-emerald-400': message.type === 'success',
+                        'bg-red-400': message.type === 'error'
+                      }"
+                      :style="message.type === 'success' ? `background-color: var(--primary-from)` : ''"
+                    ></div>
+                  </div>
+                  
+                  <p class="font-bold text-lg mb-3"
+                    :class="{
+                      'text-emerald-800': message.type === 'success',
+                      'text-red-800': message.type === 'error'
+                    }"
+                  >
+                    {{ message.text }}
+                  </p>
+                  
+                  <a v-if="message.type === 'success' && downloadUrl" :href="downloadUrl" target="_blank"
+                    class="inline-flex items-center px-6 py-3 bg-white/90 hover:bg-white rounded-2xl text-blue-600 hover:text-blue-700 text-sm font-bold transition-all duration-500 hover:scale-110 shadow-lg border border-white/50 hover:shadow-xl group"
+                  >
+                    <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Open Download Link
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -130,10 +574,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import axios from 'axios'
-import { CloudArrowUpIcon, EnvelopeIcon } from '@heroicons/vue/24/outline'
-import ColorThief from 'colorthief'
+import { CloudArrowUpIcon, EnvelopeIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 // Import icons
 import fileMp4Icon from './images/train/icons/file-mp4.png'
@@ -165,12 +608,72 @@ const isPreviewing = ref(false)
 const previewUrl = ref<string | undefined>(undefined)
 const videoPreview = ref<HTMLVideoElement | null>(null)
 const backgroundImage = ref<HTMLImageElement | null>(null)
-const buttonFromColor = ref<string>('#3b82f6')
+const buttonFromColor = ref<string>('')
 const buttonToColor = ref<string>('#6366f1')
 const videoMetadata = ref<VideoMetadata>({ duration: 0 })
 const logoPath = ref<string | null>(null)
 const backgroundPath = ref<string | null>(null)
 const maxUploadSize = ref<number>(104857600) // Default 100 MB
+const uploadBoxTransparency = ref<number>(80) // Default 80% transparent
+const blurIntensity = ref<number>(12) // Default medium blur
+const showDetails = ref<boolean>(true)
+
+// Computed properties for dynamic styling
+const uploadBoxClasses = computed(() => {
+  return `max-w-md w-full shadow-xl rounded-xl p-6 space-y-6 animate-fade-in relative overflow-hidden ml-0 mt-4`
+})
+
+const uploadBoxStyle = computed(() => {
+  // 0% transparency = fully opaque (opacity 1)
+  // 100% transparency = fully transparent (opacity 0)
+  const opacity = (100 - uploadBoxTransparency.value) / 100
+  const blurValue = blurIntensity.value
+  
+  return {
+    backgroundColor: `rgba(255, 255, 255, ${opacity})`,
+    backdropFilter: blurValue > 0 ? `blur(${blurValue}px)` : 'none',
+    '-webkit-backdrop-filter': blurValue > 0 ? `blur(${blurValue}px)` : 'none' // Safari support
+  } as any
+})
+
+// File details styling
+const fileDetailsClasses = computed(() => {
+  return `relative rounded-3xl shadow-2xl border border-white/30 overflow-hidden`
+})
+
+const fileDetailsStyle = computed(() => {
+  const opacity = (100 - uploadBoxTransparency.value) / 100 // Use same transparency as upload box
+  const blurValue = blurIntensity.value
+  return {
+    backgroundColor: `rgba(255, 255, 255, ${opacity * 0.05})`,
+    backdropFilter: blurValue > 0 ? `blur(${blurValue}px)` : 'none',
+    '-webkit-backdrop-filter': blurValue > 0 ? `blur(${blurValue}px)` : 'none'
+  } as any
+})
+
+const fileDetailsItemClasses = computed(() => {
+  return `relative overflow-hidden p-5 rounded-2xl border border-white/20`
+})
+
+const fileDetailsItemStyle = computed(() => {
+  const opacity = (100 - uploadBoxTransparency.value) / 100
+  const blurValue = blurIntensity.value * 0.5 // Use half the blur for items
+  return {
+    backgroundColor: `rgba(255, 255, 255, ${opacity * 0.1})`,
+    backdropFilter: blurValue > 0 ? `blur(${blurValue}px)` : 'none',
+    '-webkit-backdrop-filter': blurValue > 0 ? `blur(${blurValue}px)` : 'none'
+  } as any
+})
+
+// Computed property for text contrast based on transparency
+const textContrastStyle = computed(() => {
+  const opacity = (100 - uploadBoxTransparency.value) / 100
+  // When background is very transparent (low opacity), we need stronger text shadows
+  const shadowStrength = opacity < 0.3 ? 0.9 : 0.5
+  return {
+    textShadow: `2px 2px 4px rgba(255,255,255,${shadowStrength}), -1px -1px 2px rgba(0,0,0,${shadowStrength * 0.6})`
+  }
+})
 
 const iconMap: Record<string, string> = {
   pdf: filePdfIcon,
@@ -193,6 +696,11 @@ const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = Math.floor(seconds % 60)
   return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`
+}
+
+const formatDate = (timestamp: number) => {
+  const date = new Date(timestamp)
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 const triggerFileInput = () => {
@@ -279,10 +787,46 @@ const updateVideoMetadata = () => {
   if (videoPreview.value && getFileExtension() === 'mp4') videoMetadata.value.duration = videoPreview.value.duration
 }
 
+const clearFile = () => {
+  selectedFile.value = null
+  useFolderIcon.value = false
+  isDragging.value = false
+  message.value = null
+  downloadUrl.value = ''
+  progress.value = 0
+  isPreviewing.value = false
+  videoMetadata.value.duration = 0
+  
+  // Reset file input
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+  
+  // Clean up preview URL
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = undefined
+  }
+  
+  // Stop video if playing
+  if (videoPreview.value) {
+    videoPreview.value.pause()
+    videoPreview.value.currentTime = 0
+  }
+}
+
 const handleImageError = () => {
   console.error('Image failed to load:', backgroundPath.value || logoPath.value)
   if (!backgroundPath.value) backgroundPath.value = 'https://4kwallpapers.com/images/wallpapers/jungle-tree-dark-3840x2160-22695.jpg'
   if (!logoPath.value) logoPath.value = null
+}
+
+const onBackgroundImageLoad = () => {
+  console.log('Background image loaded, extracting colors...')
+  // Small delay to ensure the image is properly rendered in the DOM
+  setTimeout(() => {
+    extractBackgroundColors()
+  }, 50)
 }
 
 // Cleanup
@@ -298,6 +842,17 @@ watch(selectedFile, () => {
   videoMetadata.value.duration = 0
 })
 
+// Watch for background changes and re-extract colors
+watch(backgroundPath, async (newPath) => {
+  if (newPath && backgroundImage.value) {
+    console.log('Background path changed to:', newPath)
+    // Wait a bit for the image to load
+    setTimeout(() => {
+      extractBackgroundColors()
+    }, 300)
+  }
+}, { immediate: true })
+
 onUnmounted(() => {
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   if (videoPreview.value) {
@@ -308,10 +863,84 @@ onUnmounted(() => {
 
 onMounted(async () => {
   await loadSettings()
-  if (backgroundImage.value && backgroundPath.value) {
-    await backgroundImage.value.decode()
-    const colorThief = new ColorThief()
-    const [r, g, b] = colorThief.getColor(backgroundImage.value)
+  // Color extraction will happen automatically when the background image loads via @load event
+  // But also try to extract colors after a short delay in case the image is already loaded
+  setTimeout(() => {
+    if (backgroundImage.value && backgroundPath.value) {
+      console.log('Attempting color extraction from onMounted...')
+      extractBackgroundColors()
+    }
+  }, 500)
+})
+
+// Watch for changes in settings
+watch(uploadBoxTransparency, (newVal) => {
+  console.log('Transparency changed to:', newVal)
+})
+
+watch(blurIntensity, (newVal) => {
+  console.log('Blur intensity changed to:', newVal)
+})
+
+const loadSettings = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/settings')
+    console.log('Loaded settings:', response.data)
+    logoPath.value = response.data.logo || null
+    backgroundPath.value = response.data.backgroundImage || null
+    maxUploadSize.value = response.data.maxUploadSize || 104857600 // Default 100 MB
+    
+    // Handle transparency and blur with proper fallbacks
+    uploadBoxTransparency.value = response.data.uploadBoxTransparency !== undefined ? response.data.uploadBoxTransparency : 80 // Default 80%
+    blurIntensity.value = response.data.blurIntensity !== undefined ? response.data.blurIntensity : 12 // Default medium blur
+    
+    console.log('Final transparency:', uploadBoxTransparency.value, 'blur:', blurIntensity.value)
+  } catch (error) {
+    console.error('Error loading settings:', error)
+  }
+}
+
+const extractBackgroundColors = () => {
+  if (!backgroundImage.value || !backgroundPath.value) {
+    console.log('No background image available for color extraction')
+    return
+  }
+
+  console.log('Extracting colors from background image...')
+  
+  try {
+    // Ensure the image is loaded and has dimensions
+    if (!backgroundImage.value.complete || backgroundImage.value.naturalWidth === 0) {
+      console.log('Background image not fully loaded yet')
+      return
+    }
+    
+    // Get dominant color for button gradients
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    canvas.width = backgroundImage.value.width
+    canvas.height = backgroundImage.value.height
+    ctx.drawImage(backgroundImage.value, 0, 0)
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const data = imageData.data
+    let r = 0, g = 0, b = 0, pixelCount = 0
+
+    for (let i = 0; i < data.length; i += 4) {
+      r += data[i]
+      g += data[i + 1]
+      b += data[i + 2]
+      pixelCount++
+    }
+
+    r = Math.round(r / pixelCount)
+    g = Math.round(g / pixelCount)
+    b = Math.round(b / pixelCount)
+    
+    console.log('Dominant color extracted:', `rgb(${r}, ${g}, ${b})`)
+    
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
     const isDark = luminance < 0.5
 
@@ -324,18 +953,11 @@ onMounted(async () => {
     const toColor = hslToRgb((complementaryHue + 30) % 360, saturation, lightness)
     buttonFromColor.value = `rgb(${fromColor.r}, ${fromColor.g}, ${fromColor.b})`
     buttonToColor.value = `rgb(${toColor.r}, ${toColor.g}, ${toColor.b})`
-  }
-})
-
-const loadSettings = async () => {
-  try {
-    const response = await axios.get('http://localhost:8080/settings')
-    console.log('Loaded settings:', response.data)
-    logoPath.value = response.data.logo || null
-    backgroundPath.value = response.data.backgroundImage || null
-    maxUploadSize.value = response.data.maxUploadSize || 104857600 // Default 100 MB
+    
+    console.log('Color extraction completed successfully!')
+    
   } catch (error) {
-    console.error('Error loading settings:', error)
+    console.error('Error extracting colors from background:', error)
   }
 }
 
@@ -387,10 +1009,61 @@ function hslToRgb(h: number, s: number, l: number) {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 .animate-slide-up { animation: slideUp 0.4s ease-in-out; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slide-down { animation: slideDown 0.3s ease-in-out; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Continuous diagonal scroll effect */
 @keyframes diagonal-scroll { 0% { background-position: 0 0; } 100% { background-position: -240px 240px; } }
 .animate-diagonal-scroll { animation: diagonal-scroll 10s linear infinite; }
+
+/* Enhanced Upload size slider animations */
+@keyframes shimmer-modern {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+.animate-shimmer-modern { animation: shimmer-modern 3s ease-in-out infinite; }
+
+@keyframes slide-modern {
+  0% { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(150%) skewX(-15deg); opacity: 0; }
+}
+.animate-slide-modern { animation: slide-modern 2.5s ease-in-out infinite; }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.6), 0 0 30px rgba(239, 68, 68, 0.4); }
+}
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+@keyframes pulse-border {
+  0%, 100% { border-color: rgb(254 226 226); }
+  50% { border-color: rgb(248 113 113); }
+}
+.animate-pulse-border { animation: pulse-border 2s ease-in-out infinite; }
+
+/* Enhanced glassmorphism animations */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.animate-gradient-shift { animation: gradient-shift 8s ease-in-out infinite; background-size: 200% 200%; }
+
+@keyframes shimmer-slow {
+  0% { transform: translateX(-100%) rotate(-45deg); opacity: 0; }
+  50% { opacity: 0.6; }
+  100% { transform: translateX(300%) rotate(-45deg); opacity: 0; }
+}
+.animate-shimmer-slow { animation: shimmer-slow 6s ease-in-out infinite; }
+
+/* Enhanced shadow effects */
+.shadow-3xl {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced border utilities */
+.border-3 { border-width: 3px; }
 
 /* Ensure overlay covers the entire dialog */
 .absolute.inset-0 { top: 0; left: 0; right: 0; bottom: 0; }
@@ -413,4 +1086,8 @@ button {
   background: linear-gradient(to right, var(--button-from), var(--button-to));
 }
 button:hover { opacity: 0.9; }
+
+/* Enhanced hover effects */
+.group:hover .group-hover\:scale-110 { transform: scale(1.1); }
+.group:hover .group-hover\:rotate-3 { transform: rotate(3deg); }
 </style>

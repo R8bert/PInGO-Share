@@ -18,10 +18,12 @@ import (
 )
 
 type Settings struct {
-	Theme          string `json:"theme"`
-	LogoPath       string `json:"logo"`
-	BackgroundPath string `json:"backgroundImage"`
-	MaxUploadSize  int64  `json:"maxUploadSize"` // In bytes
+	Theme                 string `json:"theme"`
+	LogoPath              string `json:"logo"`
+	BackgroundPath        string `json:"backgroundImage"`
+	MaxUploadSize         int64  `json:"maxUploadSize"`         // In bytes
+	UploadBoxTransparency int    `json:"uploadBoxTransparency"` // Transparency percentage (0-100)
+	BlurIntensity         int    `json:"blurIntensity"`         // Blur intensity (0-24)
 }
 
 func main() {
@@ -30,7 +32,7 @@ func main() {
 
 	// Enable CORS
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:5173"}
+	config.AllowOrigins = []string{"http://localhost:5173", "http://localhost:5174", "http://localhost:5175"}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept"}
 	router.Use(cors.New(config))
@@ -221,6 +223,28 @@ func main() {
 			}
 			settings.MaxUploadSize = maxSize
 			fmt.Println("Set max upload size to:", maxSize, "bytes")
+		}
+
+		// Handle upload box transparency
+		if transparencyStr := c.PostForm("uploadBoxTransparency"); transparencyStr != "" {
+			transparency, err := strconv.Atoi(transparencyStr)
+			if err != nil || transparency < 0 || transparency > 100 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid transparency value (must be 0-100)"})
+				return
+			}
+			settings.UploadBoxTransparency = transparency
+			fmt.Println("Set upload box transparency to:", transparency, "%")
+		}
+
+		// Handle blur intensity
+		if blurStr := c.PostForm("blurIntensity"); blurStr != "" {
+			blur, err := strconv.Atoi(blurStr)
+			if err != nil || blur < 0 || blur > 24 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid blur intensity value (must be 0-24)"})
+				return
+			}
+			settings.BlurIntensity = blur
+			fmt.Println("Set blur intensity to:", blur)
 		}
 
 		// Save settings to a file
