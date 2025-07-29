@@ -64,24 +64,24 @@
               <!-- General Settings Section -->
               <div class="space-y-4">
                 <div class="flex items-center space-x-2 mb-6">
-                  <div class="w-0.5 h-4 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+                  <div class="w-0.5 h-4 bg-gray-400 rounded-full"></div>
                   <h2 class="text-lg font-semibold text-white">General</h2>
                 </div>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   
                   <!-- Theme Card -->
-                  <div class="group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5">
+                  <div class="group bg-gray-800/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300">
                     <div class="flex items-start justify-between mb-4">
                       <div>
                         <h3 class="text-white font-medium text-base mb-1">Theme</h3>
                         <p class="text-gray-400 text-xs leading-relaxed">Choose your preferred appearance mode</p>
                       </div>
-                      <div class="w-2 h-2 bg-blue-500 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
+                      <div class="w-2 h-2 bg-gray-400 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                     <select
                       v-model="settings.theme"
-                      class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm"
+                      class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-gray-500/50 focus:border-gray-500/50 transition-all duration-200 backdrop-blur-sm"
                     >
                       <option value="light">☀️ Light Mode</option>
                       <option value="dark">🌙 Dark Mode</option>
@@ -90,17 +90,17 @@
                   </div>
 
                   <!-- Upload Limit Card -->
-                  <div class="group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/5">
+                  <div class="group bg-gray-800/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300">
                     <div class="flex items-start justify-between mb-4">
                       <div>
                         <h3 class="text-white font-medium text-base mb-1">Upload Limit</h3>
                         <p class="text-gray-400 text-xs leading-relaxed">Set maximum file size for uploads</p>
                       </div>
-                      <div class="w-2 h-2 bg-purple-500 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
+                      <div class="w-2 h-2 bg-gray-400 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                     <select
                       v-model="settings.maxUploadSize"
-                      class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200 backdrop-blur-sm"
+                      class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-gray-500/50 focus:border-gray-500/50 transition-all duration-200 backdrop-blur-sm"
                     >
                       <option value="1048576">1 MB</option>
                       <option value="10485760">10 MB</option>
@@ -115,46 +115,46 @@
               <!-- Customization Section -->
               <div class="space-y-4">
                 <div class="flex items-center space-x-2 mb-6">
-                  <div class="w-0.5 h-4 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full"></div>
+                  <div class="w-0.5 h-4 bg-gray-400 rounded-full"></div>
                   <h2 class="text-lg font-semibold text-white">Customization</h2>
                 </div>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   
                   <!-- Logo Upload Card -->
-                  <div class="group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/5">
+                  <div class="group bg-gray-800/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300">
                     <div class="flex items-start justify-between mb-4">
                       <div>
                         <h3 class="text-white font-medium text-base mb-1">Brand Logo</h3>
                         <p class="text-gray-400 text-xs leading-relaxed">Upload your company or personal logo</p>
                       </div>
-                      <div class="w-2 h-2 bg-green-500 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
+                      <div class="w-2 h-2 bg-gray-400 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                     <div class="relative">
                       <input
                         type="file"
                         accept="image/*"
                         @change="handleLogoUpload"
-                        class="w-full text-xs text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gradient-to-r file:from-green-600 file:to-emerald-600 file:text-white hover:file:from-green-500 hover:file:to-emerald-500 file:font-medium file:transition-all file:duration-200 file:cursor-pointer cursor-pointer file:shadow-md hover:file:shadow-lg file:text-xs"
+                        class="w-full text-xs text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-white hover:file:bg-gray-500 file:font-medium file:transition-all file:duration-200 file:cursor-pointer cursor-pointer file:shadow-md hover:file:shadow-lg file:text-xs"
                       />
                     </div>
                   </div>
 
                   <!-- Background Upload Card -->
-                  <div class="group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/5">
+                  <div class="group bg-gray-800/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300">
                     <div class="flex items-start justify-between mb-4">
                       <div>
                         <h3 class="text-white font-medium text-base mb-1">Background Image</h3>
                         <p class="text-gray-400 text-xs leading-relaxed">Set a custom background for your workspace</p>
                       </div>
-                      <div class="w-2 h-2 bg-orange-500 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
+                      <div class="w-2 h-2 bg-gray-400 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                     <div class="relative">
                       <input
                         type="file"
                         accept="image/*"
                         @change="handleBackgroundUpload"
-                        class="w-full text-xs text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gradient-to-r file:from-orange-600 file:to-red-600 file:text-white hover:file:from-orange-500 hover:file:to-red-500 file:font-medium file:transition-all file:duration-200 file:cursor-pointer cursor-pointer file:shadow-md hover:file:shadow-lg file:text-xs"
+                        class="w-full text-xs text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-white hover:file:bg-gray-500 file:font-medium file:transition-all file:duration-200 file:cursor-pointer cursor-pointer file:shadow-md hover:file:shadow-lg file:text-xs"
                       />
                     </div>
                   </div>
@@ -164,20 +164,20 @@
               <!-- Visual Effects Section -->
               <div class="space-y-4">
                 <div class="flex items-center space-x-2 mb-6">
-                  <div class="w-0.5 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
+                  <div class="w-0.5 h-4 bg-gray-400 rounded-full"></div>
                   <h2 class="text-lg font-semibold text-white">Visual Effects</h2>
                 </div>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   
                   <!-- Transparency Card -->
-                  <div class="group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/5">
+                  <div class="group bg-gray-800/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300">
                     <div class="flex items-start justify-between mb-5">
                       <div>
                         <h3 class="text-white font-medium text-base mb-1">Transparency</h3>
                         <p class="text-gray-400 text-xs leading-relaxed">Fine-tune background opacity levels</p>
                       </div>
-                      <div class="w-2 h-2 bg-cyan-500 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
+                      <div class="w-2 h-2 bg-gray-400 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                     <div class="space-y-4">
                       <input
@@ -190,7 +190,7 @@
                       />
                       <div class="flex justify-between items-center text-xs">
                         <span class="text-gray-500 font-medium">Opaque</span>
-                        <div class="bg-gradient-to-r from-cyan-500 to-blue-600 px-3 py-1 rounded-lg">
+                        <div class="bg-gray-600 px-3 py-1 rounded-lg">
                           <span class="text-white font-semibold text-xs">{{ settings.uploadBoxTransparency }}%</span>
                         </div>
                         <span class="text-gray-500 font-medium">Transparent</span>
@@ -199,13 +199,13 @@
                   </div>
 
                   <!-- Blur Effect Card -->
-                  <div class="group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/5">
+                  <div class="group bg-gray-800/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300">
                     <div class="flex items-start justify-between mb-5">
                       <div>
                         <h3 class="text-white font-medium text-base mb-1">Blur Effect</h3>
                         <p class="text-gray-400 text-xs leading-relaxed">Adjust glass morphism effect intensity</p>
                       </div>
-                      <div class="w-2 h-2 bg-indigo-500 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
+                      <div class="w-2 h-2 bg-gray-400 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                     <div class="space-y-4">
                       <input
@@ -218,7 +218,7 @@
                       />
                       <div class="flex justify-between items-center text-xs">
                         <span class="text-gray-500 font-medium">Sharp</span>
-                        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-3 py-1 rounded-lg">
+                        <div class="bg-gray-600 px-3 py-1 rounded-lg">
                           <span class="text-white font-semibold text-xs">{{ getBlurLabel(settings.blurIntensity) }}</span>
                         </div>
                         <span class="text-gray-500 font-medium">Blurred</span>
@@ -232,12 +232,17 @@
               <div class="flex justify-end pt-8">
                 <button
                   @click="saveSettings"
-                  class="group relative px-6 py-2.5 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 text-white rounded-xl font-medium text-sm shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 overflow-hidden"
+                  :class="[
+                    'group relative px-6 py-2.5 rounded-xl font-medium text-sm shadow-xl transition-all duration-300 overflow-hidden',
+                    isSaving ? 'bg-green-600 text-white scale-110' : 'bg-gray-700 hover:bg-gray-600 text-white hover:scale-105'
+                  ]"
                 >
-                  <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   <span class="relative flex items-center space-x-2">
-                    <span>Save Changes</span>
-                    <div class="w-1.5 h-1.5 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span>{{ isSaving ? 'Settings Saved!' : 'Save Changes' }}</span>
+                    <div v-if="!isSaving" class="w-1.5 h-1.5 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <svg v-else class="w-4 h-4 text-white animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
                   </span>
                 </button>
               </div>
@@ -247,17 +252,17 @@
             <div v-if="activeTab === 'Users'" class="space-y-6">
               <div class="space-y-4">
                 <div class="flex items-center space-x-2 mb-6">
-                  <div class="w-0.5 h-4 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full"></div>
+                  <div class="w-0.5 h-4 bg-gray-400 rounded-full"></div>
                   <h2 class="text-lg font-semibold text-white">User Management</h2>
                 </div>
                 
-                <div class="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50">
+                <div class="bg-gray-800/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50">
                   <div class="space-y-3">
                     <div v-for="user in users" :key="user.id" class="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg border border-gray-600/30 hover:bg-gray-700/70 transition-all duration-200">
                       <span class="text-white font-medium text-sm">{{ user.name }}</span>
                       <button 
                         @click="removeUser(user.id)" 
-                        class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg font-medium text-xs transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
+                        class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium text-xs transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
                       >
                         Remove
                       </button>
@@ -267,7 +272,7 @@
                   <div class="mt-5">
                     <button
                       @click="inviteUser"
-                      class="w-full px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
+                      class="w-full px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
                     >
                       Invite New User
                     </button>
@@ -280,17 +285,17 @@
             <div v-if="activeTab === 'My Profile'" class="space-y-6">
               <div class="space-y-4">
                 <div class="flex items-center space-x-2 mb-6">
-                  <div class="w-0.5 h-4 bg-gradient-to-b from-pink-500 to-rose-600 rounded-full"></div>
+                  <div class="w-0.5 h-4 bg-gray-400 rounded-full"></div>
                   <h2 class="text-lg font-semibold text-white">Profile Settings</h2>
                 </div>
                 
-                <div class="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 space-y-5">
+                <div class="bg-gray-800/80 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50 space-y-5">
                   <div>
                     <label class="block text-white font-medium text-sm mb-2">Email Address</label>
                     <input
                       type="email"
                       v-model="profile.email"
-                      class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200 backdrop-blur-sm"
+                      class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-gray-500/50 focus:border-gray-500/50 transition-all duration-200 backdrop-blur-sm"
                       placeholder="your.email@example.com"
                     />
                   </div>
@@ -300,7 +305,7 @@
                     <input
                       type="password"
                       v-model="profile.password"
-                      class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200 backdrop-blur-sm"
+                      class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-gray-500/50 focus:border-gray-500/50 transition-all duration-200 backdrop-blur-sm"
                       placeholder="••••••••••••"
                     />
                   </div>
@@ -308,7 +313,7 @@
                   <div class="pt-3">
                     <button
                       @click="saveProfile"
-                      class="w-full px-4 py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
+                      class="w-full px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
                     >
                       Save Profile Changes
                     </button>
@@ -318,19 +323,11 @@
             </div>
           </div>
 
-          <!-- Success/Error Message -->
-          <div v-if="message" class="fixed bottom-6 right-6 z-50">
-            <div :class="[
-              'px-5 py-3 rounded-xl font-medium text-sm shadow-xl transition-all duration-500 backdrop-blur-sm border transform',
-              message.type === 'success' 
-                ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white border-emerald-400/30 shadow-emerald-500/20' 
-                : 'bg-gradient-to-r from-red-600 to-rose-600 text-white border-red-400/30 shadow-red-500/20'
-            ]">
+          <!-- Error Message Only -->
+          <div v-if="message && message.type === 'error'" class="fixed bottom-6 right-6 z-50">
+            <div class="px-5 py-3 rounded-xl font-medium text-sm shadow-xl transition-all duration-500 backdrop-blur-sm border transform bg-red-800 text-white border-red-600">
               <div class="flex items-center space-x-2">
-                <div :class="[
-                  'w-2 h-2 rounded-full animate-pulse',
-                  message.type === 'success' ? 'bg-emerald-300' : 'bg-red-300'
-                ]"></div>
+                <div class="w-2 h-2 rounded-full animate-pulse bg-red-300"></div>
                 <span>{{ message.text }}</span>
               </div>
             </div>
@@ -388,6 +385,7 @@ const profile = reactive<Profile>({
 })
 const users = ref<User[]>([{ id: '1', name: 'User 1' }])
 const message = ref<Message | null>(null)
+const isSaving = ref<boolean>(false)
 
 // Design system variables
 const buttonFromColor = ref<string>('#6366f1')
@@ -433,6 +431,8 @@ const onBackgroundImageLoad = () => {
 }
 
 const saveSettings = async () => {
+  if (isSaving.value) return // Prevent multiple clicks during animation
+  
   const formData = new FormData()
   formData.append('theme', settings.theme)
   if (settings.logo) formData.append('logo', settings.logo)
@@ -442,26 +442,30 @@ const saveSettings = async () => {
   formData.append('blurIntensity', settings.blurIntensity.toString())
 
   try {
+    isSaving.value = true
+    
     const response = await axios.post('http://localhost:8080/settings/save', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
-    message.value = { text: 'Settings saved successfully!', type: 'success' }
+    
     console.log('Saved settings response:', response.data)
     settings.logo = null
     settings.backgroundImage = null
     await loadSettings()
     
-    // Clear message after 3 seconds
+    // Keep the success animation for 1 second
     setTimeout(() => {
-      message.value = null
-    }, 3000)
+      isSaving.value = false
+    }, 1000)
+    
   } catch (error) {
     console.error('Error saving settings:', error)
+    isSaving.value = false
     message.value = { text: 'Failed to save settings.', type: 'error' }
     
-    // Clear message after 3 seconds
+    // Clear error message after 3 seconds
     setTimeout(() => {
       message.value = null
     }, 3000)
@@ -563,7 +567,7 @@ onMounted(() => {
 
 .compact-slider:hover {
   background: linear-gradient(90deg, #4b5563 0%, #6b7280 50%, #9ca3af 100%);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 15px rgba(59, 130, 246, 0.2);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 15px rgba(156, 163, 175, 0.2);
 }
 
 .compact-slider::-webkit-slider-thumb {
@@ -571,43 +575,43 @@ onMounted(() => {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
   cursor: pointer;
   border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4), 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 2px 8px rgba(156, 163, 175, 0.4), 0 0 0 2px rgba(156, 163, 175, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .compact-slider::-webkit-slider-thumb:hover {
   transform: scale(1.15);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6), 0 0 0 4px rgba(139, 92, 246, 0.3);
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
+  box-shadow: 0 4px 12px rgba(156, 163, 175, 0.6), 0 0 0 4px rgba(156, 163, 175, 0.3);
+  background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
 }
 
 .compact-slider::-webkit-slider-thumb:active {
   transform: scale(1.05);
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.8), 0 0 0 6px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 2px 6px rgba(156, 163, 175, 0.8), 0 0 0 6px rgba(156, 163, 175, 0.4);
 }
 
 .compact-slider::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
   cursor: pointer;
   border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 2px 8px rgba(156, 163, 175, 0.4);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .compact-slider::-moz-range-thumb:hover {
   transform: scale(1.15);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+  box-shadow: 0 4px 12px rgba(156, 163, 175, 0.6);
 }
 
 /* Enhanced focus states with compact rings */
 input:focus, select:focus {
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 0 10px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.3), 0 0 10px rgba(156, 163, 175, 0.15);
 }
 
 /* Smooth transitions for all interactive elements */
@@ -617,7 +621,7 @@ button, input, select, .group {
 
 /* Compact file input styling */
 input[type="file"]::-webkit-file-upload-button {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  background: #6b7280;
   border: none;
   color: white;
   padding: 8px 16px;
@@ -625,14 +629,14 @@ input[type="file"]::-webkit-file-upload-button {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 6px rgba(107, 114, 128, 0.3);
   font-size: 12px;
 }
 
 input[type="file"]::-webkit-file-upload-button:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  background: #4b5563;
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 10px rgba(107, 114, 128, 0.4);
 }
 
 /* Advanced backdrop blur effects */
