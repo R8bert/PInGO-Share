@@ -12,11 +12,11 @@ const routes = [
     name: 'Upload',
     component: HomePage, // Componenta ta existentă
   },
-  // Adaugă alte rute aici, ex. pentru o pagină de descărcare
+  // Download page route
   {
     path: '/download/:id',
     name: 'Download',
-    component: () => import('../components/Upload.vue'), // Lazy loading
+    component: () => import('../pages/download/Download.vue'), // Lazy loading
   },
   {
     path: '/settings',

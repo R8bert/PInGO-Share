@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -37,7 +38,7 @@ func main() {
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept"}
 	router.Use(cors.New(config))
 
-	// Existing upload endpoint with size limit
+	// Upload endpoint with support for multiple files
 	router.POST("/upload", func(c *gin.Context) {
 		// Load current max upload size
 		var settings Settings
@@ -49,43 +50,151 @@ func main() {
 			maxSize = 100 << 20 // Default to 100MB if not set
 		}
 
-		file, header, err := c.Request.FormFile("file")
+		// Parse multipart form
+		form, err := c.MultipartForm()
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "no file"})
-			return
-		}
-		defer file.Close()
-
-		fileSize := header.Size
-		if fileSize > maxSize {
-			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("File size (%d bytes) exceeds maximum allowed size (%d bytes)", fileSize, maxSize)})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse multipart form"})
 			return
 		}
 
+		files := form.File["files"]
+		if len(files) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "no files"})
+			return
+		}
+
+		// Check total size of all files
+		var totalSize int64
+		for _, file := range files {
+			totalSize += file.Size
+		}
+		if totalSize > maxSize {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Total file size (%d bytes) exceeds maximum allowed size (%d bytes)", totalSize, maxSize)})
+			return
+		}
+
+		// Generate a single ID for all files
 		id := uuid.New().String()
-		outPath := "./uploads/" + id + "_" + header.Filename
-		out, err := os.Create(outPath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save file"})
-			return
-		}
-		defer out.Close()
+		var uploadedFiles []string
 
-		io.Copy(out, file)
-		c.JSON(200, gin.H{"download_url": "/download/" + id})
+		// Save each file
+		for _, fileHeader := range files {
+			file, err := fileHeader.Open()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not open file"})
+				return
+			}
+			defer file.Close()
+
+			outPath := "./uploads/" + id + "_" + fileHeader.Filename
+			out, err := os.Create(outPath)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save file"})
+				return
+			}
+			defer out.Close()
+
+			_, err = io.Copy(out, file)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not copy file"})
+				return
+			}
+
+			uploadedFiles = append(uploadedFiles, fileHeader.Filename)
+		}
+
+		c.JSON(200, gin.H{
+			"download_url": "/download/" + id,
+			"files":        uploadedFiles,
+			"count":        len(uploadedFiles),
+		})
 	})
 
-	// Existing download endpoint
+	// Download endpoint - handles single files directly, multiple files as ZIP
 	router.GET("/download/:id", func(c *gin.Context) {
 		id := c.Param("id")
 		files, _ := os.ReadDir("./uploads")
+
+		// Find all files with this ID
+		var matchingFiles []string
 		for _, f := range files {
-			if f.Name()[:len(id)] == id {
-				c.File("./uploads/" + f.Name())
-				return
+			if strings.HasPrefix(f.Name(), id+"_") {
+				matchingFiles = append(matchingFiles, f.Name())
 			}
 		}
-		c.JSON(404, gin.H{"error": "not found"})
+
+		if len(matchingFiles) == 0 {
+			c.JSON(404, gin.H{"error": "not found"})
+			return
+		}
+
+		// If only one file, serve it directly
+		if len(matchingFiles) == 1 {
+			c.File("./uploads/" + matchingFiles[0])
+			return
+		}
+
+		// Multiple files - create and serve ZIP
+		c.Header("Content-Type", "application/zip")
+		c.Header("Content-Disposition", "attachment; filename=\"files.zip\"")
+
+		zipWriter := zip.NewWriter(c.Writer)
+		defer zipWriter.Close()
+
+		for _, fileName := range matchingFiles {
+			// Extract original filename (remove ID prefix)
+			originalName := strings.TrimPrefix(fileName, id+"_")
+
+			file, err := os.Open("./uploads/" + fileName)
+			if err != nil {
+				continue
+			}
+			defer file.Close()
+
+			zipFile, err := zipWriter.Create(originalName)
+			if err != nil {
+				continue
+			}
+
+			_, err = io.Copy(zipFile, file)
+			if err != nil {
+				continue
+			}
+		}
+	})
+
+	// Files metadata endpoint
+	router.GET("/files/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		files, _ := os.ReadDir("./uploads")
+
+		// Find all files with this ID
+		var fileInfos []map[string]interface{}
+		for _, f := range files {
+			if strings.HasPrefix(f.Name(), id+"_") {
+				// Extract original filename (remove ID prefix)
+				originalName := strings.TrimPrefix(f.Name(), id+"_")
+
+				// Get file info
+				fileInfo, err := f.Info()
+				if err != nil {
+					continue
+				}
+
+				fileInfos = append(fileInfos, map[string]interface{}{
+					"name": originalName,
+					"size": fileInfo.Size(),
+					"url":  "/uploads/" + f.Name(),
+				})
+			}
+		}
+
+		if len(fileInfos) == 0 {
+			c.JSON(404, gin.H{"error": "files not found"})
+			return
+		}
+
+		c.JSON(200, gin.H{"files": fileInfos})
 	})
 
 	// New settings save endpoint
@@ -267,9 +376,10 @@ func main() {
 		c.JSON(http.StatusOK, settings)
 	})
 
-	// Serve static files for logos and backgrounds
+	// Serve static files for logos, backgrounds, and uploads
 	router.Static("/logos", "./logos")
 	router.Static("/backgrounds", "./backgrounds")
+	router.Static("/uploads", "./uploads")
 
 	// Ensure directories exist
 	os.MkdirAll("./uploads", os.ModePerm)

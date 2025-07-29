@@ -42,12 +42,12 @@
             ]"
             class="p-12"
           >
-            <input type="file" ref="fileInput" @change="onFileChange" class="hidden" />
+            <input type="file" ref="fileInput" @change="onFileChange" class="hidden" multiple />
             
             <!-- Animated layer with icons at 45° -->
-            <div v-if="selectedFile" class="absolute inset-0 -z-10 opacity-10 pointer-events-none">
+            <div v-if="selectedFiles.length > 0" class="absolute inset-0 -z-10 opacity-10 pointer-events-none">
               <div class="absolute -inset-[100%] origin-center rotate-45">
-                <div class="w-full h-full animate-diagonal-scroll bg-repeat" :style="{ backgroundImage: `url(${getFileIcon()})`, backgroundSize: '80px 80px' }" />
+                <div class="w-full h-full animate-diagonal-scroll bg-repeat" :style="{ backgroundImage: `url(${getFileIcon(selectedFiles[0])})`, backgroundSize: '80px 80px' }" />
               </div>
             </div>
             
@@ -62,15 +62,15 @@
               </div>
               
               <h3 class="text-2xl font-semibold text-gray-900 mb-2">
-                {{ selectedFile ? 'File selected' : 'Drop your files here' }}
+                {{ selectedFiles.length > 0 ? `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected` : 'Drop your files here' }}
               </h3>
               
               <p class="text-gray-600 mb-6">
-                {{ selectedFile ? selectedFile.name : 'or click to browse' }}
+                {{ selectedFiles.length > 0 ? selectedFiles.map(f => f.name).join(', ') : 'or click to browse' }}
               </p>
               
               <button 
-                v-if="!selectedFile"
+                v-if="selectedFiles.length === 0"
                 class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105"
               >
                 Select files
@@ -86,42 +86,85 @@
             </div>
           </div>
 
-          <!-- Preview section -->
-          <div v-if="selectedFile" class="space-y-4">
-            <button v-if="['mp4', 'pdf'].includes(getFileExtension())" @click="togglePreview"
-              class="w-full text-white py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200"
-              :class="isPreviewing ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
-              :disabled="isUploading" aria-label="Toggle preview">
-              {{ isPreviewing ? 'Hide Preview' : 'Show Preview' }}
-            </button>
+          <!-- Files List with Individual Previews -->
+          <div v-if="selectedFiles.length > 0" class="space-y-4">
+            <div v-for="(file, index) in selectedFiles" :key="index" class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <img :src="getFileIcon(file)" alt="File type" class="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 class="font-medium text-gray-900">{{ file.name }}</h4>
+                    <p class="text-sm text-gray-600">{{ formatFileSize(file.size) }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button 
+                    v-if="['mp4', 'pdf', 'jpg', 'jpeg', 'png'].includes(getFileExtension(file))" 
+                    @click="togglePreview(index)"
+                    class="text-white px-3 py-1 rounded text-sm font-medium hover:opacity-90 transition-all duration-200"
+                    :class="previewingFiles.has(index) ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
+                    :disabled="isUploading">
+                    {{ previewingFiles.has(index) ? 'Hide' : 'Preview' }}
+                  </button>
+                  <button 
+                    @click="removeFile(index)"
+                    class="p-1 text-gray-400 hover:text-red-600 transition-all duration-200"
+                  >
+                    <XMarkIcon class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
 
-            <!-- Video preview for .mp4 -->
-            <div v-if="isPreviewing && getFileExtension() === 'mp4'" class="w-full">
-              <video ref="videoPreview" controls class="w-full max-w-md mx-auto rounded-lg shadow-md" :src="previewUrl" @loadedmetadata="updateVideoMetadata">
-                Your browser does not support the video tag.
-              </video>
-            </div>
+              <!-- Individual Preview -->
+              <div v-if="previewingFiles.has(index)" class="mt-3">
+                <!-- Image preview for JPG/JPEG/PNG -->
+                <div v-if="['jpg', 'jpeg', 'png'].includes(getFileExtension(file))" class="w-full">
+                  <img 
+                    :src="previewUrls.get(index)" 
+                    :alt="file.name"
+                    class="w-full max-w-md mx-auto rounded-lg shadow-md" 
+                    @error="() => console.error('Image preview failed')">
+                </div>
 
-            <!-- PDF preview for .pdf -->
-            <div v-if="isPreviewing && getFileExtension() === 'pdf'" class="w-full">
-              <object :data="previewUrl" type="application/pdf" class="w-full max-w-md mx-auto h-64 rounded-lg shadow-md">
-                <p>Your browser does not support PDF preview. <a :href="previewUrl" download>Download the PDF</a> to view it.</p>
-              </object>
+                <!-- Video preview for .mp4 -->
+                <div v-else-if="getFileExtension(file) === 'mp4'" class="w-full">
+                  <video 
+                    :ref="(el) => setVideoRef(index, el)"
+                    controls 
+                    class="w-full max-w-md mx-auto rounded-lg shadow-md" 
+                    :src="previewUrls.get(index)" 
+                    @loadedmetadata="updateVideoMetadata">
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+
+                <!-- PDF preview for .pdf -->
+                <div v-else-if="getFileExtension(file) === 'pdf'" class="w-full">
+                  <object 
+                    :data="previewUrls.get(index)" 
+                    type="application/pdf" 
+                    class="w-full max-w-md mx-auto h-64 rounded-lg shadow-md">
+                    <p>Your browser does not support PDF preview. <a :href="previewUrls.get(index)" download>Download the PDF</a> to view it.</p>
+                  </object>
+                </div>
+              </div>
             </div>
           </div>
 
                     <!-- File Details & Controls -->
-          <div v-if="selectedFile" class="border-t border-gray-200 bg-gray-50/50 animate-slide-down">
+          <div v-if="selectedFiles.length > 0" class="border-t border-gray-200 bg-gray-50/50 animate-slide-down">
             <div class="p-6">
-              <!-- File Info -->
+              <!-- Total Files Summary -->
               <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center space-x-4">
                   <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center animate-scale-in">
-                    <img :src="getFileIcon()" alt="File type" class="w-8 h-8" />
+                    <img :src="getFileIcon(selectedFiles[0])" alt="File type" class="w-8 h-8" />
                   </div>
                   <div>
-                    <h4 class="font-medium text-gray-900 animate-fade-in">{{ selectedFile.name }}</h4>
-                    <p class="text-sm text-gray-600 animate-fade-in-delay">{{ formatFileSize(selectedFile.size) }}</p>
+                    <h4 class="font-medium text-gray-900 animate-fade-in">{{ selectedFiles.length }} file{{ selectedFiles.length > 1 ? 's' : '' }} selected</h4>
+                    <p class="text-sm text-gray-600 animate-fade-in-delay">{{ formatTotalFileSize() }}</p>
                   </div>
                 </div>
                 <button 
@@ -133,9 +176,9 @@
               </div>
 
               <!-- Size Warning -->
-              <div v-if="selectedFile.size > maxUploadSize" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg animate-pulse">
+              <div v-if="getTotalFileSize() > maxUploadSize" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg animate-pulse">
                 <p class="text-red-800 text-sm font-medium">
-                  File size exceeds the maximum limit of {{ formatFileSize(maxUploadSize) }}
+                  Total file size exceeds the maximum limit of {{ formatFileSize(maxUploadSize) }}
                 </p>
               </div>
 
@@ -159,10 +202,10 @@
               <div class="flex space-x-3">
                 <button 
                   @click="handleUpload"
-                  :disabled="isUploading || selectedFile.size > maxUploadSize"
+                  :disabled="isUploading || selectedFiles.length === 0 || getTotalFileSize() > maxUploadSize"
                   :class="[
                     'flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200',
-                    isUploading || selectedFile.size > maxUploadSize
+                    isUploading || selectedFiles.length === 0 || getTotalFileSize() > maxUploadSize
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-105'
                   ]"
@@ -232,18 +275,30 @@
               <div class="flex space-x-3 ml-6">
                 <button 
                   @click="copyToClipboard(downloadUrl)"
-                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105"
+                  class="group relative bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg transform active:scale-95"
                 >
-                  Copy link
+                  <span class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    Copy Link
+                  </span>
+                  <div class="absolute inset-0 rounded-xl bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                 </button>
-                <a 
-                  v-if="downloadUrl"
-                  :href="downloadUrl" 
-                  target="_blank"
-                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105"
+                <router-link 
+                  v-if="downloadPath"
+                  :to="downloadPath"
+                  class="group relative bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg transform active:scale-95"
                 >
-                  Open
-                </a>
+                  <span class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    View Files
+                  </span>
+                  <div class="absolute inset-0 rounded-xl bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                </router-link>
               </div>
             </div>
           </div>
@@ -357,19 +412,20 @@ interface VideoMetadata {
 }
 
 // State
-const selectedFile = ref<File | null>(null)
+const selectedFiles = ref<File[]>([])
 const fileInput = ref<HTMLInputElement | null>(null)
 const email = ref('')
 const downloadUrl = ref('')
+const downloadPath = ref('')
 const isUploading = ref(false)
 const progress = ref(0)
 const isDragging = ref(false)
 const message = ref<Message | null>(null)
 const logoPath = ref<string | null>(null)
 const maxUploadSize = ref<number>(104857600) // Default 100 MB
-const isPreviewing = ref(false)
-const previewUrl = ref<string | undefined>(undefined)
-const videoPreview = ref<HTMLVideoElement | null>(null)
+const previewingFiles = ref<Set<number>>(new Set())
+const previewUrls = ref<Map<number, string>>(new Map())
+const videoRefs = ref<Map<number, HTMLVideoElement>>(new Map())
 const videoMetadata = ref<VideoMetadata>({ duration: 0 })
 
 // Icon mapping
@@ -391,32 +447,100 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-const getFileIcon = () => {
-  if (!selectedFile.value) return fileFolderIcon
-  const ext = selectedFile.value.name.split('.').pop()?.toLowerCase() || ''
+const getTotalFileSize = () => {
+  return selectedFiles.value.reduce((total, file) => total + file.size, 0)
+}
+
+const formatTotalFileSize = () => {
+  return formatFileSize(getTotalFileSize())
+}
+
+const getFileIcon = (file: File) => {
+  if (!file) return fileFolderIcon
+  const ext = file.name.split('.').pop()?.toLowerCase() || ''
   return iconMap[ext] || fileFolderIcon
 }
 
-const getFileExtension = () => {
-  return selectedFile.value?.name.split('.').pop()?.toLowerCase() || ''
+const getFileExtension = (file: File) => {
+  return file?.name.split('.').pop()?.toLowerCase() || ''
 }
 
-const updatePreviewUrl = () => {
-  if (selectedFile.value) previewUrl.value = URL.createObjectURL(selectedFile.value)
-  else previewUrl.value = undefined
+const createPreviewUrl = (file: File, index: number) => {
+  const url = URL.createObjectURL(file)
+  previewUrls.value.set(index, url)
+  return url
 }
 
-const togglePreview = () => {
-  isPreviewing.value = !isPreviewing.value
-  if (isPreviewing.value && videoPreview.value) videoPreview.value.play().catch(err => console.error('Autoplay blocked:', err))
-  else if (!isPreviewing.value && videoPreview.value) {
-    videoPreview.value.pause()
-    videoPreview.value.currentTime = 0
+const togglePreview = (index: number) => {
+  if (previewingFiles.value.has(index)) {
+    previewingFiles.value.delete(index)
+    // Stop video if playing
+    const videoEl = videoRefs.value.get(index)
+    if (videoEl) {
+      videoEl.pause()
+      videoEl.currentTime = 0
+    }
+    // Clean up preview URL
+    const url = previewUrls.value.get(index)
+    if (url) {
+      URL.revokeObjectURL(url)
+      previewUrls.value.delete(index)
+    }
+  } else {
+    previewingFiles.value.add(index)
+    createPreviewUrl(selectedFiles.value[index], index)
   }
 }
 
+const setVideoRef = (index: number, el: any) => {
+  if (el && el instanceof HTMLVideoElement) {
+    videoRefs.value.set(index, el)
+  }
+}
+
+const removeFile = (index: number) => {
+  // Clean up preview if active
+  if (previewingFiles.value.has(index)) {
+    previewingFiles.value.delete(index)
+    const url = previewUrls.value.get(index)
+    if (url) {
+      URL.revokeObjectURL(url)
+      previewUrls.value.delete(index)
+    }
+  }
+  
+  // Remove the file
+  selectedFiles.value.splice(index, 1)
+  
+  // Reset all preview indices since array shifted
+  const newPreviewingFiles = new Set<number>()
+  const newPreviewUrls = new Map<number, string>()
+  const newVideoRefs = new Map<number, HTMLVideoElement>()
+  
+  previewingFiles.value.forEach(oldIndex => {
+    if (oldIndex > index) {
+      newPreviewingFiles.add(oldIndex - 1)
+      const url = previewUrls.value.get(oldIndex)
+      if (url) newPreviewUrls.set(oldIndex - 1, url)
+      const videoEl = videoRefs.value.get(oldIndex)
+      if (videoEl) newVideoRefs.set(oldIndex - 1, videoEl)
+    } else if (oldIndex < index) {
+      newPreviewingFiles.add(oldIndex)
+      const url = previewUrls.value.get(oldIndex)
+      if (url) newPreviewUrls.set(oldIndex, url)
+      const videoEl = videoRefs.value.get(oldIndex)
+      if (videoEl) newVideoRefs.set(oldIndex, videoEl)
+    }
+  })
+  
+  previewingFiles.value = newPreviewingFiles
+  previewUrls.value = newPreviewUrls
+  videoRefs.value = newVideoRefs
+}
+
 const updateVideoMetadata = () => {
-  if (videoPreview.value && getFileExtension() === 'mp4') videoMetadata.value.duration = videoPreview.value.duration
+  // This function can be expanded if needed for multiple video metadata tracking
+  console.log('Video metadata updated')
 }
 
 const triggerFileInput = () => {
@@ -426,33 +550,33 @@ const triggerFileInput = () => {
 const onFileChange = (e: Event) => {
   const target = e.target as HTMLInputElement
   if (target.files?.length) {
-    selectedFile.value = target.files[0]
+    selectedFiles.value = Array.from(target.files)
     isDragging.value = false
     message.value = null
-    updatePreviewUrl()
     videoMetadata.value.duration = 0
   }
 }
 
 const onDrop = (e: DragEvent) => {
   if (e.dataTransfer?.files.length) {
-    selectedFile.value = e.dataTransfer.files[0]
+    selectedFiles.value = Array.from(e.dataTransfer.files)
     isDragging.value = false
     message.value = null
-    updatePreviewUrl()
     videoMetadata.value.duration = 0
   }
 }
 
 const handleUpload = async () => {
-  if (!selectedFile.value) return
+  if (selectedFiles.value.length === 0) return
 
   isUploading.value = true
   progress.value = 0
   message.value = null
 
   const formData = new FormData()
-  formData.append('file', selectedFile.value)
+  selectedFiles.value.forEach((file) => {
+    formData.append(`files`, file)
+  })
   formData.append('email', email.value)
 
   try {
@@ -463,8 +587,10 @@ const handleUpload = async () => {
       },
     })
 
-    downloadUrl.value = `http://localhost:8080${res.data.download_url}`
-    message.value = { text: 'File uploaded successfully!', type: 'success' }
+    const downloadId = res.data.download_url.split('/').pop()
+    downloadUrl.value = `${window.location.origin}/download/${downloadId}`
+    downloadPath.value = `/download/${downloadId}`
+    message.value = { text: `${selectedFiles.value.length} file${selectedFiles.value.length > 1 ? 's' : ''} uploaded successfully!`, type: 'success' }
   } catch (err) {
     console.error('Upload error:', err)
     message.value = { text: 'Upload failed. Please try again.', type: 'error' }
@@ -474,28 +600,28 @@ const handleUpload = async () => {
 }
 
 const clearFile = () => {
-  selectedFile.value = null
+  // Clean up all preview URLs
+  previewUrls.value.forEach(url => URL.revokeObjectURL(url))
+  
+  // Stop all videos
+  videoRefs.value.forEach(video => {
+    video.pause()
+    video.currentTime = 0
+  })
+  
+  selectedFiles.value = []
   isDragging.value = false
   message.value = null
   downloadUrl.value = ''
+  downloadPath.value = ''
   progress.value = 0
-  isPreviewing.value = false
+  previewingFiles.value.clear()
+  previewUrls.value.clear()
+  videoRefs.value.clear()
   videoMetadata.value.duration = 0
   
   if (fileInput.value) {
     fileInput.value.value = ''
-  }
-  
-  // Clean up preview URL
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value)
-    previewUrl.value = undefined
-  }
-  
-  // Stop video if playing
-  if (videoPreview.value) {
-    videoPreview.value.pause()
-    videoPreview.value.currentTime = 0
   }
 }
 
