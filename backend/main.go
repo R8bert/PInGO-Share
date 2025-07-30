@@ -31,6 +31,7 @@ type Settings struct {
 	Theme                 string `json:"theme" db:"theme"`
 	LogoPath              string `json:"logo" db:"logo_path"`
 	BackgroundPath        string `json:"backgroundImage" db:"background_path"`
+	NavbarTitle           string `json:"navbarTitle" db:"navbar_title"`
 	MaxUploadSize         int64  `json:"maxUploadSize" db:"max_upload_size"`                 // In bytes
 	UploadBoxTransparency int    `json:"uploadBoxTransparency" db:"upload_box_transparency"` // Transparency percentage (0-100)
 	BlurIntensity         int    `json:"blurIntensity" db:"blur_intensity"`                  // Blur intensity (0-24)
@@ -119,6 +120,7 @@ func createTables() {
 		email VARCHAR(255) UNIQUE NOT NULL,
 		password_hash VARCHAR(255) NOT NULL,
 		is_admin BOOLEAN DEFAULT FALSE,
+		is_blocked BOOLEAN DEFAULT FALSE,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);`
 
@@ -129,6 +131,7 @@ func createTables() {
 		theme VARCHAR(50) DEFAULT 'light',
 		logo_path VARCHAR(500),
 		background_path VARCHAR(500),
+		navbar_title VARCHAR(255) DEFAULT 'PInGO Share',
 		max_upload_size BIGINT DEFAULT 104857600,
 		upload_box_transparency INTEGER DEFAULT 0,
 		blur_intensity INTEGER DEFAULT 0,
@@ -169,7 +172,8 @@ func createTables() {
 
 	// Add is_admin column to existing users if it doesn't exist
 	alterUsersTable := `
-	ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;`
+	ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+	ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE;`
 
 	// Alter uploads table to add new columns
 	alterUploadsTable := `
@@ -180,7 +184,8 @@ func createTables() {
 
 	// Alter settings table to add allow_registration
 	alterSettingsTable := `
-	ALTER TABLE settings ADD COLUMN IF NOT EXISTS allow_registration BOOLEAN DEFAULT TRUE;`
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS allow_registration BOOLEAN DEFAULT TRUE;
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS navbar_title VARCHAR(255) DEFAULT 'PInGO Share';`
 
 	// Create indexes
 	indexes := `
@@ -294,6 +299,33 @@ func adminMiddleware() gin.HandlerFunc {
 	}
 }
 
+func blockCheckMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+
+		var isBlocked bool
+		err := db.QueryRow("SELECT COALESCE(is_blocked, false) FROM users WHERE id = $1", userID).Scan(&isBlocked)
+		if err != nil {
+			// If column doesn't exist, assume user is not blocked
+			if strings.Contains(err.Error(), "column") && strings.Contains(err.Error(), "is_blocked") {
+				c.Next()
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check user status"})
+			c.Abort()
+			return
+		}
+
+		if isBlocked {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Account blocked - uploads are not allowed"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func calculateExpiryTime(validity string) *time.Time {
 	now := time.Now()
 	var expiry time.Time
@@ -339,10 +371,10 @@ func getSettings() (Settings, error) {
 	var settings Settings
 	err := db.QueryRow(`
 		SELECT id, theme, COALESCE(logo_path, ''), COALESCE(background_path, ''), 
-		       max_upload_size, upload_box_transparency, blur_intensity, max_validity, COALESCE(allow_registration, TRUE)
+		       COALESCE(navbar_title, 'PInGO Share'), max_upload_size, upload_box_transparency, blur_intensity, max_validity, COALESCE(allow_registration, TRUE)
 		FROM settings ORDER BY id LIMIT 1
 	`).Scan(&settings.ID, &settings.Theme, &settings.LogoPath, &settings.BackgroundPath,
-		&settings.MaxUploadSize, &settings.UploadBoxTransparency, &settings.BlurIntensity, &settings.MaxValidity, &settings.AllowRegistration)
+		&settings.NavbarTitle, &settings.MaxUploadSize, &settings.UploadBoxTransparency, &settings.BlurIntensity, &settings.MaxValidity, &settings.AllowRegistration)
 
 	return settings, err
 }
@@ -494,7 +526,7 @@ func main() {
 	})
 
 	// Protected upload endpoint
-	router.POST("/upload", authMiddleware(), func(c *gin.Context) {
+	router.POST("/upload", authMiddleware(), blockCheckMiddleware(), func(c *gin.Context) {
 		userID := c.GetInt("user_id")
 
 		// Load current settings from database
@@ -697,6 +729,47 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Upload availability updated successfully"})
+	})
+
+	// Update upload expiration date
+	router.PUT("/uploads/:id/expiration", authMiddleware(), blockCheckMiddleware(), func(c *gin.Context) {
+		uploadID := c.Param("id")
+		userID := c.GetInt("user_id")
+
+		type ExpirationRequest struct {
+			Validity string `json:"validity" binding:"required"` // "7days", "1month", "6months", "1year", "never"
+		}
+
+		var req ExpirationRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Check if user owns the upload
+		var ownerID int
+		err := db.QueryRow("SELECT user_id FROM uploads WHERE id = $1", uploadID).Scan(&ownerID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Upload not found"})
+			return
+		}
+
+		if ownerID != userID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You can only update your own uploads"})
+			return
+		}
+
+		// Calculate new expiry time
+		expiryTime := calculateExpiryTime(req.Validity)
+
+		// Update the upload
+		_, err = db.Exec("UPDATE uploads SET expires_at = $1 WHERE id = $2", expiryTime, uploadID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update expiration"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Upload expiration updated successfully"})
 	})
 
 	// Create reverse share token
@@ -1093,6 +1166,12 @@ func main() {
 			settings.MaxValidity = maxValidity
 		}
 
+		// Handle navbar title
+		navbarTitle := c.PostForm("navbarTitle")
+		if navbarTitle != "" {
+			settings.NavbarTitle = navbarTitle
+		}
+
 		// Handle logo upload
 		logo, _, err := c.Request.FormFile("logo")
 		if err == nil {
@@ -1237,17 +1316,17 @@ func main() {
 		if settings.ID == 0 {
 			// Insert new settings
 			err = db.QueryRow(`
-				INSERT INTO settings (theme, logo_path, background_path, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
-			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.MaxUploadSize,
+				INSERT INTO settings (theme, logo_path, background_path, navbar_title, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id
+			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.NavbarTitle, settings.MaxUploadSize,
 				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration).Scan(&settings.ID)
 		} else {
 			// Update existing settings
 			_, err = db.Exec(`
-				UPDATE settings SET theme = $1, logo_path = $2, background_path = $3, max_upload_size = $4,
-				upload_box_transparency = $5, blur_intensity = $6, max_validity = $7, allow_registration = $8, updated_at = CURRENT_TIMESTAMP
-				WHERE id = $9
-			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.MaxUploadSize,
+				UPDATE settings SET theme = $1, logo_path = $2, background_path = $3, navbar_title = $4, max_upload_size = $5,
+				upload_box_transparency = $6, blur_intensity = $7, max_validity = $8, allow_registration = $9, updated_at = CURRENT_TIMESTAMP
+				WHERE id = $10
+			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.NavbarTitle, settings.MaxUploadSize,
 				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ID)
 		}
 
@@ -1257,6 +1336,213 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, settings)
+	})
+
+	// Admin statistics endpoint
+	router.GET("/admin/stats", authMiddleware(), adminMiddleware(), func(c *gin.Context) {
+		type AdminStats struct {
+			TotalUsers   int   `json:"totalUsers"`
+			TotalUploads int   `json:"totalUploads"`
+			StorageUsed  int64 `json:"storageUsed"`
+		}
+
+		var stats AdminStats
+
+		// Get total users count
+		err := db.QueryRow("SELECT COUNT(*) FROM users").Scan(&stats.TotalUsers)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user count"})
+			return
+		}
+
+		// Get total uploads count
+		err = db.QueryRow("SELECT COUNT(*) FROM uploads").Scan(&stats.TotalUploads)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get upload count"})
+			return
+		}
+
+		// Calculate total storage used by summing total_size from uploads
+		var totalSize sql.NullInt64
+		err = db.QueryRow(`
+			SELECT COALESCE(SUM(total_size), 0) as total_size 
+			FROM uploads
+		`).Scan(&totalSize)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to calculate storage usage"})
+			return
+		}
+
+		if totalSize.Valid {
+			stats.StorageUsed = totalSize.Int64
+		}
+
+		c.JSON(http.StatusOK, stats)
+	})
+
+	// Admin users list endpoint
+	router.GET("/admin/users", authMiddleware(), adminMiddleware(), func(c *gin.Context) {
+		type AdminUser struct {
+			ID           int        `json:"id"`
+			Username     string     `json:"username"`
+			Email        string     `json:"email"`
+			IsAdmin      bool       `json:"isAdmin"`
+			IsBlocked    bool       `json:"isBlocked"`
+			UploadCount  int        `json:"uploadCount"`
+			StorageUsed  int64      `json:"storageUsed"`
+			CreatedAt    time.Time  `json:"createdAt"`
+			LastActivity *time.Time `json:"lastActivity"`
+		}
+
+		rows, err := db.Query(`
+			SELECT 
+				u.id, u.username, u.email, u.is_admin, 
+				COALESCE(u.is_blocked, false) as is_blocked,
+				u.created_at,
+				COUNT(CASE WHEN up.id IS NOT NULL THEN 1 END) as upload_count,
+				COALESCE(SUM(up.total_size), 0) as storage_used,
+				MAX(up.created_at) as last_activity
+			FROM users u
+			LEFT JOIN uploads up ON u.id = up.user_id
+			GROUP BY u.id, u.username, u.email, u.is_admin, u.is_blocked, u.created_at
+			ORDER BY u.created_at DESC
+		`)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
+			return
+		}
+		defer rows.Close()
+
+		var users []AdminUser
+		for rows.Next() {
+			var user AdminUser
+			var lastActivity sql.NullTime
+
+			err := rows.Scan(
+				&user.ID, &user.Username, &user.Email, &user.IsAdmin, &user.IsBlocked,
+				&user.CreatedAt, &user.UploadCount, &user.StorageUsed, &lastActivity,
+			)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan user data"})
+				return
+			}
+
+			if lastActivity.Valid {
+				user.LastActivity = &lastActivity.Time
+			}
+
+			users = append(users, user)
+		}
+
+		c.JSON(http.StatusOK, users)
+	})
+
+	// Admin user block/unblock endpoint
+	router.POST("/admin/users/:id/block", authMiddleware(), adminMiddleware(), func(c *gin.Context) {
+		userID := c.Param("id")
+
+		type BlockRequest struct {
+			Blocked bool `json:"blocked"`
+		}
+
+		var req BlockRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			return
+		}
+
+		// Check if target user is an admin
+		var isTargetAdmin bool
+		err := db.QueryRow("SELECT COALESCE(is_admin, false) FROM users WHERE id = $1", userID).Scan(&isTargetAdmin)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check user status"})
+			return
+		}
+
+		// Prevent blocking admins
+		if isTargetAdmin && req.Blocked {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Cannot block admin users"})
+			return
+		}
+
+		// Add is_blocked column if it doesn't exist
+		_, err = db.Exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update database schema"})
+			return
+		}
+
+		_, err = db.Exec("UPDATE users SET is_blocked = $1 WHERE id = $2", req.Blocked, userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user status"})
+			return
+		}
+
+		action := "unblocked"
+		if req.Blocked {
+			action = "blocked"
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User %s successfully", action)})
+	})
+
+	// Admin quick settings update endpoint
+	router.POST("/admin/quick-settings", authMiddleware(), adminMiddleware(), func(c *gin.Context) {
+		type QuickSettingRequest struct {
+			Setting string      `json:"setting"`
+			Value   interface{} `json:"value"`
+		}
+
+		var req QuickSettingRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			return
+		}
+
+		// Load current settings
+		settings, err := getSettings()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load settings"})
+			return
+		}
+
+		// Update the specific setting
+		switch req.Setting {
+		case "allowRegistration":
+			if boolVal, ok := req.Value.(bool); ok {
+				settings.AllowRegistration = boolVal
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid value for allowRegistration"})
+				return
+			}
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown setting"})
+			return
+		}
+
+		// Save updated settings
+		if settings.ID == 0 {
+			err = db.QueryRow(`
+				INSERT INTO settings (theme, logo_path, background_path, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+				RETURNING id
+			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.MaxUploadSize,
+				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration).Scan(&settings.ID)
+		} else {
+			_, err = db.Exec(`
+				UPDATE settings SET theme = $1, logo_path = $2, background_path = $3, max_upload_size = $4,
+				upload_box_transparency = $5, blur_intensity = $6, max_validity = $7, allow_registration = $8
+				WHERE id = $9
+			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.MaxUploadSize,
+				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ID)
+		}
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update setting"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Setting updated successfully"})
 	})
 
 	// Temporary endpoint to make first user admin (remove in production)
@@ -1276,6 +1562,7 @@ func main() {
 			// Return default settings if none exist
 			settings = Settings{
 				Theme:                 "light",
+				NavbarTitle:           "PInGO Share",
 				MaxUploadSize:         104857600,
 				UploadBoxTransparency: 0,
 				BlurIntensity:         0,

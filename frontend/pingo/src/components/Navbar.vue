@@ -5,7 +5,7 @@
       <router-link to="/" class="flex items-center space-x-2">
         <img v-if="logoPath" :src="logoPath ? `http://localhost:8080${logoPath}` : ''" class="h-8 w-8" alt="Logo" @error="handleImageError" />
         <CloudArrowUpIcon v-else class="h-8 w-8 text-blue-600" />
-        <span class="text-2xl font-extrabold text-gray-900">PinGO File Transfer</span>
+        <span class="text-2xl font-extrabold text-gray-900">{{ navbarTitle }}</span>
       </router-link>
     </div>
 
@@ -167,6 +167,7 @@ const router = useRouter()
 
 const isMenuOpen = ref(false)
 const logoPath = ref<string | null>(null)
+const navbarTitle = ref('PinGO File Transfer')
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
@@ -180,8 +181,9 @@ const handleLogout = async () => {
 
 const loadSettings = async () => {
   try {
-    const response = await axios.get('/settings')
+    const response = await axios.get('http://localhost:8080/settings')
     logoPath.value = response.data.logo || null
+    navbarTitle.value = response.data.navbar_title || 'PinGO File Transfer'
   } catch (error) {
     console.error('Error loading settings:', error)
   }
@@ -217,12 +219,7 @@ div:first-child > a:hover {
   /* box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); */
   transform: translateY(-1px);
     /* Add a subtle scale effect */
-  
-    transform: translateY(-1px);
-    /* Add a subtle scale effect */
-    transform: translateY(-1px);
-    /* Add a subtle scale effect */
-    transform: translateY(-1px);
+
 }
 
 /* Navigation buttons hover effects */
