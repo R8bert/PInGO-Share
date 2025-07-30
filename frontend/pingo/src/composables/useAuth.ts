@@ -5,6 +5,7 @@ interface User {
   id: number
   username: string
   email: string
+  is_admin?: boolean
   created_at?: string
 }
 
@@ -16,7 +17,10 @@ interface Upload {
   email: string
   download_url: string
   created_at: string
-  expires_at: string
+  expires_at: string | null
+  is_available: boolean
+  is_reverse: boolean
+  reverse_token?: string
 }
 
 const user = ref<User | null>(null)
@@ -57,6 +61,7 @@ axios.interceptors.response.use(
 
 export const useAuth = () => {
   const isAuthenticated = computed(() => !!user.value)
+  const isAdmin = computed(() => user.value?.is_admin === true)
 
   const loadTokenFromStorage = () => {
     const savedToken = localStorage.getItem('auth_token')
@@ -165,6 +170,31 @@ export const useAuth = () => {
     }
   }
 
+  const saveAdminSettings = async (formData: FormData) => {
+    try {
+      isLoading.value = true
+      const response = await axios.post('/admin/settings', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to save settings')
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const getSettings = async () => {
+    try {
+      const response = await axios.get('/settings')
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to fetch settings')
+    }
+  }
+
   // Initialize auth state
   loadTokenFromStorage()
 
@@ -173,12 +203,15 @@ export const useAuth = () => {
     token: computed(() => token.value),
     uploads: computed(() => uploads.value),
     isAuthenticated,
+    isAdmin,
     isLoading: computed(() => isLoading.value),
     register,
     login,
     logout,
     fetchCurrentUser,
     fetchUploads,
-    deleteUpload
+    deleteUpload,
+    saveAdminSettings,
+    getSettings
   }
 }

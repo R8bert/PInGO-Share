@@ -88,7 +88,7 @@
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 translate-y-1"
     >
-      <div v-if="isMenuOpen" class="sm:hidden fixed bottom-4 right-4 bg-white shadow-md rounded-md z-50">
+      <div v-if="isMenuOpen" class="sm:hidden fixed bottom-4 right-4 bg-white rounded-md z-50">
         <div class="px-4 py-4 flex flex-col space-y-2">
           <!-- Authenticated user menu -->
           <template v-if="isAuthenticated">
@@ -102,7 +102,7 @@
             
             <router-link
               to="/"
-              class="flex items-center justify-center w-12 h-12 bg-white shadow-lg rounded-full text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-200 group"
+              class="flex items-center justify-center w-12 h-12 bg-white rounded-full text-gray-600 hover:text-blue-600 transition-all duration-200 group"
               active-class="text-blue-600 shadow-xl"
               title="Upload"
               @click="toggleMenu"
@@ -209,13 +209,20 @@ div:first-child > a {
   border-radius: 12px;
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  /* box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); */
   transition: all 0.2s ease-in-out;
 }
 
 div:first-child > a:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); */
   transform: translateY(-1px);
+    /* Add a subtle scale effect */
+  
+    transform: translateY(-1px);
+    /* Add a subtle scale effect */
+    transform: translateY(-1px);
+    /* Add a subtle scale effect */
+    transform: translateY(-1px);
 }
 
 /* Navigation buttons hover effects */

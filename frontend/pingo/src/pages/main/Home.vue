@@ -198,6 +198,36 @@
                 </div>
               </div>
 
+              <!-- Validity Selection -->
+              <div class="mb-6" v-if="validityOptions.length > 0">
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                  File expiration
+                </label>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <label
+                    v-for="option in validityOptions"
+                    :key="option.value"
+                    :class="[
+                      'relative flex items-center justify-center px-3 py-2 rounded-lg border-2 cursor-pointer transition-all text-sm',
+                      selectedValidity === option.value
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+                    ]"
+                  >
+                    <input
+                      type="radio"
+                      v-model="selectedValidity"
+                      :value="option.value"
+                      class="sr-only"
+                    />
+                    <div class="text-center">
+                      <div class="font-medium">{{ option.label }}</div>
+                      <div class="text-xs opacity-75">{{ option.description }}</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               <!-- Action Buttons -->
               <div class="flex space-x-3">
                 <button 
@@ -413,7 +443,7 @@ interface VideoMetadata {
 }
 
 // Use auth composable
-const { user } = useAuth()
+const { user, getSettings } = useAuth()
 
 // State
 const selectedFiles = ref<File[]>([])
@@ -431,6 +461,17 @@ const previewingFiles = ref<Set<number>>(new Set())
 const previewUrls = ref<Map<number, string>>(new Map())
 const videoRefs = ref<Map<number, HTMLVideoElement>>(new Map())
 const videoMetadata = ref<VideoMetadata>({ duration: 0 })
+
+// Validity options and selected validity
+const validityOptions = ref([
+  { value: '7days', label: '7 Days', description: 'One week' },
+  { value: '1month', label: '1 Month', description: '30 days' },
+  { value: '6months', label: '6 Months', description: 'Half year' },
+  { value: '1year', label: '1 Year', description: '12 months' },
+  { value: 'never', label: 'Never', description: 'Permanent' }
+])
+const selectedValidity = ref('7days')
+const maxAllowedValidity = ref('7days')
 
 // Icon mapping
 const iconMap: Record<string, string> = {
@@ -582,6 +623,7 @@ const handleUpload = async () => {
     formData.append(`files`, file)
   })
   formData.append('email', email.value)
+  formData.append('validity', selectedValidity.value)
 
   try {
     const res = await axios.post('/upload', formData, {
@@ -653,9 +695,26 @@ const copyToClipboard = async (text: string) => {
 
 const loadSettings = async () => {
   try {
-    const response = await axios.get('/settings')
-    logoPath.value = response.data.logo || null
-    maxUploadSize.value = response.data.maxUploadSize || 104857600
+    const settings = await getSettings()
+    logoPath.value = settings.logo || null
+    maxUploadSize.value = settings.maxUploadSize || 104857600
+    maxAllowedValidity.value = settings.maxValidity || '7days'
+    
+    // Filter validity options based on max allowed
+    const validityOrder = ['7days', '1month', '6months', '1year', 'never']
+    const maxIndex = validityOrder.indexOf(maxAllowedValidity.value)
+    
+    if (maxIndex !== -1) {
+      const allowedOptions = validityOrder.slice(0, maxIndex + 1)
+      validityOptions.value = validityOptions.value.filter(option => 
+        allowedOptions.includes(option.value)
+      )
+    }
+    
+    // Set default validity to first available option
+    if (validityOptions.value.length > 0) {
+      selectedValidity.value = validityOptions.value[0].value
+    }
   } catch (error) {
     console.error('Error loading settings:', error)
   }

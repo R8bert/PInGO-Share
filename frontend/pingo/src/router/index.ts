@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import SettingsPage from '../pages/settings/Settings.vue'
-import AccountPage from '../pages/account/Account.vue'
+import AccountPage from '../pages/account/AccountModern.vue'
 import HomePage from '../pages/main/Home.vue'
 import AuthPage from '../pages/auth/Auth.vue'
 
@@ -17,6 +17,12 @@ const routes = [
     path: '/download/:id',
     name: 'Download',
     component: () => import('../pages/download/Download.vue'), // Lazy loading
+  },
+  // Reverse upload page route (public)
+  {
+    path: '/reverse-upload/:token',
+    name: 'ReverseUpload',
+    component: () => import('../pages/reverse-upload/ReverseUpload.vue'), // Lazy loading
   },
   {
     path: '/settings',

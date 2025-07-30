@@ -27,12 +27,20 @@ var db *sql.DB
 var jwtSecret = []byte("your-super-secret-jwt-key-change-in-production")
 
 type Settings struct {
-	Theme                 string `json:"theme"`
-	LogoPath              string `json:"logo"`
-	BackgroundPath        string `json:"backgroundImage"`
-	MaxUploadSize         int64  `json:"maxUploadSize"`         // In bytes
-	UploadBoxTransparency int    `json:"uploadBoxTransparency"` // Transparency percentage (0-100)
-	BlurIntensity         int    `json:"blurIntensity"`         // Blur intensity (0-24)
+	ID                    int    `json:"id" db:"id"`
+	Theme                 string `json:"theme" db:"theme"`
+	LogoPath              string `json:"logo" db:"logo_path"`
+	BackgroundPath        string `json:"backgroundImage" db:"background_path"`
+	MaxUploadSize         int64  `json:"maxUploadSize" db:"max_upload_size"`                 // In bytes
+	UploadBoxTransparency int    `json:"uploadBoxTransparency" db:"upload_box_transparency"` // Transparency percentage (0-100)
+	BlurIntensity         int    `json:"blurIntensity" db:"blur_intensity"`                  // Blur intensity (0-24)
+	MaxValidity           string `json:"maxValidity" db:"max_validity"`                      // "7days", "1month", "6months", "1year", "never"
+	AllowRegistration     bool   `json:"allowRegistration" db:"allow_registration"`          // Allow user registration
+}
+
+type UploadRequest struct {
+	Email    string `json:"email"`
+	Validity string `json:"validity"` // "7days", "1month", "6months", "1year", "never"
 }
 
 type User struct {
@@ -40,19 +48,23 @@ type User struct {
 	Username  string    `json:"username" db:"username"`
 	Email     string    `json:"email" db:"email"`
 	Password  string    `json:"-" db:"password_hash"`
+	IsAdmin   bool      `json:"is_admin" db:"is_admin"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
 type Upload struct {
-	ID          int       `json:"id" db:"id"`
-	UserID      int       `json:"user_id" db:"user_id"`
-	UploadID    string    `json:"upload_id" db:"upload_id"`
-	Files       string    `json:"files" db:"files"`
-	TotalSize   int64     `json:"total_size" db:"total_size"`
-	Email       string    `json:"email" db:"email"`
-	DownloadURL string    `json:"download_url" db:"download_url"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
-	ExpiresAt   time.Time `json:"expires_at" db:"expires_at"`
+	ID           int        `json:"id" db:"id"`
+	UserID       int        `json:"user_id" db:"user_id"`
+	UploadID     string     `json:"upload_id" db:"upload_id"`
+	Files        string     `json:"files" db:"files"`
+	TotalSize    int64      `json:"total_size" db:"total_size"`
+	Email        string     `json:"email" db:"email"`
+	DownloadURL  string     `json:"download_url" db:"download_url"`
+	CreatedAt    time.Time  `json:"created_at" db:"created_at"`
+	ExpiresAt    *time.Time `json:"expires_at" db:"expires_at"`
+	IsAvailable  bool       `json:"is_available" db:"is_available"`   // User can toggle availability
+	IsReverse    bool       `json:"is_reverse" db:"is_reverse"`       // Uploaded via reverse share token
+	ReverseToken string     `json:"reverse_token" db:"reverse_token"` // Token used for reverse upload
 }
 
 type RegisterRequest struct {
@@ -64,6 +76,17 @@ type RegisterRequest struct {
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
+}
+
+type ReverseShareToken struct {
+	ID        int        `json:"id" db:"id"`
+	UserID    int        `json:"user_id" db:"user_id"`
+	Token     string     `json:"token" db:"token"`
+	Name      string     `json:"name" db:"name"`
+	UsedCount int        `json:"used_count" db:"used_count"`
+	MaxUses   int        `json:"max_uses" db:"max_uses"` // -1 for unlimited
+	CreatedAt time.Time  `json:"created_at" db:"created_at"`
+	ExpiresAt *time.Time `json:"expires_at" db:"expires_at"`
 }
 
 type Claims struct {
@@ -88,17 +111,33 @@ func initDB() {
 }
 
 func createTables() {
-	// Users table
+	// Users table with admin field
 	usersTable := `
 	CREATE TABLE IF NOT EXISTS users (
 		id SERIAL PRIMARY KEY,
 		username VARCHAR(255) UNIQUE NOT NULL,
 		email VARCHAR(255) UNIQUE NOT NULL,
 		password_hash VARCHAR(255) NOT NULL,
+		is_admin BOOLEAN DEFAULT FALSE,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);`
 
-	// Uploads table
+	// Settings table
+	settingsTable := `
+	CREATE TABLE IF NOT EXISTS settings (
+		id SERIAL PRIMARY KEY,
+		theme VARCHAR(50) DEFAULT 'light',
+		logo_path VARCHAR(500),
+		background_path VARCHAR(500),
+		max_upload_size BIGINT DEFAULT 104857600,
+		upload_box_transparency INTEGER DEFAULT 0,
+		blur_intensity INTEGER DEFAULT 0,
+		max_validity VARCHAR(20) DEFAULT '7days',
+		allow_registration BOOLEAN DEFAULT TRUE,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);`
+
+	// Uploads table with availability and reverse share support
 	uploadsTable := `
 	CREATE TABLE IF NOT EXISTS uploads (
 		id SERIAL PRIMARY KEY,
@@ -109,8 +148,39 @@ func createTables() {
 		email VARCHAR(255),
 		download_url VARCHAR(255) NOT NULL,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		expires_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP + INTERVAL '7 days'
+		expires_at TIMESTAMP NULL,
+		is_available BOOLEAN DEFAULT TRUE,
+		is_reverse BOOLEAN DEFAULT FALSE,
+		reverse_token VARCHAR(255)
 	);`
+
+	// Reverse share tokens table
+	reverseTokensTable := `
+	CREATE TABLE IF NOT EXISTS reverse_share_tokens (
+		id SERIAL PRIMARY KEY,
+		user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+		token VARCHAR(255) UNIQUE NOT NULL,
+		name VARCHAR(255) NOT NULL,
+		used_count INTEGER DEFAULT 0,
+		max_uses INTEGER DEFAULT -1,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		expires_at TIMESTAMP NULL
+	);`
+
+	// Add is_admin column to existing users if it doesn't exist
+	alterUsersTable := `
+	ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;`
+
+	// Alter uploads table to add new columns
+	alterUploadsTable := `
+	ALTER TABLE uploads ALTER COLUMN expires_at DROP NOT NULL;
+	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE;
+	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS is_reverse BOOLEAN DEFAULT FALSE;
+	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS reverse_token VARCHAR(255);`
+
+	// Alter settings table to add allow_registration
+	alterSettingsTable := `
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS allow_registration BOOLEAN DEFAULT TRUE;`
 
 	// Create indexes
 	indexes := `
@@ -118,12 +188,20 @@ func createTables() {
 	CREATE INDEX IF NOT EXISTS idx_uploads_user_id ON uploads(user_id);
 	CREATE INDEX IF NOT EXISTS idx_uploads_upload_id ON uploads(upload_id);
 	CREATE INDEX IF NOT EXISTS idx_uploads_expires_at ON uploads(expires_at);
+	CREATE INDEX IF NOT EXISTS idx_reverse_tokens_token ON reverse_share_tokens(token);
+	CREATE INDEX IF NOT EXISTS idx_reverse_tokens_user_id ON reverse_share_tokens(user_id);
 	`
 
-	tables := []string{usersTable, uploadsTable, indexes}
+	// Insert default settings if none exist
+	defaultSettings := `
+	INSERT INTO settings (theme, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration)
+	SELECT 'light', 104857600, 0, 0, '7days', TRUE
+	WHERE NOT EXISTS (SELECT 1 FROM settings);`
+
+	tables := []string{usersTable, settingsTable, uploadsTable, reverseTokensTable, alterUsersTable, alterUploadsTable, alterSettingsTable, indexes, defaultSettings}
 	for _, table := range tables {
 		if _, err := db.Exec(table); err != nil {
-			panic(fmt.Sprintf("Failed to create table: %v", err))
+			fmt.Printf("Error executing SQL: %v\n", err)
 		}
 	}
 	fmt.Println("Database tables created successfully")
@@ -179,9 +257,7 @@ func authMiddleware() gin.HandlerFunc {
 			}
 		} else {
 			// Remove "Bearer " prefix if present
-			if strings.HasPrefix(tokenString, "Bearer ") {
-				tokenString = strings.TrimPrefix(tokenString, "Bearer ")
-			}
+			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 		}
 
 		if tokenString == "" {
@@ -202,6 +278,75 @@ func authMiddleware() gin.HandlerFunc {
 	}
 }
 
+func adminMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+
+		var isAdmin bool
+		err := db.QueryRow("SELECT is_admin FROM users WHERE id = $1", userID).Scan(&isAdmin)
+		if err != nil || !isAdmin {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func calculateExpiryTime(validity string) *time.Time {
+	now := time.Now()
+	var expiry time.Time
+
+	switch validity {
+	case "7days":
+		expiry = now.Add(7 * 24 * time.Hour)
+	case "1month":
+		expiry = now.AddDate(0, 1, 0)
+	case "6months":
+		expiry = now.AddDate(0, 6, 0)
+	case "1year":
+		expiry = now.AddDate(1, 0, 0)
+	case "never":
+		return nil // NULL for never expires
+	default:
+		expiry = now.Add(7 * 24 * time.Hour) // Default to 7 days
+	}
+
+	return &expiry
+}
+
+func isValidityAllowed(requestedValidity, maxValidity string) bool {
+	validityOrder := map[string]int{
+		"7days":   1,
+		"1month":  2,
+		"6months": 3,
+		"1year":   4,
+		"never":   5,
+	}
+
+	requestedLevel, exists1 := validityOrder[requestedValidity]
+	maxLevel, exists2 := validityOrder[maxValidity]
+
+	if !exists1 || !exists2 {
+		return false
+	}
+
+	return requestedLevel <= maxLevel
+}
+
+func getSettings() (Settings, error) {
+	var settings Settings
+	err := db.QueryRow(`
+		SELECT id, theme, COALESCE(logo_path, ''), COALESCE(background_path, ''), 
+		       max_upload_size, upload_box_transparency, blur_intensity, max_validity, COALESCE(allow_registration, TRUE)
+		FROM settings ORDER BY id LIMIT 1
+	`).Scan(&settings.ID, &settings.Theme, &settings.LogoPath, &settings.BackgroundPath,
+		&settings.MaxUploadSize, &settings.UploadBoxTransparency, &settings.BlurIntensity, &settings.MaxValidity, &settings.AllowRegistration)
+
+	return settings, err
+}
+
 func main() {
 	initDB()
 	defer db.Close()
@@ -219,6 +364,13 @@ func main() {
 
 	// Auth routes
 	router.POST("/register", func(c *gin.Context) {
+		// Check if registration is allowed
+		settings, err := getSettings()
+		if err == nil && !settings.AllowRegistration {
+			c.JSON(http.StatusForbidden, gin.H{"error": "User registration is currently disabled"})
+			return
+		}
+
 		var req RegisterRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -227,8 +379,8 @@ func main() {
 
 		// Check if user already exists
 		var existingID int
-		err := db.QueryRow("SELECT id FROM users WHERE email = $1 OR username = $2", req.Email, req.Username).Scan(&existingID)
-		if err == nil {
+		dbErr := db.QueryRow("SELECT id FROM users WHERE email = $1 OR username = $2", req.Email, req.Username).Scan(&existingID)
+		if dbErr == nil {
 			c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
 			return
 		}
@@ -279,8 +431,8 @@ func main() {
 
 		// Get user from database
 		var user User
-		err := db.QueryRow("SELECT id, username, email, password_hash FROM users WHERE email = $1", req.Email).
-			Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+		err := db.QueryRow("SELECT id, username, email, password_hash, is_admin FROM users WHERE email = $1", req.Email).
+			Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.IsAdmin)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
@@ -309,6 +461,7 @@ func main() {
 				"id":       user.ID,
 				"username": user.Username,
 				"email":    user.Email,
+				"is_admin": user.IsAdmin,
 			},
 		})
 	})
@@ -322,8 +475,8 @@ func main() {
 		userID := c.GetInt("user_id")
 
 		var user User
-		err := db.QueryRow("SELECT id, username, email, created_at FROM users WHERE id = $1", userID).
-			Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt)
+		err := db.QueryRow("SELECT id, username, email, is_admin, created_at FROM users WHERE id = $1", userID).
+			Scan(&user.ID, &user.Username, &user.Email, &user.IsAdmin, &user.CreatedAt)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
@@ -334,6 +487,7 @@ func main() {
 				"id":         user.ID,
 				"username":   user.Username,
 				"email":      user.Email,
+				"is_admin":   user.IsAdmin,
 				"created_at": user.CreatedAt,
 			},
 		})
@@ -343,11 +497,344 @@ func main() {
 	router.POST("/upload", authMiddleware(), func(c *gin.Context) {
 		userID := c.GetInt("user_id")
 
-		// Load current max upload size
-		var settings Settings
-		if data, err := os.ReadFile("settings.json"); err == nil {
-			json.Unmarshal(data, &settings)
+		// Load current settings from database
+		settings, err := getSettings()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load settings"})
+			return
 		}
+
+		maxSize := settings.MaxUploadSize
+		if maxSize == 0 {
+			maxSize = 100 << 20 // Default to 100MB if not set
+		}
+
+		// Parse multipart form
+		form, err := c.MultipartForm()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse multipart form"})
+			return
+		}
+
+		files := form.File["files"]
+		if len(files) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "no files"})
+			return
+		}
+
+		// Check total size of all files
+		var totalSize int64
+		for _, file := range files {
+			totalSize += file.Size
+		}
+		if totalSize > maxSize {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Total file size (%d bytes) exceeds maximum allowed size (%d bytes)", totalSize, maxSize)})
+			return
+		}
+
+		// Get validity from form
+		validity := c.PostForm("validity")
+		if validity == "" {
+			validity = "7days" // Default
+		}
+
+		// Check if requested validity is allowed
+		if !isValidityAllowed(validity, settings.MaxValidity) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Requested validity '%s' exceeds maximum allowed '%s'", validity, settings.MaxValidity)})
+			return
+		}
+
+		// Generate a single ID for all files
+		id := uuid.New().String()
+		var uploadedFiles []string
+
+		// Save each file
+		for _, fileHeader := range files {
+			file, err := fileHeader.Open()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not open file"})
+				return
+			}
+			defer file.Close()
+
+			outPath := "./uploads/" + id + "_" + fileHeader.Filename
+			out, err := os.Create(outPath)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save file"})
+				return
+			}
+			defer out.Close()
+
+			_, err = io.Copy(out, file)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not copy file"})
+				return
+			}
+
+			uploadedFiles = append(uploadedFiles, fileHeader.Filename)
+		}
+
+		// Get email from form
+		email := c.PostForm("email")
+
+		// Calculate expiry time
+		expiresAt := calculateExpiryTime(validity)
+
+		// Save upload to database
+		filesJSON, _ := json.Marshal(uploadedFiles)
+		downloadURL := "/download/" + id
+
+		_, err = db.Exec(`
+			INSERT INTO uploads (user_id, upload_id, files, total_size, email, download_url, expires_at, is_available, is_reverse)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		`, userID, id, string(filesJSON), totalSize, email, downloadURL, expiresAt, true, false)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save upload record"})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"download_url": downloadURL,
+			"files":        uploadedFiles,
+			"count":        len(uploadedFiles),
+			"expires_at":   expiresAt,
+		})
+	})
+
+	// Get user's upload history
+	router.GET("/uploads", authMiddleware(), func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+
+		rows, err := db.Query(`
+			SELECT id, upload_id, files, total_size, email, download_url, created_at, expires_at, 
+			       COALESCE(is_available, TRUE), COALESCE(is_reverse, FALSE), COALESCE(reverse_token, '')
+			FROM uploads 
+			WHERE user_id = $1 
+			ORDER BY created_at DESC
+		`, userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch uploads"})
+			return
+		}
+		defer rows.Close()
+
+		var uploads []Upload
+		for rows.Next() {
+			var upload Upload
+			err := rows.Scan(
+				&upload.ID, &upload.UploadID, &upload.Files, &upload.TotalSize,
+				&upload.Email, &upload.DownloadURL, &upload.CreatedAt, &upload.ExpiresAt,
+				&upload.IsAvailable, &upload.IsReverse, &upload.ReverseToken,
+			)
+			if err != nil {
+				continue
+			}
+			upload.UserID = userID
+			uploads = append(uploads, upload)
+		}
+
+		c.JSON(http.StatusOK, gin.H{"uploads": uploads})
+	})
+
+	// Delete upload
+	router.DELETE("/uploads/:id", authMiddleware(), func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+		uploadID := c.Param("id")
+
+		// Get upload details to delete files
+		var upload Upload
+		err := db.QueryRow(`
+			SELECT upload_id, files FROM uploads 
+			WHERE user_id = $1 AND upload_id = $2
+		`, userID, uploadID).Scan(&upload.UploadID, &upload.Files)
+
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Upload not found"})
+			return
+		}
+
+		// Parse files and delete them
+		var files []string
+		json.Unmarshal([]byte(upload.Files), &files)
+
+		for _, filename := range files {
+			filePath := "./uploads/" + upload.UploadID + "_" + filename
+			os.Remove(filePath)
+		}
+
+		// Delete from database
+		_, err = db.Exec("DELETE FROM uploads WHERE user_id = $1 AND upload_id = $2", userID, uploadID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete upload"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Upload deleted successfully"})
+	})
+
+	// Toggle upload availability
+	router.PUT("/uploads/:id/availability", authMiddleware(), func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+		uploadID := c.Param("id")
+
+		type AvailabilityRequest struct {
+			IsAvailable bool `json:"is_available"`
+		}
+
+		var req AvailabilityRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Update availability
+		_, err := db.Exec("UPDATE uploads SET is_available = $1 WHERE user_id = $2 AND upload_id = $3",
+			req.IsAvailable, userID, uploadID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update availability"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Upload availability updated successfully"})
+	})
+
+	// Create reverse share token
+	router.POST("/reverse-tokens", authMiddleware(), func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+
+		type TokenRequest struct {
+			Name      string `json:"name" binding:"required"`
+			MaxUses   int    `json:"max_uses"`   // -1 for unlimited
+			ExpiresIn string `json:"expires_in"` // "7days", "1month", etc. or empty for no expiry
+		}
+
+		var req TokenRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Generate token
+		token := uuid.New().String()
+
+		// Calculate expiry
+		var expiresAt *time.Time
+		if req.ExpiresIn != "" {
+			expiresAt = calculateExpiryTime(req.ExpiresIn)
+		}
+
+		maxUses := req.MaxUses
+		if maxUses == 0 {
+			maxUses = -1 // Default to unlimited
+		}
+
+		// Save token to database
+		var tokenID int
+		err := db.QueryRow(`
+			INSERT INTO reverse_share_tokens (user_id, token, name, max_uses, expires_at)
+			VALUES ($1, $2, $3, $4, $5) RETURNING id
+		`, userID, token, req.Name, maxUses, expiresAt).Scan(&tokenID)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create token"})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"id":         tokenID,
+			"token":      token,
+			"name":       req.Name,
+			"max_uses":   maxUses,
+			"used_count": 0,
+			"expires_at": expiresAt,
+		})
+	})
+
+	// Get user's reverse share tokens
+	router.GET("/reverse-tokens", authMiddleware(), func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+
+		rows, err := db.Query(`
+			SELECT id, token, name, used_count, max_uses, created_at, expires_at
+			FROM reverse_share_tokens 
+			WHERE user_id = $1 
+			ORDER BY created_at DESC
+		`, userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch tokens"})
+			return
+		}
+		defer rows.Close()
+
+		var tokens []ReverseShareToken
+		for rows.Next() {
+			var token ReverseShareToken
+			err := rows.Scan(
+				&token.ID, &token.Token, &token.Name, &token.UsedCount,
+				&token.MaxUses, &token.CreatedAt, &token.ExpiresAt,
+			)
+			if err != nil {
+				continue
+			}
+			token.UserID = userID
+			tokens = append(tokens, token)
+		}
+
+		c.JSON(http.StatusOK, gin.H{"tokens": tokens})
+	})
+
+	// Delete reverse share token
+	router.DELETE("/reverse-tokens/:id", authMiddleware(), func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+		tokenID := c.Param("id")
+
+		_, err := db.Exec("DELETE FROM reverse_share_tokens WHERE user_id = $1 AND id = $2", userID, tokenID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete token"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Token deleted successfully"})
+	})
+
+	// Upload via reverse share token (public endpoint)
+	router.POST("/reverse-upload/:token", func(c *gin.Context) {
+		token := c.Param("token")
+
+		// Validate token
+		var tokenData ReverseShareToken
+		err := db.QueryRow(`
+			SELECT id, user_id, name, used_count, max_uses, expires_at
+			FROM reverse_share_tokens 
+			WHERE token = $1
+		`, token).Scan(&tokenData.ID, &tokenData.UserID, &tokenData.Name,
+			&tokenData.UsedCount, &tokenData.MaxUses, &tokenData.ExpiresAt)
+
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Invalid token"})
+			return
+		}
+
+		// Check if token is expired
+		if tokenData.ExpiresAt != nil && tokenData.ExpiresAt.Before(time.Now()) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Token has expired"})
+			return
+		}
+
+		// Check if token has reached max uses
+		if tokenData.MaxUses != -1 && tokenData.UsedCount >= tokenData.MaxUses {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Token has reached maximum uses"})
+			return
+		}
+
+		// Load current settings from database for upload limits
+		settings, err := getSettings()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load settings"})
+			return
+		}
+
 		maxSize := settings.MaxUploadSize
 		if maxSize == 0 {
 			maxSize = 100 << 20 // Default to 100MB if not set
@@ -409,100 +896,81 @@ func main() {
 		// Get email from form
 		email := c.PostForm("email")
 
-		// Save upload to database
+		// Get validity from form or use default
+		validity := c.PostForm("validity")
+		if validity == "" {
+			validity = "7days" // Default
+		}
+
+		// Check if requested validity is allowed
+		if !isValidityAllowed(validity, settings.MaxValidity) {
+			validity = settings.MaxValidity // Use max allowed if requested exceeds limit
+		}
+
+		// Calculate expiry time
+		expiresAt := calculateExpiryTime(validity)
+
+		// Save upload to database (reverse upload)
 		filesJSON, _ := json.Marshal(uploadedFiles)
 		downloadURL := "/download/" + id
-		expiresAt := time.Now().Add(7 * 24 * time.Hour) // 7 days expiry
 
 		_, err = db.Exec(`
-			INSERT INTO uploads (user_id, upload_id, files, total_size, email, download_url, expires_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
-		`, userID, id, string(filesJSON), totalSize, email, downloadURL, expiresAt)
+			INSERT INTO uploads (user_id, upload_id, files, total_size, email, download_url, expires_at, is_available, is_reverse, reverse_token)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		`, tokenData.UserID, id, string(filesJSON), totalSize, email, downloadURL, expiresAt, true, true, token)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save upload record"})
 			return
 		}
 
+		// Update token usage count
+		_, err = db.Exec("UPDATE reverse_share_tokens SET used_count = used_count + 1 WHERE id = $1", tokenData.ID)
+		if err != nil {
+			// Log error but don't fail the upload
+			fmt.Printf("Failed to update token usage count: %v\n", err)
+		}
+
 		c.JSON(200, gin.H{
+			"message":      "Upload successful",
 			"download_url": downloadURL,
 			"files":        uploadedFiles,
 			"count":        len(uploadedFiles),
+			"expires_at":   expiresAt,
 		})
-	})
-
-	// Get user's upload history
-	router.GET("/uploads", authMiddleware(), func(c *gin.Context) {
-		userID := c.GetInt("user_id")
-
-		rows, err := db.Query(`
-			SELECT id, upload_id, files, total_size, email, download_url, created_at, expires_at
-			FROM uploads 
-			WHERE user_id = $1 
-			ORDER BY created_at DESC
-		`, userID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch uploads"})
-			return
-		}
-		defer rows.Close()
-
-		var uploads []Upload
-		for rows.Next() {
-			var upload Upload
-			err := rows.Scan(
-				&upload.ID, &upload.UploadID, &upload.Files, &upload.TotalSize,
-				&upload.Email, &upload.DownloadURL, &upload.CreatedAt, &upload.ExpiresAt,
-			)
-			if err != nil {
-				continue
-			}
-			upload.UserID = userID
-			uploads = append(uploads, upload)
-		}
-
-		c.JSON(http.StatusOK, gin.H{"uploads": uploads})
-	})
-
-	// Delete upload
-	router.DELETE("/uploads/:id", authMiddleware(), func(c *gin.Context) {
-		userID := c.GetInt("user_id")
-		uploadID := c.Param("id")
-
-		// Get upload details to delete files
-		var upload Upload
-		err := db.QueryRow(`
-			SELECT upload_id, files FROM uploads 
-			WHERE user_id = $1 AND upload_id = $2
-		`, userID, uploadID).Scan(&upload.UploadID, &upload.Files)
-
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Upload not found"})
-			return
-		}
-
-		// Parse files and delete them
-		var files []string
-		json.Unmarshal([]byte(upload.Files), &files)
-
-		for _, filename := range files {
-			filePath := "./uploads/" + upload.UploadID + "_" + filename
-			os.Remove(filePath)
-		}
-
-		// Delete from database
-		_, err = db.Exec("DELETE FROM uploads WHERE user_id = $1 AND upload_id = $2", userID, uploadID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete upload"})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"message": "Upload deleted successfully"})
 	})
 
 	// Download endpoint - handles single files directly, multiple files as ZIP
 	router.GET("/download/:id", func(c *gin.Context) {
 		id := c.Param("id")
+
+		// Check if upload exists and is available
+		var isAvailable bool
+		var userID int
+		err := db.QueryRow("SELECT COALESCE(is_available, TRUE), user_id FROM uploads WHERE upload_id = $1", id).Scan(&isAvailable, &userID)
+		if err != nil {
+			c.JSON(404, gin.H{"error": "not found"})
+			return
+		}
+
+		// Check if file is available or if the user who uploaded it is requesting it
+		currentUserID := -1
+		if tokenString := c.GetHeader("Authorization"); tokenString != "" {
+			if cookie, err := c.Cookie("auth_token"); err == nil {
+				tokenString = cookie
+			}
+			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+			if claims, err := validateJWT(tokenString); err == nil {
+				currentUserID = claims.UserID
+			}
+		}
+
+		// If file is not available and requester is not the owner, return expired message
+		if !isAvailable && currentUserID != userID {
+			c.JSON(410, gin.H{"error": "This file has expired or is no longer available"})
+			return
+		}
+
 		files, _ := os.ReadDir("./uploads")
 
 		// Find all files with this ID
@@ -587,20 +1055,42 @@ func main() {
 		c.JSON(200, gin.H{"files": fileInfos})
 	})
 
-	// Settings save endpoint
-	router.POST("/settings/save", func(c *gin.Context) {
+	// Admin-only settings endpoints
+	router.POST("/admin/settings", authMiddleware(), adminMiddleware(), func(c *gin.Context) {
 		// Load existing settings
-		var existingSettings Settings
-		if data, err := os.ReadFile("settings.json"); err == nil {
-			json.Unmarshal(data, &existingSettings)
+		settings, err := getSettings()
+		if err != nil {
+			// If no settings exist, create default
+			settings = Settings{
+				Theme:                 "light",
+				MaxUploadSize:         104857600,
+				UploadBoxTransparency: 0,
+				BlurIntensity:         0,
+				MaxValidity:           "7days",
+				AllowRegistration:     true,
+			}
 		}
-
-		// Use existing settings as base
-		settings := existingSettings
 
 		theme := c.PostForm("theme")
 		if theme != "" {
 			settings.Theme = theme
+		}
+
+		maxValidity := c.PostForm("maxValidity")
+		if maxValidity != "" {
+			validOptions := []string{"7days", "1month", "6months", "1year", "never"}
+			valid := false
+			for _, option := range validOptions {
+				if maxValidity == option {
+					valid = true
+					break
+				}
+			}
+			if !valid {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid maximum validity option"})
+				return
+			}
+			settings.MaxValidity = maxValidity
 		}
 
 		// Handle logo upload
@@ -613,7 +1103,6 @@ func main() {
 				oldLogoPath := "." + settings.LogoPath
 				if _, err := os.Stat(oldLogoPath); err == nil {
 					os.Remove(oldLogoPath)
-					fmt.Println("Deleted old logo:", oldLogoPath)
 				}
 			}
 
@@ -633,7 +1122,6 @@ func main() {
 			// Generate SHA256 hash
 			hash := sha256.Sum256(logoContent)
 			hashString := hex.EncodeToString(hash[:])
-			fmt.Println("Logo hash sum:", hashString)
 
 			logoExt := filepath.Ext(c.PostForm("logo"))
 			if logoExt == "" {
@@ -647,7 +1135,6 @@ func main() {
 			}
 			defer out.Close()
 
-			// Write the content we already read
 			_, err = out.Write(logoContent)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not write logo file"})
@@ -655,7 +1142,6 @@ func main() {
 			}
 
 			settings.LogoPath = "/logos/" + hashString + logoExt
-			fmt.Println("Saved logo to:", settings.LogoPath)
 		}
 
 		// Handle background image upload
@@ -668,7 +1154,6 @@ func main() {
 				oldBackgroundPath := "." + settings.BackgroundPath
 				if _, err := os.Stat(oldBackgroundPath); err == nil {
 					os.Remove(oldBackgroundPath)
-					fmt.Println("Deleted old background:", oldBackgroundPath)
 				}
 			}
 
@@ -678,17 +1163,14 @@ func main() {
 				return
 			}
 
-			// Read file content to generate hash
 			backgroundContent, err := io.ReadAll(background)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read background file"})
 				return
 			}
 
-			// Generate SHA256 hash
 			hash := sha256.Sum256(backgroundContent)
 			hashString := hex.EncodeToString(hash[:])
-			fmt.Println("Background hash sum:", hashString)
 
 			backgroundExt := filepath.Ext(c.PostForm("backgroundImage"))
 			if backgroundExt == "" {
@@ -702,7 +1184,6 @@ func main() {
 			}
 			defer out.Close()
 
-			// Write the content we already read
 			_, err = out.Write(backgroundContent)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not write background file"})
@@ -710,7 +1191,6 @@ func main() {
 			}
 
 			settings.BackgroundPath = "/backgrounds/" + hashString + backgroundExt
-			fmt.Println("Saved background to:", settings.BackgroundPath)
 		}
 
 		// Handle max upload size
@@ -721,7 +1201,6 @@ func main() {
 				return
 			}
 			settings.MaxUploadSize = maxSize
-			fmt.Println("Set max upload size to:", maxSize, "bytes")
 		}
 
 		// Handle upload box transparency
@@ -732,7 +1211,6 @@ func main() {
 				return
 			}
 			settings.UploadBoxTransparency = transparency
-			fmt.Println("Set upload box transparency to:", transparency, "%")
 		}
 
 		// Handle blur intensity
@@ -743,25 +1221,67 @@ func main() {
 				return
 			}
 			settings.BlurIntensity = blur
-			fmt.Println("Set blur intensity to:", blur)
 		}
 
-		// Save settings to a file
-		data, err := json.Marshal(settings)
-		if err == nil {
-			os.WriteFile("settings.json", data, 0644)
-			fmt.Println("Saved settings to settings.json:", string(data))
+		// Handle allow registration
+		if allowRegStr := c.PostForm("allowRegistration"); allowRegStr != "" {
+			allowReg, err := strconv.ParseBool(allowRegStr)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid allow registration value (must be true or false)"})
+				return
+			}
+			settings.AllowRegistration = allowReg
+		}
+
+		// Save settings to database
+		if settings.ID == 0 {
+			// Insert new settings
+			err = db.QueryRow(`
+				INSERT INTO settings (theme, logo_path, background_path, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.MaxUploadSize,
+				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration).Scan(&settings.ID)
+		} else {
+			// Update existing settings
+			_, err = db.Exec(`
+				UPDATE settings SET theme = $1, logo_path = $2, background_path = $3, max_upload_size = $4,
+				upload_box_transparency = $5, blur_intensity = $6, max_validity = $7, allow_registration = $8, updated_at = CURRENT_TIMESTAMP
+				WHERE id = $9
+			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.MaxUploadSize,
+				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ID)
+		}
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save settings"})
+			return
 		}
 
 		c.JSON(http.StatusOK, settings)
 	})
 
-	// Settings get endpoint
+	// Temporary endpoint to make first user admin (remove in production)
+	router.POST("/promote-first-admin", func(c *gin.Context) {
+		_, err := db.Exec("UPDATE users SET is_admin = TRUE WHERE id = (SELECT MIN(id) FROM users)")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to promote user"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "First user promoted to admin"})
+	})
+
+	// Settings get endpoint (public)
 	router.GET("/settings", func(c *gin.Context) {
-		var settings Settings
-		if data, err := os.ReadFile("settings.json"); err == nil {
-			json.Unmarshal(data, &settings)
-			fmt.Println("Loaded settings from settings.json:", string(data))
+		settings, err := getSettings()
+		if err != nil {
+			// Return default settings if none exist
+			settings = Settings{
+				Theme:                 "light",
+				MaxUploadSize:         104857600,
+				UploadBoxTransparency: 0,
+				BlurIntensity:         0,
+				MaxValidity:           "7days",
+				AllowRegistration:     true,
+			}
 		}
 		c.JSON(http.StatusOK, settings)
 	})
@@ -772,8 +1292,8 @@ func main() {
 		defer ticker.Stop()
 
 		for range ticker.C {
-			// Delete expired uploads from database and files
-			rows, err := db.Query("SELECT upload_id, files FROM uploads WHERE expires_at < NOW()")
+			// Delete expired uploads from database and files (excluding never-expiring uploads)
+			rows, err := db.Query("SELECT upload_id, files FROM uploads WHERE expires_at IS NOT NULL AND expires_at < NOW()")
 			if err != nil {
 				continue
 			}
@@ -798,7 +1318,7 @@ func main() {
 			}
 
 			// Delete expired records from database
-			db.Exec("DELETE FROM uploads WHERE expires_at < NOW()")
+			db.Exec("DELETE FROM uploads WHERE expires_at IS NOT NULL AND expires_at < NOW()")
 		}
 	}()
 
