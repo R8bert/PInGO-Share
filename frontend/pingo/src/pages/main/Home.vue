@@ -391,6 +391,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useAuth } from '../../composables/useAuth'
 import axios from 'axios'
 import { CloudArrowUpIcon, EnvelopeIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
@@ -410,6 +411,9 @@ interface Message {
 interface VideoMetadata {
   duration: number
 }
+
+// Use auth composable
+const { user } = useAuth()
 
 // State
 const selectedFiles = ref<File[]>([])
@@ -580,7 +584,7 @@ const handleUpload = async () => {
   formData.append('email', email.value)
 
   try {
-    const res = await axios.post('http://localhost:8080/upload', formData, {
+    const res = await axios.post('/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (event) => {
         if (event.total) progress.value = Math.round((event.loaded * 100) / event.total)
@@ -591,9 +595,10 @@ const handleUpload = async () => {
     downloadUrl.value = `${window.location.origin}/download/${downloadId}`
     downloadPath.value = `/download/${downloadId}`
     message.value = { text: `${selectedFiles.value.length} file${selectedFiles.value.length > 1 ? 's' : ''} uploaded successfully!`, type: 'success' }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Upload error:', err)
-    message.value = { text: 'Upload failed. Please try again.', type: 'error' }
+    const errorMessage = err.response?.data?.error || 'Upload failed. Please try again.'
+    message.value = { text: errorMessage, type: 'error' }
   } finally {
     isUploading.value = false
   }
@@ -648,7 +653,7 @@ const copyToClipboard = async (text: string) => {
 
 const loadSettings = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/settings')
+    const response = await axios.get('/settings')
     logoPath.value = response.data.logo || null
     maxUploadSize.value = response.data.maxUploadSize || 104857600
   } catch (error) {
