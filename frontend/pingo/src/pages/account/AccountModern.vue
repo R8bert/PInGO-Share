@@ -1,37 +1,36 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pt-20">
-    <!-- Top Navigation -->
-    <nav class="bg-white/80 backdrop-blur-sm border-b border-white/20 fixed top-16 left-0 right-0 z-40">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-3">
-            <router-link to="/" class="flex items-center space-x-2 group">
-              <ArrowLeftIcon class="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
-              <span class="text-gray-700 group-hover:text-blue-600 font-medium transition-colors">Back to Home</span>
-            </router-link>
-          </div>
-          <div class="flex items-center space-x-4">
-            <div class="flex items-center space-x-2">
-              <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                <UserIcon class="w-4 h-4 text-white" />
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="text-gray-700 font-medium">{{ user?.username }}</span>
-                <span v-if="isAdmin" class="admin-badge">
-                  <span class="admin-badge-text">ADMIN</span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Header Section -->
       <div class="text-center mb-12">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl mb-6 shadow-lg">
-          <UserIcon class="w-10 h-10 text-white" />
+        <div class="relative inline-block mb-6">
+          <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+            <img 
+              v-if="user?.avatar" 
+              :src="`http://localhost:8080${user.avatar}`" 
+              :alt="user.username"
+              class="w-full h-full object-cover"
+              @error="handleAvatarError"
+            />
+            <UserIcon v-else class="w-12 h-12 text-white" />
+          </div>
+          <button 
+            @click="openAvatarUpload"
+            class="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg transition-colors"
+            title="Change avatar"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </button>
+          <input 
+            ref="avatarInput" 
+            type="file" 
+            accept="image/*,.gif" 
+            @change="handleAvatarUpload" 
+            class="hidden"
+          />
         </div>
                 <div class="flex items-center space-x-3">
           <h1 class="text-2xl font-bold text-gray-900">
@@ -744,7 +743,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import {
   UserIcon,
-  ArrowLeftIcon,
   CloudArrowUpIcon,
   ArchiveBoxIcon,
   ClockIcon,
@@ -801,6 +799,7 @@ const advancedSettings = ref({
 const isSavingSettings = ref(false)
 const logoFile = ref<File | null>(null)
 const adminUsers = ref<any[]>([])
+const avatarInput = ref<HTMLInputElement | null>(null)
 
 // Expiration dropdown state
 const showExpirationDropdown = ref<Record<string, boolean>>({})
@@ -867,8 +866,8 @@ const copyToClipboard = async (text: string) => {
     textArea.value = text
     document.body.appendChild(textArea)
     textArea.select()
-    document.execCommand('copy')
     document.body.removeChild(textArea)
+    alert('Failed to copy to clipboard. Please copy manually.')
   }
 }
 
@@ -1218,6 +1217,64 @@ const saveAllSettings = async () => {
     console.error('Error saving settings:', error)
   } finally {
     isSavingSettings.value = false
+  }
+}
+
+// Avatar functions
+const openAvatarUpload = () => {
+  avatarInput.value?.click()
+}
+
+const handleAvatarError = () => {
+  console.error('Failed to load avatar')
+}
+
+const handleAvatarUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (!target.files || target.files.length === 0) return
+
+  const file = target.files[0]
+  
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    alert('Please select a valid image file (JPEG, PNG, GIF, or WebP)')
+    return
+  }
+
+  // Validate file size (5MB max)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('File size must be less than 5MB')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('avatar', file)
+
+  try {
+    const response = await fetch('http://localhost:8080/avatar', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+      },
+      body: formData
+    })
+
+    if (response.ok) {
+      const result = await response.json()
+      // Update user avatar
+      if (user.value) {
+        user.value.avatar = result.avatar
+      }
+      // Reset input
+      target.value = ''
+    } else {
+      const error = await response.json()
+      alert(error.error || 'Failed to upload avatar')
+    }
+  } catch (error) {
+    console.error('Error uploading avatar:', error)
+    alert('Failed to upload avatar')
   }
 }
 

@@ -50,7 +50,25 @@ type User struct {
 	Email     string    `json:"email" db:"email"`
 	Password  string    `json:"-" db:"password_hash"`
 	IsAdmin   bool      `json:"is_admin" db:"is_admin"`
+	Avatar    string    `json:"avatar" db:"avatar"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
+}
+
+type DeletionLog struct {
+	ID             int        `json:"id" db:"id"`
+	UserID         int        `json:"user_id" db:"user_id"`
+	Username       string     `json:"username" db:"username"`
+	UploadID       string     `json:"upload_id" db:"upload_id"`
+	Files          string     `json:"files" db:"files"`
+	TotalSize      int64      `json:"total_size" db:"total_size"`
+	Email          string     `json:"email" db:"email"`
+	DownloadURL    string     `json:"download_url" db:"download_url"`
+	UploadedAt     time.Time  `json:"uploaded_at" db:"uploaded_at"`
+	DeletedAt      time.Time  `json:"deleted_at" db:"deleted_at"`
+	ExpiresAt      *time.Time `json:"expires_at" db:"expires_at"`
+	IsReverse      bool       `json:"is_reverse" db:"is_reverse"`
+	ReverseToken   string     `json:"reverse_token" db:"reverse_token"`
+	DeletionReason string     `json:"deletion_reason" db:"deletion_reason"`
 }
 
 type Upload struct {
@@ -170,10 +188,30 @@ func createTables() {
 		expires_at TIMESTAMP NULL
 	);`
 
+	// Deletion logs table to track all deleted files
+	deletionLogsTable := `
+	CREATE TABLE IF NOT EXISTS deletion_logs (
+		id SERIAL PRIMARY KEY,
+		user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+		username VARCHAR(255) NOT NULL,
+		upload_id VARCHAR(255) NOT NULL,
+		files TEXT NOT NULL,
+		total_size BIGINT NOT NULL,
+		email VARCHAR(255),
+		download_url VARCHAR(255) NOT NULL,
+		uploaded_at TIMESTAMP NOT NULL,
+		deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		expires_at TIMESTAMP NULL,
+		is_reverse BOOLEAN DEFAULT FALSE,
+		reverse_token VARCHAR(255),
+		deletion_reason VARCHAR(500) DEFAULT 'User deleted'
+	);`
+
 	// Add is_admin column to existing users if it doesn't exist
 	alterUsersTable := `
 	ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
-	ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE;`
+	ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE;
+	ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(500);`
 
 	// Alter uploads table to add new columns
 	alterUploadsTable := `
@@ -203,7 +241,7 @@ func createTables() {
 	SELECT 'light', 104857600, 0, 0, '7days', TRUE
 	WHERE NOT EXISTS (SELECT 1 FROM settings);`
 
-	tables := []string{usersTable, settingsTable, uploadsTable, reverseTokensTable, alterUsersTable, alterUploadsTable, alterSettingsTable, indexes, defaultSettings}
+	tables := []string{usersTable, settingsTable, uploadsTable, reverseTokensTable, deletionLogsTable, alterUsersTable, alterUploadsTable, alterSettingsTable, indexes, defaultSettings}
 	for _, table := range tables {
 		if _, err := db.Exec(table); err != nil {
 			fmt.Printf("Error executing SQL: %v\n", err)
@@ -463,8 +501,8 @@ func main() {
 
 		// Get user from database
 		var user User
-		err := db.QueryRow("SELECT id, username, email, password_hash, is_admin FROM users WHERE email = $1", req.Email).
-			Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.IsAdmin)
+		err := db.QueryRow("SELECT id, username, email, password_hash, is_admin, COALESCE(avatar, '') as avatar FROM users WHERE email = $1", req.Email).
+			Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.IsAdmin, &user.Avatar)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
@@ -494,6 +532,7 @@ func main() {
 				"username": user.Username,
 				"email":    user.Email,
 				"is_admin": user.IsAdmin,
+				"avatar":   user.Avatar,
 			},
 		})
 	})
@@ -507,8 +546,8 @@ func main() {
 		userID := c.GetInt("user_id")
 
 		var user User
-		err := db.QueryRow("SELECT id, username, email, is_admin, created_at FROM users WHERE id = $1", userID).
-			Scan(&user.ID, &user.Username, &user.Email, &user.IsAdmin, &user.CreatedAt)
+		err := db.QueryRow("SELECT id, username, email, is_admin, COALESCE(avatar, '') as avatar, created_at FROM users WHERE id = $1", userID).
+			Scan(&user.ID, &user.Username, &user.Email, &user.IsAdmin, &user.Avatar, &user.CreatedAt)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
@@ -520,8 +559,100 @@ func main() {
 				"username":   user.Username,
 				"email":      user.Email,
 				"is_admin":   user.IsAdmin,
+				"avatar":     user.Avatar,
 				"created_at": user.CreatedAt,
 			},
+		})
+	})
+
+	// Avatar upload endpoint
+	router.POST("/avatar", authMiddleware(), func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+
+		// Parse multipart form
+		file, header, err := c.Request.FormFile("avatar")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No avatar file provided"})
+			return
+		}
+		defer file.Close()
+
+		// Validate file type (images and GIFs)
+		allowedTypes := map[string]bool{
+			"image/jpeg": true,
+			"image/jpg":  true,
+			"image/png":  true,
+			"image/gif":  true,
+			"image/webp": true,
+		}
+
+		contentType := header.Header.Get("Content-Type")
+		if !allowedTypes[contentType] {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed"})
+			return
+		}
+
+		// Validate file size (max 5MB)
+		if header.Size > 5*1024*1024 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "File size too large. Maximum 5MB allowed"})
+			return
+		}
+
+		// Create avatars directory if it doesn't exist
+		avatarsDir := "./avatars"
+		if _, err := os.Stat(avatarsDir); os.IsNotExist(err) {
+			os.MkdirAll(avatarsDir, 0755)
+		}
+
+		// Generate unique filename with hash
+		fileContent, err := io.ReadAll(file)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
+			return
+		}
+
+		hash := sha256.Sum256(fileContent)
+		hashString := hex.EncodeToString(hash[:])
+
+		// Get file extension
+		ext := filepath.Ext(header.Filename)
+		if ext == "" {
+			// Determine extension from content type
+			switch contentType {
+			case "image/jpeg":
+				ext = ".jpg"
+			case "image/png":
+				ext = ".png"
+			case "image/gif":
+				ext = ".gif"
+			case "image/webp":
+				ext = ".webp"
+			default:
+				ext = ".jpg"
+			}
+		}
+
+		filename := hashString + ext
+		avatarPath := "/avatars/" + filename
+		fullPath := "./avatars/" + filename
+
+		// Save file
+		err = os.WriteFile(fullPath, fileContent, 0644)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save avatar"})
+			return
+		}
+
+		// Update user avatar in database
+		_, err = db.Exec("UPDATE users SET avatar = $1 WHERE id = $2", avatarPath, userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update avatar"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Avatar uploaded successfully",
+			"avatar":  avatarPath,
 		})
 	})
 
@@ -674,16 +805,38 @@ func main() {
 		userID := c.GetInt("user_id")
 		uploadID := c.Param("id")
 
-		// Get upload details to delete files
+		// Get upload details to log before deletion
 		var upload Upload
+		var username string
 		err := db.QueryRow(`
-			SELECT upload_id, files FROM uploads 
-			WHERE user_id = $1 AND upload_id = $2
-		`, userID, uploadID).Scan(&upload.UploadID, &upload.Files)
+			SELECT u.upload_id, u.files, u.total_size, u.email, u.download_url, 
+			       u.created_at, u.expires_at, u.is_reverse, u.reverse_token, users.username
+			FROM uploads u
+			JOIN users ON u.user_id = users.id
+			WHERE u.user_id = $1 AND u.upload_id = $2
+		`, userID, uploadID).Scan(
+			&upload.UploadID, &upload.Files, &upload.TotalSize, &upload.Email,
+			&upload.DownloadURL, &upload.CreatedAt, &upload.ExpiresAt,
+			&upload.IsReverse, &upload.ReverseToken, &username)
 
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Upload not found"})
 			return
+		}
+
+		// Log deletion before deleting
+		_, err = db.Exec(`
+			INSERT INTO deletion_logs (
+				user_id, username, upload_id, files, total_size, email, 
+				download_url, uploaded_at, expires_at, is_reverse, reverse_token, deletion_reason
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		`, userID, username, upload.UploadID, upload.Files, upload.TotalSize,
+			upload.Email, upload.DownloadURL, upload.CreatedAt, upload.ExpiresAt,
+			upload.IsReverse, upload.ReverseToken, "User deleted")
+
+		if err != nil {
+			fmt.Printf("Failed to log deletion: %v\n", err)
+			// Continue with deletion even if logging fails
 		}
 
 		// Parse files and delete them
@@ -1097,6 +1250,28 @@ func main() {
 	// Files metadata endpoint
 	router.GET("/files/:id", func(c *gin.Context) {
 		id := c.Param("id")
+
+		// Get uploader information from database
+		var uploaderInfo struct {
+			Username string `json:"username"`
+			Avatar   string `json:"avatar"`
+			Email    string `json:"email"`
+		}
+
+		err := db.QueryRow(`
+			SELECT u.username, COALESCE(u.avatar, '') as avatar, up.email 
+			FROM uploads up 
+			JOIN users u ON up.user_id = u.id 
+			WHERE up.upload_id = $1
+		`, id).Scan(&uploaderInfo.Username, &uploaderInfo.Avatar, &uploaderInfo.Email)
+
+		if err != nil {
+			// If no uploader found, continue without uploader info
+			uploaderInfo.Username = "Unknown"
+			uploaderInfo.Avatar = ""
+			uploaderInfo.Email = ""
+		}
+
 		files, _ := os.ReadDir("./uploads")
 
 		// Find all files with this ID
@@ -1125,7 +1300,14 @@ func main() {
 			return
 		}
 
-		c.JSON(200, gin.H{"files": fileInfos})
+		c.JSON(200, gin.H{
+			"files": fileInfos,
+			"uploader": gin.H{
+				"username": uploaderInfo.Username,
+				"avatar":   uploaderInfo.Avatar,
+				"email":    uploaderInfo.Email,
+			},
+		})
 	})
 
 	// Admin-only settings endpoints
@@ -1613,11 +1795,13 @@ func main() {
 	router.Static("/logos", "./logos")
 	router.Static("/backgrounds", "./backgrounds")
 	router.Static("/uploads", "./uploads")
+	router.Static("/avatars", "./avatars")
 
 	// Ensure directories exist
 	os.MkdirAll("./uploads", os.ModePerm)
 	os.MkdirAll("./logos", os.ModePerm)
 	os.MkdirAll("./backgrounds", os.ModePerm)
+	os.MkdirAll("./avatars", os.ModePerm)
 
 	router.Run(":8080")
 }

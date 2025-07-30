@@ -53,6 +53,27 @@
 
         <!-- Files Content -->
         <div v-else-if="files.length > 0" class="space-y-6">
+          <!-- Uploader Information -->
+          <div v-if="uploader" class="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-6 animate-slide-up">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Shared by</h3>
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                <img 
+                  v-if="uploader.avatar" 
+                  :src="`http://localhost:8080${uploader.avatar}`" 
+                  :alt="uploader.username"
+                  class="w-full h-full object-cover"
+                  @error="handleAvatarError"
+                />
+                <UserIcon v-else class="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p class="font-medium text-gray-900">{{ uploader.username }}</p>
+                <p class="text-sm text-gray-600">{{ uploader.email }}</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Files Header with Rainbow Animation -->
           <div class="bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden animate-slide-up">
             <div class="bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-size-400 animate-rainbow p-6">
@@ -222,7 +243,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
-import { XMarkIcon, ArrowDownTrayIcon, DocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
+import { XMarkIcon, ArrowDownTrayIcon, DocumentIcon, EyeIcon, EyeSlashIcon, UserIcon } from '@heroicons/vue/24/outline'
 
 // Import icons
 import fileMp4Icon from '../main/images/train/icons/file-mp4.png'
@@ -238,9 +259,16 @@ interface FileInfo {
   url: string
 }
 
+interface UploaderInfo {
+  username: string
+  avatar: string
+  email: string
+}
+
 // State
 const route = useRoute()
 const files = ref<FileInfo[]>([])
+const uploader = ref<UploaderInfo | null>(null)
 const loading = ref(true)
 const error = ref('')
 const logoPath = ref<string | null>(null)
@@ -393,7 +421,11 @@ const downloadAll = async () => {
 }
 
 const handlePreviewError = () => {
-  console.error('Preview failed to load')
+  console.error('Failed to load preview')
+}
+
+const handleAvatarError = () => {
+  console.error('Failed to load avatar')
 }
 
 const loadSettings = async () => {
@@ -417,6 +449,7 @@ const loadFiles = async () => {
     // This will need to be implemented in the backend
     const response = await axios.get(`http://localhost:8080/files/${id}`)
     files.value = response.data.files || []
+    uploader.value = response.data.uploader || null
     
     if (files.value.length === 0) {
       error.value = 'No files found or files have expired'

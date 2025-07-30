@@ -6,6 +6,7 @@ interface User {
   username: string
   email: string
   is_admin?: boolean
+  avatar?: string
   created_at?: string
 }
 
