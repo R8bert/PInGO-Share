@@ -1,24 +1,26 @@
 <template>
-  <div class="min-h-screen bg-white">
+  <div class="min-h-screen flex flex-col transition-colors duration-300">
     <!-- Main Content -->
     <main class="relative">
       <!-- Hero Section with background effect -->
-      <div class="relative bg-gradient-to-b from-blue-50/30 to-white overflow-hidden">
+      <div class="relative overflow-hidden transition-colors duration-300">
         <!-- Floating circles animation -->
         <div class="absolute inset-0 pointer-events-none">
-          <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-100/20 rounded-full blur-3xl animate-float-slow"></div>
-          <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-100/20 rounded-full blur-3xl animate-float-slower"></div>
+          <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-100/20 dark:bg-blue-400/10 rounded-full blur-3xl animate-float-slow"></div>
+          <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-100/20 dark:bg-purple-400/10 rounded-full blur-3xl animate-float-slower"></div>
         </div>
         
         <div class="relative max-w-screen-xl mx-auto px-6 lg:px-8 pt-20 pb-32">
           <div class="text-center">
             <!-- Main headline with stagger animation -->
-            <h1 class="text-5xl font-bold text-gray-900 mb-6 animate-fade-in">
+            <h1 class="text-5xl font-bold mb-6 animate-fade-in transition-colors duration-300" 
+                :style="{ color: isDark ? '#ffffff' : '#000000' }">
               Share files <span class="text-transparent bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text animate-rainbow">simply</span>
             </h1>
             
             <!-- Subtitle with delay -->
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto animate-fade-in-delay">
+            <p class="text-xl max-w-2xl mx-auto animate-fade-in-delay transition-colors duration-300"
+               :style="{ color: isDark ? '#cccccc' : '#666666' }">
               Transfer files of any size securely and quickly. No registration required.
             </p>
           </div>
@@ -26,9 +28,10 @@
       </div>
 
       <!-- Upload Section -->
-      <div class="relative -mt-16 max-w-4xl mx-auto px-6 lg:px-8 pb-32">
+      <div class="relative -mt-16 max-w-4xl mx-auto px-6 lg:px-8 pb-24">
         <!-- Upload Area -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden animate-slide-up">
+        <div class="rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden animate-slide-up transition-colors duration-300"
+             :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }">
           <!-- Upload Zone -->
           <div 
             @dragover.prevent 
@@ -38,7 +41,9 @@
             @click="triggerFileInput"
             :class="[
               'relative border-2 border-dashed transition-all duration-300 cursor-pointer',
-              isDragging ? 'border-blue-400 bg-blue-50 scale-105' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+              isDragging 
+                ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/30 scale-105' 
+                : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-800/30'
             ]"
             class="p-12"
           >
@@ -56,22 +61,24 @@
                 <CloudArrowUpIcon 
                   :class="[
                     'w-16 h-16 mx-auto transition-all duration-300',
-                    isDragging ? 'text-blue-500 scale-110' : 'text-gray-400 animate-float'
+                    isDragging 
+                      ? 'text-blue-500 dark:text-blue-400 scale-110' 
+                      : 'text-gray-400 dark:text-gray-500 animate-float'
                   ]" 
                 />
               </div>
               
-              <h3 class="text-2xl font-semibold text-gray-900 mb-2">
+              <h3 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
                 {{ selectedFiles.length > 0 ? `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected` : 'Drop your files here' }}
               </h3>
               
-              <p class="text-gray-600 mb-6">
+              <p class="text-gray-600 dark:text-gray-400 mb-6 transition-colors duration-300">
                 {{ selectedFiles.length > 0 ? selectedFiles.map(f => f.name).join(', ') : 'or click to browse' }}
               </p>
               
               <button 
                 v-if="selectedFiles.length === 0"
-                class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105"
+                class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105"
               >
                 Select files
               </button>
@@ -80,23 +87,23 @@
             <!-- Drag overlay -->
             <div 
               v-if="isDragging" 
-              class="absolute inset-0 bg-blue-100/50 rounded-lg flex items-center justify-center animate-pulse"
+              class="absolute inset-0 bg-blue-100/50 dark:bg-blue-950/50 rounded-lg flex items-center justify-center animate-pulse transition-colors duration-300"
             >
-              <div class="text-blue-600 font-semibold text-lg">Drop files here</div>
+              <div class="text-blue-600 dark:text-blue-400 font-semibold text-lg">Drop files here</div>
             </div>
           </div>
 
           <!-- Files List with Individual Previews -->
           <div v-if="selectedFiles.length > 0" class="space-y-4">
-            <div v-for="(file, index) in selectedFiles" :key="index" class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <div v-for="(file, index) in selectedFiles" :key="index" class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700 transition-colors duration-300">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center transition-colors duration-300">
                     <img :src="getFileIcon(file)" alt="File type" class="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 class="font-medium text-gray-900">{{ file.name }}</h4>
-                    <p class="text-sm text-gray-600">{{ formatFileSize(file.size) }}</p>
+                    <h4 class="font-medium text-gray-900 dark:text-gray-100 transition-colors duration-300">{{ file.name }}</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">{{ formatFileSize(file.size) }}</p>
                   </div>
                 </div>
                 <div class="flex items-center space-x-2">
@@ -104,13 +111,13 @@
                     v-if="['mp4', 'pdf', 'jpg', 'jpeg', 'png'].includes(getFileExtension(file))" 
                     @click="togglePreview(index)"
                     class="text-white px-3 py-1 rounded text-sm font-medium hover:opacity-90 transition-all duration-200"
-                    :class="previewingFiles.has(index) ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
+                    :class="previewingFiles.has(index) ? 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700' : 'bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700'"
                     :disabled="isUploading">
                     {{ previewingFiles.has(index) ? 'Hide' : 'Preview' }}
                   </button>
                   <button 
                     @click="removeFile(index)"
-                    class="p-1 text-gray-400 hover:text-red-600 transition-all duration-200"
+                    class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
                   >
                     <XMarkIcon class="w-4 h-4" />
                   </button>
@@ -154,53 +161,53 @@
           </div>
 
                     <!-- File Details & Controls -->
-          <div v-if="selectedFiles.length > 0" class="border-t border-gray-200 bg-gray-50/50 animate-slide-down">
+          <div v-if="selectedFiles.length > 0" class="border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 animate-slide-down">
             <div class="p-6">
               <!-- Total Files Summary -->
               <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center space-x-4">
-                  <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center animate-scale-in">
+                  <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center animate-scale-in">
                     <img :src="getFileIcon(selectedFiles[0])" alt="File type" class="w-8 h-8" />
                   </div>
                   <div>
-                    <h4 class="font-medium text-gray-900 animate-fade-in">{{ selectedFiles.length }} file{{ selectedFiles.length > 1 ? 's' : '' }} selected</h4>
-                    <p class="text-sm text-gray-600 animate-fade-in-delay">{{ formatTotalFileSize() }}</p>
+                    <h4 class="font-medium text-gray-900 dark:text-white animate-fade-in">{{ selectedFiles.length }} file{{ selectedFiles.length > 1 ? 's' : '' }} selected</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 animate-fade-in-delay">{{ formatTotalFileSize() }}</p>
                   </div>
                 </div>
                 <button 
                   @click="clearFile"
-                  class="p-2 text-gray-400 hover:text-gray-600 transition-all duration-200 hover:scale-110"
+                  class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 hover:scale-110"
                 >
                   <XMarkIcon class="w-5 h-5" />
                 </button>
               </div>
 
               <!-- Size Warning -->
-              <div v-if="getTotalFileSize() > maxUploadSize" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg animate-pulse">
-                <p class="text-red-800 text-sm font-medium">
+              <div v-if="getTotalFileSize() > maxUploadSize" class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg animate-pulse">
+                <p class="text-red-800 dark:text-red-400 text-sm font-medium">
                   Total file size exceeds the maximum limit of {{ formatFileSize(maxUploadSize) }}
                 </p>
               </div>
 
               <!-- Email Input -->
               <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Send to (optional)
                 </label>
                 <div class="relative">
-                  <EnvelopeIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <EnvelopeIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                   <input 
                     v-model="email"
                     type="email" 
                     placeholder="recipient@example.com"
-                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-200"
                   />
                 </div>
               </div>
 
               <!-- Validity Selection -->
               <div class="mb-6" v-if="validityOptions.length > 0">
-                <label class="block text-sm font-medium text-gray-700 mb-3">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   File expiration
                 </label>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -210,8 +217,8 @@
                     :class="[
                       'relative flex items-center justify-center px-3 py-2 rounded-lg border-2 cursor-pointer transition-all text-sm',
                       selectedValidity === option.value
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+                        ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-500'
                     ]"
                   >
                     <input
@@ -236,8 +243,8 @@
                   :class="[
                     'flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200',
                     isUploading || selectedFiles.length === 0 || getTotalFileSize() > maxUploadSize
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-105'
+                      ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white hover:scale-105'
                   ]"
                 >
                   <span v-if="isUploading" class="flex items-center justify-center">
@@ -252,7 +259,7 @@
                 
                 <button 
                   @click="clearFile"
-                  class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:scale-105"
+                  class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105"
                 >
                   Clear
                 </button>
@@ -260,13 +267,13 @@
 
               <!-- Progress Bar -->
               <div v-if="progress > 0 && progress < 100" class="mt-6">
-                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
                   <span>Uploading...</span>
                   <span>{{ progress }}%</span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                   <div 
-                    class="bg-blue-600 h-2 rounded-full transition-all duration-300 animate-pulse"
+                    class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300 animate-pulse"
                     :style="{ width: progress + '%' }"
                   ></div>
                 </div>
@@ -278,9 +285,9 @@
         <!-- Success Message - WeTransfer Style -->
         <div 
           v-if="message && message.type === 'success'" 
-          class="mt-8 bg-white rounded-2xl shadow-xl border border-green-200 overflow-hidden animate-scale-in"
+          class="mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-green-200 dark:border-green-800 overflow-hidden animate-scale-in"
         >
-          <div class="bg-gradient-to-r from-green-500 to-emerald-600 p-6">
+          <div class="bg-gradient-to-r from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700 p-6">
             <div class="flex items-center space-x-4">
               <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                 <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -297,15 +304,15 @@
           <div class="p-6">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-gray-600 mb-2">Share this link with your recipient:</p>
-                <div class="bg-gray-50 rounded-lg p-3 font-mono text-sm text-gray-800 break-all">
+                <p class="text-gray-600 dark:text-gray-400 mb-2">Share this link with your recipient:</p>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 font-mono text-sm text-gray-800 dark:text-gray-200 break-all">
                   {{ downloadUrl }}
                 </div>
               </div>
               <div class="flex space-x-3 ml-6">
                 <button 
                   @click="copyToClipboard(downloadUrl)"
-                  class="group relative bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg transform active:scale-95"
+                  class="group relative bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg transform active:scale-95"
                 >
                   <span class="flex items-center">
                     <svg class="w-5 h-5 mr-2 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -318,7 +325,7 @@
                 <router-link 
                   v-if="downloadPath"
                   :to="downloadPath"
-                  class="group relative bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg transform active:scale-95"
+                  class="group relative bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 dark:from-green-600 dark:to-emerald-700 dark:hover:from-green-700 dark:hover:to-emerald-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg transform active:scale-95"
                 >
                   <span class="flex items-center">
                     <svg class="w-5 h-5 mr-2 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,81 +344,42 @@
         <!-- Error Message -->
         <div 
           v-if="message && message.type === 'error'" 
-          class="mt-8 bg-red-50 border border-red-200 rounded-2xl p-6 animate-shake"
+          class="mt-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 animate-shake"
         >
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-              <XMarkIcon class="w-5 h-5 text-red-600" />
+            <div class="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+              <XMarkIcon class="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <h3 class="font-bold text-red-900">Upload failed</h3>
-              <p class="text-red-700">{{ message.text }}</p>
+              <h3 class="font-bold text-red-900 dark:text-red-300">Upload failed</h3>
+              <p class="text-red-700 dark:text-red-400">{{ message.text }}</p>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Features Section - WeTransfer Style -->
-      <section class="bg-gray-50 py-24">
-        <div class="max-w-screen-xl mx-auto px-6 lg:px-8">
-          <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold text-gray-900 mb-4 animate-slide-up">
-              Simple, secure file sharing
-            </h2>
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto animate-slide-up-delay">
-              Trusted by millions of users worldwide
-            </p>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div class="text-center animate-slide-up">
-              <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
-                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 mb-3">Secure transfers</h3>
-              <p class="text-gray-600 leading-relaxed">End-to-end encrypted file transfers with automatic deletion after download.</p>
-            </div>
-            
-            <div class="text-center animate-slide-up-delay">
-              <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
-                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 mb-3">Lightning fast</h3>
-              <p class="text-gray-600 leading-relaxed">Upload files up to 2GB with optimized performance and global CDN delivery.</p>
-            </div>
-            
-            <div class="text-center animate-slide-up-delay-2">
-              <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
-                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 mb-3">Any file type</h3>
-              <p class="text-gray-600 leading-relaxed">Send any file format - documents, images, videos, and more.</p>
-            </div>
-          </div>
-        </div>
-      </section>
     </main>
+    
+    <!-- Spacer to push footer to bottom -->
+    <div class="flex-1"></div>
+    
     <!-- WeTransfer-style Footer -->
-    <footer class="bg-white border-t border-gray-100">
-      <div class="max-w-screen-xl mx-auto px-6 lg:px-8 py-12">
+    <footer class="border-t border-gray-100 dark:border-gray-800 mt-auto transition-colors duration-300"
+            :style="{ backgroundColor: isDark ? '#000000' : '#ffffff' }">
+      <div class="max-w-screen-xl mx-auto px-6 lg:px-8 py-16">
         <div class="text-center">
-          <div class="flex items-center justify-center mb-6">
-            <img v-if="logoPath" :src="`http://localhost:8080${logoPath}`" class="h-8 w-auto mr-3" alt="Logo" @error="handleImageError" />
-            <div class="text-2xl font-bold text-gray-900">PinGO</div>
+          <div class="flex items-center justify-center mb-8">
+            <img v-if="logoPath" :src="`http://localhost:8080${logoPath}`" class="h-10 w-auto mr-3" alt="Logo" @error="handleImageError" />
+            <div class="text-3xl font-bold transition-colors duration-300" 
+                 :style="{ color: isDark ? '#ffffff' : '#000000' }">PinGO</div>
           </div>
-          <p class="text-gray-600 max-w-md mx-auto mb-8">
+          <p class="max-w-md mx-auto mb-12 text-lg transition-colors duration-300"
+             :style="{ color: isDark ? '#cccccc' : '#666666' }">
             Simple, secure file sharing for everyone. Made with ❤️ for seamless file transfers.
           </p>
-          <div class="flex items-center justify-center space-x-6 text-sm text-gray-500">
-            <a href="#" class="hover:text-gray-700 transition-colors">Privacy</a>
-            <a href="#" class="hover:text-gray-700 transition-colors">Terms</a>
-            <a href="#" class="hover:text-gray-700 transition-colors">Support</a>
+          <div class="flex items-center justify-center space-x-8 text-sm text-gray-500 dark:text-gray-400">
+            <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Privacy</a>
+            <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Terms</a>
+            <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Support</a>
           </div>
         </div>
       </div>
@@ -422,6 +390,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAuth } from '../../composables/useAuth'
+import { useTheme } from '../../composables/useTheme'
 import axios from 'axios'
 import { CloudArrowUpIcon, EnvelopeIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
@@ -443,7 +412,8 @@ interface VideoMetadata {
 }
 
 // Use auth composable
-const { user, getSettings } = useAuth()
+const { getSettings } = useAuth()
+const { isDark } = useTheme()
 
 // State
 const selectedFiles = ref<File[]>([])
@@ -780,14 +750,6 @@ onMounted(() => {
 
 .animate-fade-in-delay {
   animation: fade-in 0.8s ease-out 0.2s both;
-}
-
-.animate-slide-up-delay {
-  animation: slide-up 0.6s ease-out 0.3s both;
-}
-
-.animate-slide-up-delay-2 {
-  animation: slide-up 0.6s ease-out 0.6s both;
 }
 
 .animate-slide-down {

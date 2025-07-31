@@ -2,18 +2,21 @@
   <div>
     <!-- Logo positioned in top-left corner -->
     <div class="fixed top-4 left-4 z-50">
-      <router-link to="/" class="flex items-center space-x-2">
+      <router-link to="/" class="flex items-center space-x-2 px-3 py-2 rounded-lg shadow-lg transition-all duration-300"
+                   :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }">
         <img v-if="logoPath" :src="logoPath ? `http://localhost:8080${logoPath}` : ''" class="h-8 w-8" alt="Logo" @error="handleImageError" />
-        <CloudArrowUpIcon v-else class="h-8 w-8 text-blue-600" />
-        <span class="text-2xl font-extrabold text-gray-900">{{ navbarTitle }}</span>
+        <CloudArrowUpIcon v-else class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+        <span class="text-2xl font-extrabold transition-colors duration-300" 
+              :style="{ color: isDark ? '#ffffff' : '#000000' }">{{ navbarTitle }}</span>
       </router-link>
     </div>
 
     <!-- User info in top-right corner for authenticated users -->
     <div v-if="isAuthenticated" class="fixed top-4 right-4 z-50 hidden sm:block">
-      <div class="flex items-center space-x-3 bg-white shadow-lg rounded-full px-4 py-2">
+      <div class="flex items-center space-x-3 shadow-lg rounded-full px-4 py-2 border border-gray-200 dark:border-gray-700 transition-colors duration-300" 
+           :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff', color: isDark ? '#ffffff' : '#000000' }">
         <div class="flex items-center space-x-2">
-          <div class="w-8 h-8 bg-blue-100 rounded-full overflow-hidden flex items-center justify-center">
+          <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full overflow-hidden flex items-center justify-center ">
             <img 
               v-if="user?.avatar" 
               :src="`http://localhost:8080${user.avatar}`" 
@@ -21,18 +24,23 @@
               class="w-full h-full object-cover"
               @error="handleAvatarError"
             />
-            <UserIcon v-else class="w-5 h-5 text-blue-600" />
+            <UserIcon v-else class="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <router-link 
             to="/account" 
-            class="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors"
+            class="text-sm font-medium px-2 py-1 rounded transition-all duration-300"
+            :style="{ 
+              color: isDark ? '#ffffff' : '#000000',
+              backgroundColor: isDark ? '#2a2a2a' : '#f8f9fa'
+            }"
           >
             {{ user?.username }}
           </router-link>
         </div>
+        <ThemeToggle />
         <button
           @click="handleLogout"
-          class="text-sm text-gray-600 hover:text-red-600 transition-colors"
+          class="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
           title="Sign out"
         >
           <ArrowRightOnRectangleIcon class="w-5 h-5" />
@@ -44,7 +52,8 @@
     <div class="fixed top-4 right-4 sm:hidden z-50">
       <button
         @click="toggleMenu"
-        class="flex items-center justify-center w-10 h-10 bg-white shadow-lg rounded-full text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-200"
+        class="flex items-center justify-center w-10 h-10 shadow-lg rounded-full hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-600"
+        :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff', color: isDark ? '#ffffff' : '#666666' }"
         aria-label="Toggle menu"
       >
         <Bars3Icon v-if="!isMenuOpen" class="h-6 w-6" />
@@ -56,24 +65,16 @@
     <div v-if="isAuthenticated" class="fixed bottom-4 right-4 sm:flex sm:flex-row sm:space-x-2 hidden z-50">
       <router-link
         to="/"
-        class="flex items-center justify-center w-12 h-12 bg-white shadow-lg rounded-full text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-200 group"
-        active-class="text-blue-600 shadow-xl"
+        class="flex items-center justify-center w-12 h-12 bg-white dark:bg-gray-800 shadow-lg rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-xl transition-all duration-200 group border border-gray-200 dark:border-gray-600"
+        active-class="text-blue-600 dark:text-blue-400 shadow-xl"
         title="Upload"
       >
         <ArrowUpTrayIcon class="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
       </router-link>
       <router-link
-        to="/settings"
-        class="flex items-center justify-center w-12 h-12 bg-white shadow-lg rounded-full text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-200 group"
-        active-class="text-blue-600 shadow-xl"
-        title="Settings"
-      >
-        <CogIcon class="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
-      </router-link>
-      <router-link
         to="/account"
-        class="flex items-center justify-center w-12 h-12 bg-white shadow-lg rounded-full text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-200 group"
-        active-class="text-blue-600 shadow-xl"
+        class="flex items-center justify-center w-12 h-12 bg-white dark:bg-gray-800 shadow-lg rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-xl transition-all duration-200 group border border-gray-200 dark:border-gray-600"
+        active-class="text-blue-600 dark:text-blue-400 shadow-xl"
         title="Account"
       >
         <UserIcon class="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
@@ -84,7 +85,7 @@
     <div v-else class="fixed bottom-4 right-4 sm:block hidden z-50">
       <router-link
         to="/auth"
-        class="flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+        class="flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
       >
         <ArrowRightOnRectangleIcon class="h-5 w-5 mr-2" />
         Sign In
@@ -100,13 +101,13 @@
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 translate-y-1"
     >
-      <div v-if="isMenuOpen" class="sm:hidden fixed bottom-4 right-4 bg-white rounded-md z-50">
+      <div v-if="isMenuOpen" class="sm:hidden fixed bottom-4 right-4 bg-white dark:bg-gray-800 rounded-md z-50 border border-gray-200 dark:border-gray-600 shadow-lg">
         <div class="px-4 py-4 flex flex-col space-y-2">
           <!-- Authenticated user menu -->
           <template v-if="isAuthenticated">
             <!-- User info -->
-            <div class="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg mb-2">
-              <div class="w-8 h-8 bg-blue-100 rounded-full overflow-hidden flex items-center justify-center">
+            <div class="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg mb-2">
+              <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full overflow-hidden flex items-center justify-center">
                 <img 
                   v-if="user?.avatar" 
                   :src="`http://localhost:8080${user.avatar}`" 
@@ -114,21 +115,30 @@
                   class="w-full h-full object-cover"
                   @error="handleAvatarError"
                 />
-                <UserIcon v-else class="w-5 h-5 text-blue-600" />
+                <UserIcon v-else class="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <router-link 
                 to="/account" 
-                class="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                class="text-sm font-medium px-2 py-1 rounded transition-all duration-300"
+                :style="{ 
+                  color: isDark ? '#ffffff' : '#000000',
+                  backgroundColor: isDark ? '#2a2a2a' : '#f8f9fa'
+                }"
                 @click="toggleMenu"
               >
                 {{ user?.username }}
               </router-link>
             </div>
             
+            <!-- Theme Toggle for Mobile -->
+            <div class="flex justify-center mb-2">
+              <ThemeToggle />
+            </div>
+            
             <router-link
               to="/"
-              class="flex items-center justify-center w-12 h-12 bg-white rounded-full text-gray-600 hover:text-blue-600 transition-all duration-200 group"
-              active-class="text-blue-600 shadow-xl"
+              class="flex items-center justify-center w-12 h-12 bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 group border border-gray-200 dark:border-gray-600"
+              active-class="text-blue-600 dark:text-blue-400 shadow-xl"
               title="Upload"
               @click="toggleMenu"
             >
@@ -136,8 +146,8 @@
             </router-link>
             <router-link
               to="/settings"
-              class="flex items-center justify-center w-12 h-12 bg-white shadow-lg rounded-full text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-200 group"
-              active-class="text-blue-600 shadow-xl"
+              class="flex items-center justify-center w-12 h-12 bg-white dark:bg-gray-700 shadow-lg rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-xl transition-all duration-200 group border border-gray-200 dark:border-gray-600"
+              active-class="text-blue-600 dark:text-blue-400 shadow-xl"
               title="Settings"
               @click="toggleMenu"
             >
@@ -145,8 +155,8 @@
             </router-link>
             <router-link
               to="/account"
-              class="flex items-center justify-center w-12 h-12 bg-white shadow-lg rounded-full text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-200 group"
-              active-class="text-blue-600 shadow-xl"
+              class="flex items-center justify-center w-12 h-12 bg-white dark:bg-gray-700 shadow-lg rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-xl transition-all duration-200 group border border-gray-200 dark:border-gray-600"
+              active-class="text-blue-600 dark:text-blue-400 shadow-xl"
               title="Account"
               @click="toggleMenu"
             >
@@ -156,7 +166,7 @@
             <!-- Logout button -->
             <button
               @click="handleLogout"
-              class="flex items-center justify-center w-12 h-12 bg-red-50 hover:bg-red-100 rounded-full text-red-600 hover:shadow-lg transition-all duration-200"
+              class="flex items-center justify-center w-12 h-12 bg-red-50 dark:bg-red-900 hover:bg-red-100 dark:hover:bg-red-800 rounded-full text-red-600 dark:text-red-400 hover:shadow-lg transition-all duration-200 border border-red-200 dark:border-red-700"
               title="Sign out"
             >
               <ArrowRightOnRectangleIcon class="h-6 w-6" />
@@ -165,9 +175,14 @@
           
           <!-- Non-authenticated user menu -->
           <template v-else>
+            <!-- Theme Toggle for Non-authenticated Mobile Users -->
+            <div class="flex justify-center mb-2">
+              <ThemeToggle />
+            </div>
+            
             <router-link
               to="/auth"
-              class="flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200"
+              class="flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-all duration-200"
               @click="toggleMenu"
             >
               <ArrowRightOnRectangleIcon class="h-5 w-5 mr-2" />
@@ -183,11 +198,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import { useTheme } from '../composables/useTheme'
 import { useRouter } from 'vue-router'
 import { ArrowUpTrayIcon, CogIcon, UserIcon, CloudArrowUpIcon, Bars3Icon, XMarkIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
+import ThemeToggle from './ThemeToggle.vue'
 
 const { isAuthenticated, user, logout } = useAuth()
+const { isDark } = useTheme()
 const router = useRouter()
 
 const isMenuOpen = ref(false)

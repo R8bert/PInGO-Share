@@ -1,26 +1,33 @@
 <template>
-  <div class="min-h-screen bg-white">
+  <div class="min-h-screen transition-colors duration-300"
+       :style="{ backgroundColor: isDark ? '#0a0a0a' : '#ffffff' }">
     <!-- Main Content -->
     <main class="relative">
       <!-- Hero Section -->
-      <div class="relative bg-gradient-to-b from-blue-50/30 to-white overflow-hidden">
+      <div class="relative overflow-hidden transition-colors duration-300"
+           :style="{ backgroundColor: isDark ? '#111827' : '#f8fafc' }">
         <!-- Floating circles animation -->
         <div class="absolute inset-0 pointer-events-none">
-          <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-100/20 rounded-full blur-3xl animate-float-slow"></div>
-          <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-100/20 rounded-full blur-3xl animate-float-slower"></div>
+          <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl animate-float-slow"
+               :style="{ backgroundColor: isDark ? '#1e3a8a20' : '#dbeafe20' }"></div>
+          <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl animate-float-slower"
+               :style="{ backgroundColor: isDark ? '#7c3aed20' : '#f3e8ff20' }"></div>
         </div>
         
         <div class="relative max-w-screen-xl mx-auto px-6 lg:px-8 pt-20 pb-16">
           <div class="text-center">
-            <h1 class="text-4xl font-bold text-gray-900 mb-4 animate-fade-in">
+            <h1 class="text-4xl font-bold mb-4 animate-fade-in transition-colors duration-300"
+                :style="{ color: isDark ? '#f9fafb' : '#111827' }">
               Download <span class="text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text animate-rainbow">files</span>
             </h1>
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto animate-fade-in-delay">
+            <p class="text-xl max-w-2xl mx-auto animate-fade-in-delay transition-colors duration-300"
+               :style="{ color: isDark ? '#9ca3af' : '#4b5563' }">
               Preview and download your shared files
             </p>
             <router-link 
               to="/" 
-              class="inline-flex items-center mt-6 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              class="inline-flex items-center mt-6 font-medium transition-colors hover:opacity-80"
+              :style="{ color: isDark ? '#60a5fa' : '#2563eb' }"
             >
               ← Share new files
             </router-link>
@@ -31,18 +38,32 @@
       <!-- Download Section -->
       <div class="relative -mt-8 max-w-6xl mx-auto px-6 lg:px-8 pb-32">
         <!-- Loading State -->
-        <div v-if="loading" class="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-12 text-center animate-pulse">
-          <div class="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4 animate-spin"></div>
-          <p class="text-gray-600">Loading files...</p>
+        <div v-if="loading" 
+             class="rounded-2xl shadow-xl border p-12 text-center animate-pulse transition-colors duration-300"
+             :style="{ 
+               backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+               borderColor: isDark ? '#374151' : '#e5e7eb'
+             }">
+          <div class="w-16 h-16 rounded-full mx-auto mb-4 animate-spin transition-colors duration-300"
+               :style="{ backgroundColor: isDark ? '#374151' : '#e5e7eb' }"></div>
+          <p class="transition-colors duration-300"
+             :style="{ color: isDark ? '#9ca3af' : '#4b5563' }">Loading files...</p>
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="bg-white rounded-2xl shadow-xl border border-red-200 p-12 text-center animate-shake">
-          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div v-else-if="error" 
+             class="rounded-2xl shadow-xl border p-12 text-center animate-shake transition-colors duration-300"
+             :style="{ 
+               backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+               borderColor: isDark ? '#dc2626' : '#fca5a5'
+             }">
+          <div class="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
             <XMarkIcon class="w-8 h-8 text-red-600" />
           </div>
-          <h3 class="text-2xl font-bold text-red-900 mb-2">Files not found</h3>
-          <p class="text-red-700 mb-6">{{ error }}</p>
+          <h3 class="text-2xl font-bold mb-2 transition-colors duration-300"
+              :style="{ color: isDark ? '#fca5a5' : '#dc2626' }">Files not found</h3>
+          <p class="mb-6 transition-colors duration-300"
+             :style="{ color: isDark ? '#f87171' : '#dc2626' }">{{ error }}</p>
           <router-link 
             to="/" 
             class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105"
@@ -57,7 +78,7 @@
           <div v-if="uploader" class="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-6 animate-slide-up">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Shared by</h3>
             <div class="flex items-center space-x-4">
-              <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+              <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center transition-transform duration-300 hover:scale-150">
                 <img 
                   v-if="uploader.avatar" 
                   :src="`http://localhost:8080${uploader.avatar}`" 
@@ -242,8 +263,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useTheme } from '../../composables/useTheme'
 import axios from 'axios'
 import { XMarkIcon, ArrowDownTrayIcon, DocumentIcon, EyeIcon, EyeSlashIcon, UserIcon } from '@heroicons/vue/24/outline'
+
+const { isDark } = useTheme()
 
 // Import icons
 import fileMp4Icon from '../main/images/train/icons/file-mp4.png'
@@ -508,6 +532,9 @@ onMounted(async () => {
 }
 
 /* Animation Classes */
+/* .animate-hover-zoom removed: replaced with Tailwind classes for hover zoom effect */
+
+
 .animate-fade-in {
   animation: fade-in 0.8s ease-out;
 }

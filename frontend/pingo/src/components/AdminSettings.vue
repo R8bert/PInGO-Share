@@ -1,8 +1,10 @@
 <template>
   <div class="space-y-8">
     <div class="text-center">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Admin Settings</h2>
-      <p class="text-gray-600">Configure global application settings</p>
+      <h2 class="text-2xl font-bold mb-2 transition-colors duration-300"
+          :style="{ color: isDark ? '#f9fafb' : '#111827' }">Admin Settings</h2>
+      <p class="transition-colors duration-300"
+         :style="{ color: isDark ? '#9ca3af' : '#4b5563' }">Configure global application settings</p>
     </div>
 
     <form @submit.prevent="saveSettings" class="space-y-8">
@@ -220,6 +222,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import { useTheme } from '../composables/useTheme'
 import {
   ClockIcon,
   SwatchIcon,
@@ -231,6 +234,8 @@ import {
   MoonIcon,
   UserGroupIcon
 } from '@heroicons/vue/24/outline'
+
+const { isDark } = useTheme()
 
 const { saveAdminSettings, getSettings, isLoading } = useAuth()
 

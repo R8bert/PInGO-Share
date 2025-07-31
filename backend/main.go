@@ -901,7 +901,7 @@ func main() {
 
 		// Check if user owns the upload
 		var ownerID int
-		err := db.QueryRow("SELECT user_id FROM uploads WHERE id = $1", uploadID).Scan(&ownerID)
+		err := db.QueryRow("SELECT user_id FROM uploads WHERE upload_id = $1", uploadID).Scan(&ownerID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Upload not found"})
 			return
@@ -916,7 +916,7 @@ func main() {
 		expiryTime := calculateExpiryTime(req.Validity)
 
 		// Update the upload
-		_, err = db.Exec("UPDATE uploads SET expires_at = $1 WHERE id = $2", expiryTime, uploadID)
+		_, err = db.Exec("UPDATE uploads SET expires_at = $1 WHERE upload_id = $2", expiryTime, uploadID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update expiration"})
 			return
@@ -1568,6 +1568,7 @@ func main() {
 			ID           int        `json:"id"`
 			Username     string     `json:"username"`
 			Email        string     `json:"email"`
+			Avatar       *string    `json:"avatar"`
 			IsAdmin      bool       `json:"isAdmin"`
 			IsBlocked    bool       `json:"isBlocked"`
 			UploadCount  int        `json:"uploadCount"`
@@ -1578,7 +1579,7 @@ func main() {
 
 		rows, err := db.Query(`
 			SELECT 
-				u.id, u.username, u.email, u.is_admin, 
+				u.id, u.username, u.email, COALESCE(u.avatar, ''), u.is_admin, 
 				COALESCE(u.is_blocked, false) as is_blocked,
 				u.created_at,
 				COUNT(CASE WHEN up.id IS NOT NULL THEN 1 END) as upload_count,
@@ -1586,7 +1587,7 @@ func main() {
 				MAX(up.created_at) as last_activity
 			FROM users u
 			LEFT JOIN uploads up ON u.id = up.user_id
-			GROUP BY u.id, u.username, u.email, u.is_admin, u.is_blocked, u.created_at
+			GROUP BY u.id, u.username, u.email, u.avatar, u.is_admin, u.is_blocked, u.created_at
 			ORDER BY u.created_at DESC
 		`)
 		if err != nil {
@@ -1599,14 +1600,19 @@ func main() {
 		for rows.Next() {
 			var user AdminUser
 			var lastActivity sql.NullTime
+			var avatar sql.NullString
 
 			err := rows.Scan(
-				&user.ID, &user.Username, &user.Email, &user.IsAdmin, &user.IsBlocked,
+				&user.ID, &user.Username, &user.Email, &avatar, &user.IsAdmin, &user.IsBlocked,
 				&user.CreatedAt, &user.UploadCount, &user.StorageUsed, &lastActivity,
 			)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan user data"})
 				return
+			}
+
+			if avatar.Valid && avatar.String != "" {
+				user.Avatar = &avatar.String
 			}
 
 			if lastActivity.Valid {
