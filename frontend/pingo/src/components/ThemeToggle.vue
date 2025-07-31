@@ -1,73 +1,63 @@
 <template>
   <button
     @click="handleToggle"
-    :class="[
-      'relative inline-flex items-center justify-center p-2 rounded-lg transition-all duration-300',
-      'hover:scale-110 active:scale-95',
-      'bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl',
-      'border border-gray-200 dark:border-gray-600',
-      'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
-    ]"
+    class="relative inline-flex items-center w-14 h-7 rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    :style="{
+      backgroundColor: isDark ? '#4f46e5' : '#e5e7eb'
+    }"
     :title="`Switch to ${isDark ? 'light' : 'dark'} mode`"
     aria-label="Toggle theme"
   >
-    <!-- Sun Icon (Light Mode) -->
-    <transition
-      enter-active-class="transition-all duration-300 ease-out"
-      enter-from-class="scale-0 rotate-90 opacity-0"
-      enter-to-class="scale-100 rotate-0 opacity-100"
-      leave-active-class="transition-all duration-300 ease-in"
-      leave-from-class="scale-100 rotate-0 opacity-100"
-      leave-to-class="scale-0 -rotate-90 opacity-0"
-    >
-      <svg
-        v-if="!isDark"
-        class="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-        />
-      </svg>
-    </transition>
-
-    <!-- Moon Icon (Dark Mode) -->
-    <transition
-      enter-active-class="transition-all duration-300 ease-out"
-      enter-from-class="scale-0 -rotate-90 opacity-0"
-      enter-to-class="scale-100 rotate-0 opacity-100"
-      leave-active-class="transition-all duration-300 ease-in"
-      leave-from-class="scale-100 rotate-0 opacity-100"
-      leave-to-class="scale-0 rotate-90 opacity-0"
-    >
-      <svg
-        v-if="isDark"
-        class="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-        />
-      </svg>
-    </transition>
-
-    <!-- Ripple effect on click -->
+    <!-- Toggle circle -->
     <div
-      v-if="isClicked"
-      class="absolute inset-0 rounded-lg bg-blue-400 opacity-30 animate-ping"
-    ></div>
+      class="w-6 h-6 rounded-full transition-all duration-300 ease-in-out shadow-lg flex items-center justify-center absolute top-0.5"
+      :style="{
+        backgroundColor: isDark ? '#ffffff' : '#ffffff',
+        transform: isDark ? 'translateX(28px)' : 'translateX(2px)'
+      }"
+    >
+      <!-- Sun Icon (Light Mode) -->
+      <transition
+        enter-active-class="transition-all duration-200 ease-out"
+        enter-from-class="scale-0 rotate-90 opacity-0"
+        enter-to-class="scale-100 rotate-0 opacity-100"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="scale-100 rotate-0 opacity-100"
+        leave-to-class="scale-0 -rotate-90 opacity-0"
+      >
+        <svg
+          v-if="!isDark"
+          class="w-4 h-4 text-amber-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </transition>
+
+      <!-- Moon Icon (Dark Mode) -->
+      <transition
+        enter-active-class="transition-all duration-200 ease-out"
+        enter-from-class="scale-0 -rotate-90 opacity-0"
+        enter-to-class="scale-100 rotate-0 opacity-100"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="scale-100 rotate-0 opacity-100"
+        leave-to-class="scale-0 rotate-90 opacity-0"
+      >
+        <svg
+          v-if="isDark"
+          class="w-4 h-4 text-indigo-600"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+        </svg>
+      </transition>
+    </div>
   </button>
 </template>
 
@@ -90,17 +80,22 @@ const handleToggle = () => {
 </script>
 
 <style scoped>
-/* Additional hover effects */
+/* Clean toggle with subtle hover effects */
 button:hover {
-  transform: scale(1.1);
+  transform: scale(1.02);
 }
 
 button:active {
-  transform: scale(0.95);
+  transform: scale(0.98);
 }
 
-/* Smooth icon transitions */
-svg {
-  transition: all 0.3s ease;
+/* Smooth transitions for all elements */
+button, div, svg {
+  transition: all 0.2s ease;
+}
+
+/* Focus styles for accessibility */
+button:focus {
+  outline: none;
 }
 </style>

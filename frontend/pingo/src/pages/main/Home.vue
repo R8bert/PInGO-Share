@@ -1,16 +1,24 @@
 <template>
-  <div class="min-h-screen flex flex-col transition-colors duration-300">
+  <div class="min-h-screen flex flex-col transition-colors duration-300" 
+       :style="{ backgroundColor: isDark ? '#000000' : '#f8fafc' }">
     <!-- Main Content -->
     <main class="relative">
       <!-- Hero Section with background effect -->
-      <div class="relative overflow-hidden transition-colors duration-300">
+      <div class="relative overflow-hidden transition-colors duration-300 pb-24">
         <!-- Floating circles animation -->
         <div class="absolute inset-0 pointer-events-none">
-          <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-100/20 dark:bg-blue-400/10 rounded-full blur-3xl animate-float-slow"></div>
-          <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-100/20 dark:bg-purple-400/10 rounded-full blur-3xl animate-float-slower"></div>
+          <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl animate-float-slow"
+               :class="isDark ? 'animate-rainbow-circle' : ''"
+               :style="{ backgroundColor: isDark ? '#ff000040' : '#dbeafe20' }"></div>
+          <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl animate-float-slower"
+               :class="isDark ? 'animate-rainbow-circle-delayed' : ''"
+               :style="{ backgroundColor: isDark ? '#00ff0040' : '#f3e8ff20' }"></div>
+          <div class="absolute top-1/2 left-1/2 w-64 h-64 rounded-full blur-2xl animate-float"
+               :class="isDark ? 'animate-rainbow-circle-fast' : ''"
+               :style="{ backgroundColor: isDark ? '#0000ff40' : 'transparent' }"></div>
         </div>
         
-        <div class="relative max-w-screen-xl mx-auto px-6 lg:px-8 pt-20 pb-32">
+        <div class="relative max-w-screen-xl mx-auto px-6 lg:px-8 pt-20 pb-16">
           <div class="text-center">
             <!-- Main headline with stagger animation -->
             <h1 class="text-5xl font-bold mb-6 animate-fade-in transition-colors duration-300" 
@@ -25,13 +33,16 @@
             </p>
           </div>
         </div>
-      </div>
 
-      <!-- Upload Section -->
-      <div class="relative -mt-16 max-w-4xl mx-auto px-6 lg:px-8 pb-24">
-        <!-- Upload Area -->
-        <div class="rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden animate-slide-up transition-colors duration-300"
-             :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }">
+        <!-- Upload Section -->
+        <div class="relative max-w-4xl mx-auto px-6 lg:px-8">
+          <!-- Upload Area -->
+          <div class="rounded-2xl shadow-xl overflow-hidden animate-slide-up transition-colors duration-300"
+               :style="{ 
+                 backgroundColor: isDark ? '#0a0a0a' : '#ffffff',
+               borderColor: isDark ? '#374151cc' : '#e5e7ebcc',
+               borderWidth: '1px'
+             }">
           <!-- Upload Zone -->
           <div 
             @dragover.prevent 
@@ -50,13 +61,13 @@
             <input type="file" ref="fileInput" @change="onFileChange" class="hidden" multiple />
             
             <!-- Animated layer with icons at 45° -->
-            <div v-if="selectedFiles.length > 0" class="absolute inset-0 -z-10 opacity-10 pointer-events-none">
+            <div v-if="selectedFiles.length > 0" class="absolute inset-0 opacity-10 pointer-events-none z-0">
               <div class="absolute -inset-[100%] origin-center rotate-45">
                 <div class="w-full h-full animate-diagonal-scroll bg-repeat" :style="{ backgroundImage: `url(${getFileIcon(selectedFiles[0])})`, backgroundSize: '80px 80px' }" />
               </div>
             </div>
             
-            <div class="text-center">
+            <div class="text-center relative z-10">
               <div class="mb-6">
                 <CloudArrowUpIcon 
                   :class="[
@@ -68,11 +79,13 @@
                 />
               </div>
               
-              <h3 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
+              <h3 class="text-2xl font-semibold mb-2 transition-colors duration-300"
+                  :style="{ color: isDark ? '#ffffff' : '#111827' }">
                 {{ selectedFiles.length > 0 ? `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected` : 'Drop your files here' }}
               </h3>
               
-              <p class="text-gray-600 dark:text-gray-400 mb-6 transition-colors duration-300">
+              <p class="mb-6 transition-colors duration-300"
+                 :style="{ color: isDark ? '#9ca3af' : '#4b5563' }">
                 {{ selectedFiles.length > 0 ? selectedFiles.map(f => f.name).join(', ') : 'or click to browse' }}
               </p>
               
@@ -87,18 +100,26 @@
             <!-- Drag overlay -->
             <div 
               v-if="isDragging" 
-              class="absolute inset-0 bg-blue-100/50 dark:bg-blue-950/50 rounded-lg flex items-center justify-center animate-pulse transition-colors duration-300"
+              class="absolute inset-0 rounded-lg flex items-center justify-center animate-pulse transition-colors duration-300 z-20"
+              :style="{ backgroundColor: isDark ? '#1e3a8acc' : '#dbeafeff' }"
             >
-              <div class="text-blue-600 dark:text-blue-400 font-semibold text-lg">Drop files here</div>
+              <div class="font-semibold text-lg transition-colors duration-300"
+                   :style="{ color: isDark ? '#60a5fa' : '#2563eb' }">Drop files here</div>
             </div>
           </div>
 
           <!-- Files List with Individual Previews -->
           <div v-if="selectedFiles.length > 0" class="space-y-4">
-            <div v-for="(file, index) in selectedFiles" :key="index" class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700 transition-colors duration-300">
+            <div v-for="(file, index) in selectedFiles" :key="index" class="rounded-lg p-4 transition-colors duration-300"
+                 :style="{ 
+                   backgroundColor: isDark ? '#111111' : '#f9fafb',
+                   borderColor: isDark ? '#333333' : '#e5e7eb',
+                   borderWidth: '1px'
+                 }">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center transition-colors duration-300">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300"
+                       :style="{ backgroundColor: isDark ? '#000080' : '#dbeafe' }">
                     <img :src="getFileIcon(file)" alt="File type" class="w-6 h-6" />
                   </div>
                   <div>
@@ -161,17 +182,25 @@
           </div>
 
                     <!-- File Details & Controls -->
-          <div v-if="selectedFiles.length > 0" class="border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 animate-slide-down">
+          <div v-if="selectedFiles.length > 0" class="animate-slide-down transition-colors duration-300"
+               :style="{ 
+                 borderTopColor: isDark ? '#333333' : '#e5e7eb',
+                 borderTopWidth: '1px',
+                 backgroundColor: isDark ? '#0f0f0fcc' : '#f9fafbcc'
+               }">
             <div class="p-6">
               <!-- Total Files Summary -->
               <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center space-x-4">
-                  <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center animate-scale-in">
+                  <div class="w-12 h-12 rounded-lg flex items-center justify-center animate-scale-in transition-colors duration-300"
+                       :style="{ backgroundColor: isDark ? '#1e3a8acc' : '#dbeafe' }">
                     <img :src="getFileIcon(selectedFiles[0])" alt="File type" class="w-8 h-8" />
                   </div>
                   <div>
-                    <h4 class="font-medium text-gray-900 dark:text-white animate-fade-in">{{ selectedFiles.length }} file{{ selectedFiles.length > 1 ? 's' : '' }} selected</h4>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 animate-fade-in-delay">{{ formatTotalFileSize() }}</p>
+                    <h4 class="font-medium animate-fade-in transition-colors duration-300"
+                        :style="{ color: isDark ? '#ffffff' : '#111827' }">{{ selectedFiles.length }} file{{ selectedFiles.length > 1 ? 's' : '' }} selected</h4>
+                    <p class="text-sm animate-fade-in-delay transition-colors duration-300"
+                       :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">{{ formatTotalFileSize() }}</p>
                   </div>
                 </div>
                 <button 
@@ -191,35 +220,51 @@
 
               <!-- Email Input -->
               <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label class="block text-sm font-medium mb-2 transition-colors duration-300"
+                       :style="{ color: isDark ? '#d1d5db' : '#374151' }">
                   Send to (optional)
                 </label>
                 <div class="relative">
-                  <EnvelopeIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                  <EnvelopeIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-colors duration-300"
+                                :style="{ color: isDark ? '#6b7280' : '#9ca3af' }" />
                   <input 
                     v-model="email"
                     type="email" 
                     placeholder="recipient@example.com"
-                    class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-200"
+                    class="w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 transition-all duration-200"
+                    :style="{
+                      borderColor: isDark ? '#4b5563' : '#d1d5db',
+                      borderWidth: '1px',
+                      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                      color: isDark ? '#f9fafb' : '#111827'
+                    }"
                   />
                 </div>
               </div>
 
               <!-- Validity Selection -->
               <div class="mb-6" v-if="validityOptions.length > 0">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                <label class="block text-sm font-medium mb-3 transition-colors duration-300"
+                       :style="{ color: isDark ? '#d1d5db' : '#374151' }">
                   File expiration
                 </label>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <label
                     v-for="option in validityOptions"
                     :key="option.value"
-                    :class="[
-                      'relative flex items-center justify-center px-3 py-2 rounded-lg border-2 cursor-pointer transition-all text-sm',
-                      selectedValidity === option.value
-                        ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-500'
-                    ]"
+                    class="relative flex items-center justify-center px-3 py-2 rounded-lg cursor-pointer transition-all text-sm"
+                    :style="{
+                      borderWidth: '2px',
+                      borderColor: selectedValidity === option.value 
+                        ? (isDark ? '#60a5fa' : '#3b82f6')
+                        : (isDark ? '#4b5563' : '#d1d5db'),
+                      backgroundColor: selectedValidity === option.value
+                        ? (isDark ? '#1e3a8a20' : '#dbeafe')
+                        : (isDark ? '#1f2937' : '#ffffff'),
+                      color: selectedValidity === option.value
+                        ? (isDark ? '#93c5fd' : '#1d4ed8')
+                        : (isDark ? '#d1d5db' : '#374151')
+                    }"
                   >
                     <input
                       type="radio"
@@ -356,6 +401,7 @@
             </div>
           </div>
         </div>
+        </div>
       </div>
     </main>
     
@@ -425,7 +471,7 @@ const isUploading = ref(false)
 const progress = ref(0)
 const isDragging = ref(false)
 const message = ref<Message | null>(null)
-const logoPath = ref<string | null>(null)
+const logoPath = ref<string | null>('/logos/004571540fcfd318992384ba96ffb6ae07634920f70e009cf76cf9a1aac603ab.png')
 const maxUploadSize = ref<number>(104857600) // Default 100 MB
 const previewingFiles = ref<Set<number>>(new Set())
 const previewUrls = ref<Map<number, string>>(new Map())
@@ -743,6 +789,186 @@ onMounted(() => {
   100% { background-position: 0% 50%; }
 }
 
+@keyframes rainbow-circle {
+  0% { 
+    background: radial-gradient(circle at 50% 50%, 
+      rgba(255, 0, 0, 0.3) 0%, 
+      rgba(255, 64, 0, 0.2) 20%, 
+      rgba(255, 128, 0, 0.15) 40%, 
+      rgba(255, 192, 0, 0.1) 60%, 
+      rgba(255, 255, 0, 0.05) 80%);
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  16.66% { 
+    background: radial-gradient(circle at 50% 50%, 
+      rgba(255, 128, 0, 0.3) 0%, 
+      rgba(255, 192, 0, 0.2) 20%, 
+      rgba(255, 255, 0, 0.15) 40%, 
+      rgba(192, 255, 0, 0.1) 60%, 
+      rgba(128, 255, 0, 0.05) 80%);
+    transform: translateY(-5px) rotate(60deg) scale(1.05);
+  }
+  33.33% { 
+    background: radial-gradient(circle at 50% 50%, 
+      rgba(255, 255, 0, 0.3) 0%, 
+      rgba(192, 255, 0, 0.2) 20%, 
+      rgba(128, 255, 0, 0.15) 40%, 
+      rgba(64, 255, 0, 0.1) 60%, 
+      rgba(0, 255, 0, 0.05) 80%);
+    transform: translateY(-10px) rotate(120deg) scale(1.1);
+  }
+  50% { 
+    background: radial-gradient(circle at 50% 50%, 
+      rgba(0, 255, 0, 0.3) 0%, 
+      rgba(0, 255, 128, 0.2) 20%, 
+      rgba(0, 255, 255, 0.15) 40%, 
+      rgba(0, 128, 255, 0.1) 60%, 
+      rgba(0, 0, 255, 0.05) 80%);
+    transform: translateY(-15px) rotate(180deg) scale(1.15);
+  }
+  66.66% { 
+    background: radial-gradient(circle at 50% 50%, 
+      rgba(0, 0, 255, 0.3) 0%, 
+      rgba(64, 0, 255, 0.2) 20%, 
+      rgba(128, 0, 255, 0.15) 40%, 
+      rgba(192, 0, 255, 0.1) 60%, 
+      rgba(255, 0, 255, 0.05) 80%);
+    transform: translateY(-10px) rotate(240deg) scale(1.1);
+  }
+  83.33% { 
+    background: radial-gradient(circle at 50% 50%, 
+      rgba(255, 0, 255, 0.3) 0%, 
+      rgba(255, 0, 192, 0.2) 20%, 
+      rgba(255, 0, 128, 0.15) 40%, 
+      rgba(255, 0, 64, 0.1) 60%, 
+      rgba(255, 0, 0, 0.05) 80%);
+    transform: translateY(-5px) rotate(300deg) scale(1.05);
+  }
+  100% { 
+    background: radial-gradient(circle at 50% 50%, 
+      rgba(255, 0, 0, 0.3) 0%, 
+      rgba(255, 64, 0, 0.2) 20%, 
+      rgba(255, 128, 0, 0.15) 40%, 
+      rgba(255, 192, 0, 0.1) 60%, 
+      rgba(255, 255, 0, 0.05) 80%);
+    transform: translateY(0px) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes rainbow-circle-delayed {
+  0% { 
+    background: radial-gradient(circle at 30% 70%, 
+      rgba(0, 255, 128, 0.3) 0%, 
+      rgba(0, 192, 255, 0.2) 25%, 
+      rgba(64, 128, 255, 0.15) 50%, 
+      rgba(128, 64, 255, 0.1) 75%, 
+      rgba(255, 0, 192, 0.05) 100%);
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  16.66% { 
+    background: radial-gradient(circle at 30% 70%, 
+      rgba(0, 192, 255, 0.3) 0%, 
+      rgba(64, 128, 255, 0.2) 25%, 
+      rgba(128, 64, 255, 0.15) 50%, 
+      rgba(192, 0, 255, 0.1) 75%, 
+      rgba(255, 0, 128, 0.05) 100%);
+    transform: translateY(-4px) rotate(-60deg) scale(1.03);
+  }
+  33.33% { 
+    background: radial-gradient(circle at 30% 70%, 
+      rgba(64, 128, 255, 0.3) 0%, 
+      rgba(128, 64, 255, 0.2) 25%, 
+      rgba(192, 0, 255, 0.15) 50%, 
+      rgba(255, 0, 192, 0.1) 75%, 
+      rgba(255, 64, 128, 0.05) 100%);
+    transform: translateY(-8px) rotate(-120deg) scale(1.08);
+  }
+  50% { 
+    background: radial-gradient(circle at 30% 70%, 
+      rgba(128, 64, 255, 0.3) 0%, 
+      rgba(192, 0, 255, 0.2) 25%, 
+      rgba(255, 0, 192, 0.15) 50%, 
+      rgba(255, 64, 128, 0.1) 75%, 
+      rgba(255, 128, 64, 0.05) 100%);
+    transform: translateY(-12px) rotate(-180deg) scale(1.12);
+  }
+  66.66% { 
+    background: radial-gradient(circle at 30% 70%, 
+      rgba(192, 0, 255, 0.3) 0%, 
+      rgba(255, 0, 192, 0.2) 25%, 
+      rgba(255, 64, 128, 0.15) 50%, 
+      rgba(255, 128, 64, 0.1) 75%, 
+      rgba(255, 192, 0, 0.05) 100%);
+    transform: translateY(-8px) rotate(-240deg) scale(1.08);
+  }
+  83.33% { 
+    background: radial-gradient(circle at 30% 70%, 
+      rgba(255, 0, 192, 0.3) 0%, 
+      rgba(255, 64, 128, 0.2) 25%, 
+      rgba(255, 128, 64, 0.15) 50%, 
+      rgba(255, 192, 0, 0.1) 75%, 
+      rgba(192, 255, 0, 0.05) 100%);
+    transform: translateY(-4px) rotate(-300deg) scale(1.03);
+  }
+  100% { 
+    background: radial-gradient(circle at 30% 70%, 
+      rgba(255, 64, 128, 0.3) 0%, 
+      rgba(255, 128, 64, 0.2) 25%, 
+      rgba(255, 192, 0, 0.15) 50%, 
+      rgba(192, 255, 0, 0.1) 75%, 
+      rgba(0, 255, 128, 0.05) 100%);
+    transform: translateY(0px) rotate(-360deg) scale(1);
+  }
+}
+
+@keyframes rainbow-circle-fast {
+  0% { 
+    background: radial-gradient(circle at 70% 30%, 
+      rgba(255, 64, 255, 0.25) 0%, 
+      rgba(192, 128, 255, 0.2) 20%, 
+      rgba(128, 192, 255, 0.15) 40%, 
+      rgba(64, 255, 255, 0.1) 60%, 
+      rgba(0, 255, 192, 0.08) 80%);
+    transform: translateY(0px) rotate(0deg) scale(0.9);
+  }
+  25% { 
+    background: radial-gradient(circle at 70% 30%, 
+      rgba(64, 255, 255, 0.25) 0%, 
+      rgba(0, 255, 192, 0.2) 20%, 
+      rgba(0, 255, 128, 0.15) 40%, 
+      rgba(64, 255, 64, 0.1) 60%, 
+      rgba(128, 255, 0, 0.08) 80%);
+    transform: translateY(-8px) rotate(90deg) scale(1.05);
+  }
+  50% { 
+    background: radial-gradient(circle at 70% 30%, 
+      rgba(128, 255, 0, 0.25) 0%, 
+      rgba(192, 255, 0, 0.2) 20%, 
+      rgba(255, 255, 0, 0.15) 40%, 
+      rgba(255, 192, 64, 0.1) 60%, 
+      rgba(255, 128, 128, 0.08) 80%);
+    transform: translateY(-16px) rotate(180deg) scale(1.2);
+  }
+  75% { 
+    background: radial-gradient(circle at 70% 30%, 
+      rgba(255, 128, 128, 0.25) 0%, 
+      rgba(255, 64, 192, 0.2) 20%, 
+      rgba(255, 0, 255, 0.15) 40%, 
+      rgba(192, 64, 255, 0.1) 60%, 
+      rgba(128, 128, 255, 0.08) 80%);
+    transform: translateY(-8px) rotate(270deg) scale(1.05);
+  }
+  100% { 
+    background: radial-gradient(circle at 70% 30%, 
+      rgba(128, 128, 255, 0.25) 0%, 
+      rgba(128, 64, 255, 0.2) 20%, 
+      rgba(192, 0, 255, 0.15) 40%, 
+      rgba(255, 0, 192, 0.1) 60%, 
+      rgba(255, 64, 255, 0.08) 80%);
+    transform: translateY(0px) rotate(360deg) scale(0.9);
+  }
+}
+
 /* Animation Classes */
 .animate-fade-in {
   animation: fade-in 0.8s ease-out;
@@ -779,6 +1005,18 @@ onMounted(() => {
 .animate-rainbow {
   background-size: 400% 400%;
   animation: rainbow 3s ease-in-out infinite;
+}
+
+.animate-rainbow-circle {
+  animation: rainbow-circle 20s ease-in-out infinite;
+}
+
+.animate-rainbow-circle-delayed {
+  animation: rainbow-circle-delayed 25s ease-in-out infinite;
+}
+
+.animate-rainbow-circle-fast {
+  animation: rainbow-circle-fast 15s ease-in-out infinite;
 }
 
 /* Smooth transitions */

@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
-import SettingsPage from '../pages/settings/Settings.vue'
 import AccountPage from '../pages/account/AccountModern.vue'
 import HomePage from '../pages/main/Home.vue'
 import AuthPage from '../pages/auth/Auth.vue'
@@ -23,12 +22,6 @@ const routes = [
     path: '/reverse-upload/:token',
     name: 'ReverseUpload',
     component: () => import('../pages/reverse-upload/ReverseUpload.vue'), // Lazy loading
-  },
-  {
-    path: '/settings',
-    name: 'Settings',
-    component: SettingsPage,
-    meta: { requiresAuth: true }
   },
   {
     path: '/account',
