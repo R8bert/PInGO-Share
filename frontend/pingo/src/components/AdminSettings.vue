@@ -9,9 +9,17 @@
 
     <form @submit.prevent="saveSettings" class="space-y-8">
       <!-- Maximum Validity Setting -->
-      <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <ClockIcon class="w-5 h-5 mr-2 text-purple-600" />
+      <div class="rounded-xl p-6 border transition-colors duration-300"
+           :style="{
+             background: isDark 
+               ? 'linear-gradient(135deg, #581c87 0%, #7c2d92 100%)' 
+               : 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)',
+             borderColor: isDark ? '#7c3aed' : '#d8b4fe'
+           }">
+        <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
+            :style="{ color: isDark ? '#f3e8ff' : '#111827' }">
+          <ClockIcon class="w-5 h-5 mr-2"
+                     :style="{ color: isDark ? '#a855f7' : '#7c3aed' }" />
           Maximum File Validity
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
@@ -21,8 +29,11 @@
             :class="[
               'relative flex items-center justify-center px-4 py-3 rounded-lg border-2 cursor-pointer transition-all',
               settings.maxValidity === option.value
-                ? 'border-purple-500 bg-purple-500 text-white'
-                : 'border-gray-200 bg-white text-gray-700 hover:border-purple-300'
+                ? (isDark ? 'border-purple-400 bg-purple-600 text-white' : 'border-purple-500 bg-purple-500 text-white')
+                : (isDark 
+                    ? 'border-gray-600 bg-gray-700 text-gray-200 hover:border-purple-400' 
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-purple-300'
+                  )
             ]"
           >
             <input
@@ -37,23 +48,35 @@
             </div>
           </label>
         </div>
-        <p class="text-sm text-gray-600 mt-3">
+        <p class="text-sm mt-3 transition-colors duration-300"
+           :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
           Users will not be able to set file expiration longer than this maximum period.
         </p>
       </div>
 
       <!-- Theme Setting -->
-      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <SwatchIcon class="w-5 h-5 mr-2 text-blue-600" />
+      <div class="rounded-xl p-6 border transition-colors duration-300"
+           :style="{
+             background: isDark 
+               ? 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)' 
+               : 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+             borderColor: isDark ? '#3b82f6' : '#93c5fd'
+           }">
+        <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
+            :style="{ color: isDark ? '#dbeafe' : '#111827' }">
+          <SwatchIcon class="w-5 h-5 mr-2"
+                      :style="{ color: isDark ? '#60a5fa' : '#2563eb' }" />
           Theme
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label :class="[
             'relative flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all',
             settings.theme === 'light'
-              ? 'border-blue-500 bg-blue-500 text-white'
-              : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+              ? (isDark ? 'border-blue-400 bg-blue-600 text-white' : 'border-blue-500 bg-blue-500 text-white')
+              : (isDark 
+                  ? 'border-gray-600 bg-gray-700 text-gray-200 hover:border-blue-400' 
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+                )
           ]">
             <input
               type="radio"
@@ -67,8 +90,11 @@
           <label :class="[
             'relative flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all',
             settings.theme === 'dark'
-              ? 'border-blue-500 bg-blue-500 text-white'
-              : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+              ? (isDark ? 'border-blue-400 bg-blue-600 text-white' : 'border-blue-500 bg-blue-500 text-white')
+              : (isDark 
+                  ? 'border-gray-600 bg-gray-700 text-gray-200 hover:border-blue-400' 
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+                )
           ]">
             <input
               type="radio"
@@ -83,15 +109,25 @@
       </div>
 
       <!-- User Registration Setting -->
-      <div class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 border border-orange-200">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <UserGroupIcon class="w-5 h-5 mr-2 text-orange-600" />
+      <div class="rounded-xl p-6 border transition-colors duration-300"
+           :style="{
+             background: isDark 
+               ? 'linear-gradient(135deg, #92400e 0%, #b45309 100%)' 
+               : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+             borderColor: isDark ? '#f59e0b' : '#fbbf24'
+           }">
+        <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
+            :style="{ color: isDark ? '#fef3c7' : '#111827' }">
+          <UserGroupIcon class="w-5 h-5 mr-2"
+                         :style="{ color: isDark ? '#fbbf24' : '#d97706' }" />
           User Registration
         </h3>
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-900">Allow New User Registration</p>
-            <p class="text-sm text-gray-600">When disabled, only existing users and admins can log in</p>
+            <p class="text-sm font-medium transition-colors duration-300"
+               :style="{ color: isDark ? '#fef3c7' : '#111827' }">Allow New User Registration</p>
+            <p class="text-sm transition-colors duration-300"
+               :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">When disabled, only existing users and admins can log in</p>
           </div>
           <label class="relative inline-flex items-center cursor-pointer">
             <input
@@ -99,25 +135,44 @@
               v-model="settings.allowRegistration"
               class="sr-only peer"
             />
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+            <div 
+              :class="[
+                'w-11 h-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[\'\'] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600',
+                isDark ? 'bg-gray-600 after:border-gray-400' : 'bg-gray-200 after:border-gray-300'
+              ]"
+            ></div>
           </label>
         </div>
       </div>
 
       <!-- Upload Settings -->
-      <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <CloudArrowUpIcon class="w-5 h-5 mr-2 text-green-600" />
+      <div class="rounded-xl p-6 border transition-colors duration-300"
+           :style="{
+             background: isDark 
+               ? 'linear-gradient(135deg, #065f46 0%, #047857 100%)' 
+               : 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+             borderColor: isDark ? '#10b981' : '#6ee7b7'
+           }">
+        <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
+            :style="{ color: isDark ? '#d1fae5' : '#111827' }">
+          <CloudArrowUpIcon class="w-5 h-5 mr-2"
+                            :style="{ color: isDark ? '#34d399' : '#059669' }" />
           Upload Settings
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium mb-2 transition-colors duration-300"
+                   :style="{ color: isDark ? '#d1fae5' : '#374151' }">
               Maximum Upload Size
             </label>
             <select
               v-model="settings.maxUploadSize"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-300"
+              :style="{
+                backgroundColor: isDark ? '#374151' : '#ffffff',
+                borderColor: isDark ? '#6b7280' : '#d1d5db',
+                color: isDark ? '#f9fafb' : '#111827'
+              }"
             >
               <option value="10485760">10 MB</option>
               <option value="52428800">50 MB</option>
@@ -128,7 +183,8 @@
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium mb-2 transition-colors duration-300"
+                   :style="{ color: isDark ? '#d1fae5' : '#374151' }">
               Upload Box Transparency ({{ settings.uploadBoxTransparency }}%)
             </label>
             <input
@@ -136,57 +192,100 @@
               v-model="settings.uploadBoxTransparency"
               min="0"
               max="100"
-              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              class="w-full h-2 rounded-lg appearance-none cursor-pointer slider transition-colors duration-300"
+              :style="{
+                backgroundColor: isDark ? '#6b7280' : '#e5e7eb'
+              }"
             />
           </div>
         </div>
       </div>
 
-      <!-- Logo Upload -->
-      <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <PhotoIcon class="w-5 h-5 mr-2 text-orange-600" />
+      <!-- Branding Settings -->
+      <div class="rounded-xl p-6 border transition-colors duration-300"
+           :style="{
+             background: isDark 
+               ? 'linear-gradient(135deg, #991b1b 0%, #dc2626 100%)' 
+               : 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+             borderColor: isDark ? '#ef4444' : '#fca5a5'
+           }">
+        <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
+            :style="{ color: isDark ? '#fef2f2' : '#111827' }">
+          <PhotoIcon class="w-5 h-5 mr-2"
+                     :style="{ color: isDark ? '#f87171' : '#dc2626' }" />
           Branding
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-6">
+          <!-- Application Title -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Logo
+            <label class="block text-sm font-medium mb-2 transition-colors duration-300"
+                   :style="{ color: isDark ? '#fef2f2' : '#374151' }">
+              Application Title
             </label>
-            <div class="flex items-center space-x-4">
-              <img
-                v-if="settings.logo"
-                :src="`http://localhost:8080${settings.logo}`"
-                alt="Current logo"
-                class="w-12 h-12 object-contain rounded-lg border border-gray-200"
-              />
-              <input
-                type="file"
-                ref="logoInput"
-                @change="handleLogoUpload"
-                accept="image/*"
-                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600"
-              />
-            </div>
+            <input
+              type="text"
+              v-model="settings.navbarTitle"
+              placeholder="PinGO"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-300"
+              :style="{
+                backgroundColor: isDark ? '#374151' : '#ffffff',
+                borderColor: isDark ? '#6b7280' : '#d1d5db',
+                color: isDark ? '#f9fafb' : '#111827'
+              }"
+            />
+            <p class="text-sm mt-1 transition-colors duration-300"
+               :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
+              This title will appear next to the logo in the navigation bar.
+            </p>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Background Image
-            </label>
-            <div class="flex items-center space-x-4">
-              <img
-                v-if="settings.backgroundImage"
-                :src="`http://localhost:8080${settings.backgroundImage}`"
-                alt="Current background"
-                class="w-12 h-12 object-cover rounded-lg border border-gray-200"
-              />
-              <input
-                type="file"
-                ref="backgroundInput"
-                @change="handleBackgroundUpload"
-                accept="image/*"
-                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600"
-              />
+          
+          <!-- Logo and Background Images -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium mb-2 transition-colors duration-300"
+                     :style="{ color: isDark ? '#fef2f2' : '#374151' }">
+                Logo
+              </label>
+              <div class="flex items-center space-x-4">
+                <img
+                  v-if="settings.logo"
+                  :src="`http://localhost:8080${settings.logo}`"
+                  alt="Current logo"
+                  class="w-12 h-12 object-contain rounded-lg border"
+                  :style="{ borderColor: isDark ? '#6b7280' : '#d1d5db' }"
+                />
+                <input
+                  type="file"
+                  ref="logoInput"
+                  @change="handleLogoUpload"
+                  accept="image/*"
+                  class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600 transition-colors duration-300"
+                  :style="{ color: isDark ? '#d1d5db' : '#6b7280' }"
+                />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2 transition-colors duration-300"
+                     :style="{ color: isDark ? '#fef2f2' : '#374151' }">
+                Background Image
+              </label>
+              <div class="flex items-center space-x-4">
+                <img
+                  v-if="settings.backgroundImage"
+                  :src="`http://localhost:8080${settings.backgroundImage}`"
+                  alt="Current background"
+                  class="w-12 h-12 object-cover rounded-lg border"
+                  :style="{ borderColor: isDark ? '#6b7280' : '#d1d5db' }"
+                />
+                <input
+                  type="file"
+                  ref="backgroundInput"
+                  @change="handleBackgroundUpload"
+                  accept="image/*"
+                  class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600 transition-colors duration-300"
+                  :style="{ color: isDark ? '#d1d5db' : '#6b7280' }"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -243,6 +342,7 @@ const settings = ref({
   theme: 'light',
   logo: '',
   backgroundImage: '',
+  navbarTitle: 'PinGO',
   maxUploadSize: 104857600,
   uploadBoxTransparency: 0,
   blurIntensity: 0,
@@ -281,6 +381,7 @@ const saveSettings = async () => {
     const formData = new FormData()
     
     formData.append('theme', settings.value.theme)
+    formData.append('navbarTitle', settings.value.navbarTitle)
     formData.append('maxUploadSize', settings.value.maxUploadSize.toString())
     formData.append('uploadBoxTransparency', settings.value.uploadBoxTransparency.toString())
     formData.append('blurIntensity', settings.value.blurIntensity.toString())
@@ -306,6 +407,9 @@ const saveSettings = async () => {
       showSuccess.value = false
     }, 3000)
     
+    // Dispatch event to notify navbar of settings update
+    window.dispatchEvent(new CustomEvent('settings-updated'))
+    
     // Reset file inputs
     logoFile.value = null
     backgroundFile.value = null
@@ -323,6 +427,7 @@ const loadSettings = async () => {
       theme: currentSettings.theme || 'light',
       logo: currentSettings.logo || '',
       backgroundImage: currentSettings.backgroundImage || '',
+      navbarTitle: currentSettings.navbarTitle || 'PinGO',
       maxUploadSize: currentSettings.maxUploadSize || 104857600,
       uploadBoxTransparency: currentSettings.uploadBoxTransparency || 0,
       blurIntensity: currentSettings.blurIntensity || 0,
@@ -347,6 +452,8 @@ onMounted(() => {
   border-radius: 50%;
   background: #3b82f6;
   cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .slider::-moz-range-thumb {
@@ -355,6 +462,22 @@ onMounted(() => {
   border-radius: 50%;
   background: #3b82f6;
   cursor: pointer;
-  border: none;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode slider track */
+[data-theme="dark"] .slider::-webkit-slider-track {
+  background: #4b5563;
+}
+
+[data-theme="dark"] .slider::-moz-range-track {
+  background: #4b5563;
+}
+
+/* Dropdown/select styling for dark mode compatibility */
+select option {
+  background-color: inherit;
+  color: inherit;
 }
 </style>

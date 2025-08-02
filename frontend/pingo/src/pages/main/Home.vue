@@ -5,17 +5,52 @@
     <main class="relative">
       <!-- Hero Section with background effect -->
       <div class="relative overflow-hidden transition-colors duration-300 pb-24">
-        <!-- Floating circles animation -->
-        <div class="absolute inset-0 pointer-events-none">
-          <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl animate-float-slow"
-               :class="isDark ? 'animate-rainbow-circle' : ''"
-               :style="{ backgroundColor: isDark ? '#ff000040' : '#dbeafe20' }"></div>
-          <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl animate-float-slower"
-               :class="isDark ? 'animate-rainbow-circle-delayed' : ''"
-               :style="{ backgroundColor: isDark ? '#00ff0040' : '#f3e8ff20' }"></div>
-          <div class="absolute top-1/2 left-1/2 w-64 h-64 rounded-full blur-2xl animate-float"
-               :class="isDark ? 'animate-rainbow-circle-fast' : ''"
-               :style="{ backgroundColor: isDark ? '#0000ff40' : 'transparent' }"></div>
+        <!-- Apple-style starfield animation for dark mode -->
+        <div v-if="isDark" class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+          <!-- Regular twinkling stars -->
+          <div class="starfield">
+            <div v-for="n in 200" :key="`star-${n}`" 
+                 class="star"
+                 :style="{
+                   left: Math.random() * 100 + 'vw',
+                   top: Math.random() * 100 + 'vh',
+                   animationDelay: Math.random() * 3 + 's',
+                   animationDuration: (2 + Math.random() * 3) + 's'
+                 }"></div>
+          </div>
+          
+          <!-- Constellation patterns -->
+          <div class="constellation constellation-1"></div>
+          <div class="constellation constellation-2"></div>
+          <div class="constellation constellation-3"></div>
+          
+          <!-- Shooting stars -->
+          <div class="shooting-stars">
+            <!-- Each star positioned strategically like the example -->
+            <div class="shooting-star" style="top: 0; right: 0; animation-delay: 0s; animation-duration: 1s;"></div>
+            <div class="shooting-star" style="top: 0; right: 80px; animation-delay: 0.2s; animation-duration: 3s;"></div>
+            <div class="shooting-star" style="top: 80px; right: 0px; animation-delay: 0.4s; animation-duration: 2s;"></div>
+            <div class="shooting-star" style="top: 0; right: 180px; animation-delay: 0.6s; animation-duration: 1.5s;"></div>
+            <div class="shooting-star" style="top: 0; right: 400px; animation-delay: 0.8s; animation-duration: 2.5s;"></div>
+            <div class="shooting-star" style="top: 0; right: 600px; animation-delay: 1s; animation-duration: 3s;"></div>
+            <div class="shooting-star" style="top: 300px; right: 0px; animation-delay: 1.2s; animation-duration: 1.75s;"></div>
+            <div class="shooting-star" style="top: 0px; right: 700px; animation-delay: 1.4s; animation-duration: 1.25s;"></div>
+            <div class="shooting-star" style="top: 0px; right: 1000px; animation-delay: 0.75s; animation-duration: 2.25s;"></div>
+            <div class="shooting-star" style="top: 0px; right: 450px; animation-delay: 2.75s; animation-duration: 2.75s;"></div>
+          </div>
+          
+          <!-- Floating nebula effects -->
+          <div class="nebula nebula-1"></div>
+          <div class="nebula nebula-2"></div>
+          <div class="nebula nebula-3"></div>
+        </div>
+        
+        <!-- Light mode subtle background -->
+        <div v-else class="absolute inset-0 pointer-events-none">
+          <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-30 animate-float-slow"
+               style="background: linear-gradient(45deg, #dbeafe, #f3e8ff);"></div>
+          <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-20 animate-float-slower"
+               style="background: linear-gradient(135deg, #fef3c7, #fed7e2);"></div>
         </div>
         
         <div class="relative max-w-screen-xl mx-auto px-6 lg:px-8 pt-20 pb-16">
@@ -411,21 +446,24 @@
     <!-- WeTransfer-style Footer -->
     <footer class="border-t border-gray-100 dark:border-gray-800 mt-auto transition-colors duration-300"
             :style="{ backgroundColor: isDark ? '#000000' : '#ffffff' }">
-      <div class="max-w-screen-xl mx-auto px-6 lg:px-8 py-16">
+      <div class="max-w-screen-xl mx-auto px-6 lg:px-8 py-8">
         <div class="text-center">
-          <div class="flex items-center justify-center mb-8">
-            <img v-if="logoPath" :src="`http://localhost:8080${logoPath}`" class="h-10 w-auto mr-3" alt="Logo" @error="handleImageError" />
-            <div class="text-3xl font-bold transition-colors duration-300" 
+          <div class="flex items-center justify-center mb-4">
+            <img v-if="logoPath" :src="`http://localhost:8080${logoPath}`" class="h-8 w-auto mr-2" alt="Logo" @error="handleImageError" />
+            <div class="text-2xl font-bold transition-colors duration-300" 
                  :style="{ color: isDark ? '#ffffff' : '#000000' }">PinGO</div>
           </div>
-          <p class="max-w-md mx-auto mb-12 text-lg transition-colors duration-300"
+          <p class="max-w-md mx-auto mb-6 text-base transition-colors duration-300"
              :style="{ color: isDark ? '#cccccc' : '#666666' }">
             Simple, secure file sharing for everyone. Made with ❤️ for seamless file transfers.
           </p>
           <div class="flex items-center justify-center space-x-8 text-sm text-gray-500 dark:text-gray-400">
-            <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Privacy</a>
-            <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Terms</a>
-            <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Support</a>
+            <a href="https://github.com/R8bert/PInGO-Share" target="_blank" rel="noopener noreferrer" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              <span>GitHub Repository</span>
+            </a>
           </div>
         </div>
       </div>
@@ -742,6 +780,191 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Apple-style Star Animations */
+.starfield {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle infinite ease-in-out;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+/* Constellation patterns */
+.constellation {
+  position: absolute;
+  opacity: 0.4;
+}
+
+.constellation-1 {
+  top: 20%;
+  left: 10%;
+  width: 120px;
+  height: 80px;
+  background: 
+    radial-gradient(circle 1px at 10px 20px, white 1px, transparent 2px),
+    radial-gradient(circle 1px at 50px 10px, white 1px, transparent 2px),
+    radial-gradient(circle 1px at 90px 25px, white 1px, transparent 2px),
+    radial-gradient(circle 1px at 30px 60px, white 1px, transparent 2px),
+    radial-gradient(circle 1px at 70px 50px, white 1px, transparent 2px);
+  animation: constellation-float 12s ease-in-out infinite;
+}
+
+.constellation-2 {
+  top: 60%;
+  right: 15%;
+  width: 100px;
+  height: 100px;
+  background: 
+    radial-gradient(circle 1px at 20px 20px, #60a5fa 1px, transparent 2px),
+    radial-gradient(circle 1px at 60px 30px, #60a5fa 1px, transparent 2px),
+    radial-gradient(circle 1px at 40px 70px, #60a5fa 1px, transparent 2px),
+    radial-gradient(circle 1px at 80px 60px, #60a5fa 1px, transparent 2px);
+  animation: constellation-float 15s ease-in-out infinite reverse;
+}
+
+.constellation-3 {
+  top: 40%;
+  left: 70%;
+  width: 80px;
+  height: 120px;
+  background: 
+    radial-gradient(circle 1px at 15px 30px, #a78bfa 1px, transparent 2px),
+    radial-gradient(circle 1px at 45px 20px, #a78bfa 1px, transparent 2px),
+    radial-gradient(circle 1px at 25px 80px, #a78bfa 1px, transparent 2px),
+    radial-gradient(circle 1px at 65px 70px, #a78bfa 1px, transparent 2px);
+  animation: constellation-float 18s ease-in-out infinite;
+}
+
+/* Shooting stars */
+.shooting-stars {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.shooting-star {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 0 4px rgba(255,255,255,0.1),
+    0 0 0 8px rgba(255,255,255,0.1),
+    0 0 20px rgba(255,255,255,0.1);
+  animation: shooting-fall 3s linear infinite;
+}
+
+.shooting-star::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 300px;
+  height: 1px;
+  background: linear-gradient(90deg, #fff, transparent);
+}
+
+/* Nebula effects */
+.nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.15;
+  animation: nebula-drift infinite ease-in-out;
+}
+
+.nebula-1 {
+  top: 10%;
+  left: 20%;
+  width: 300px;
+  height: 200px;
+  background: radial-gradient(ellipse, #6366f1, transparent 70%);
+  animation-duration: 20s;
+}
+
+.nebula-2 {
+  bottom: 20%;
+  right: 30%;
+  width: 250px;
+  height: 300px;
+  background: radial-gradient(ellipse, #8b5cf6, transparent 70%);
+  animation-duration: 25s;
+  animation-direction: reverse;
+}
+
+.nebula-3 {
+  top: 50%;
+  left: 60%;
+  width: 200px;
+  height: 250px;
+  background: radial-gradient(ellipse, #06b6d4, transparent 70%);
+  animation-duration: 30s;
+}
+
+/* Star Animation Keyframes */
+@keyframes twinkle {
+  0%, 100% { 
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes shooting-fall {
+  0% {
+    transform: rotate(315deg) translateX(0);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(315deg) translateX(-1000px);
+    opacity: 0;
+  }
+}
+
+@keyframes constellation-float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-10px) translateX(5px);
+    opacity: 0.7;
+  }
+}
+
+@keyframes nebula-drift {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  33% {
+    transform: translateY(-20px) translateX(10px) scale(1.1);
+  }
+  66% {
+    transform: translateY(10px) translateX(-15px) scale(0.9);
+  }
+}
+
 /* Optimized Animations */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(20px); }

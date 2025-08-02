@@ -75,48 +75,85 @@
     </div>
 
     <!-- Navigation buttons (desktop, bottom-right) -->
-    <div v-if="isAuthenticated" class="fixed bottom-4 right-4 sm:flex sm:flex-row sm:space-x-2 hidden z-50">
+    <div v-if="isAuthenticated" class="fixed bottom-6 right-6 sm:flex sm:flex-col sm:space-y-3 hidden z-50">
       <router-link
         to="/"
-        class="flex items-center justify-center w-12 h-12 shadow-lg rounded-full transition-all duration-200 group"
+        class="group relative flex items-center justify-center w-14 h-14 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
         :style="{
-          backgroundColor: isDark ? '#1f2937' : '#ffffff',
-          borderColor: isDark ? '#4b5563' : '#e5e7eb',
-          borderWidth: '1px',
-          color: isDark ? '#d1d5db' : '#6b7280'
+          backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
+          borderColor: isDark ? '#404040' : '#e5e7eb',
+          borderWidth: '1px'
         }"
-        active-class="text-blue-600 dark:text-blue-400 shadow-xl"
-        title="Upload"
+        title="Upload Files"
       >
-        <ArrowUpTrayIcon class="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
+        <ArrowUpTrayIcon 
+          class="h-6 w-6 group-hover:scale-110 transition-transform duration-300" 
+          :style="{ color: isDark ? '#60a5fa' : '#3b82f6' }" 
+        />
+        <!-- Tooltip -->
+        <div class="absolute right-full mr-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+          Upload Files
+          <div class="absolute top-1/2 -right-1 w-2 h-2 bg-gray-900 transform rotate-45 -translate-y-1/2"></div>
+        </div>
       </router-link>
-      <router-link
-        to="/account"
-        class="flex items-center justify-center w-12 h-12 shadow-lg rounded-full transition-all duration-200 group"
-        :style="{
-          backgroundColor: isDark ? '#1f2937' : '#ffffff',
-          borderColor: isDark ? '#4b5563' : '#e5e7eb',
-          borderWidth: '1px',
-          color: isDark ? '#d1d5db' : '#6b7280'
-        }"
-        active-class="text-blue-600 dark:text-blue-400 shadow-xl"
-        title="Account"
-      >
-        <UserIcon class="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
-      </router-link>
+      
+      <!-- Account button with separate avatar -->
+      <div class="relative">
+        <router-link
+          to="/account"
+          class="group relative flex items-center justify-center w-14 h-14 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+          :style="{
+            backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
+            borderColor: isDark ? '#404040' : '#e5e7eb',
+            borderWidth: '1px'
+          }"
+          title="My Account"
+        >
+          <UserIcon 
+            class="h-6 w-6 group-hover:scale-110 transition-transform duration-300" 
+            :style="{ color: isDark ? '#60a5fa' : '#3b82f6' }" 
+          />
+          <!-- Tooltip -->
+          <div class="absolute right-full mr-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+            My Account
+            <div class="absolute top-1/2 -right-1 w-2 h-2 bg-gray-900 transform rotate-45 -translate-y-1/2"></div>
+          </div>
+        </router-link>
+        
+        <!-- Separate avatar indicator -->
+        <div class="absolute -top-2 -right-2 w-8 h-8 rounded-full overflow-hidden border-2 shadow-md"
+             :style="{ borderColor: isDark ? '#404040' : '#ffffff' }">
+          <img 
+            v-if="user?.avatar" 
+            :src="`http://localhost:8080${user.avatar}`" 
+            :alt="user.username" 
+            class="w-full h-full object-cover" 
+          />
+          <div 
+            v-else 
+            class="w-full h-full flex items-center justify-center text-xs font-semibold"
+            :style="{ 
+              backgroundColor: isDark ? '#3b82f6' : '#60a5fa',
+              color: '#ffffff'
+            }"
+          >
+            {{ user?.username?.[0]?.toUpperCase() }}
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Login button for non-authenticated users (desktop) -->
-    <div v-else class="fixed bottom-4 right-4 sm:block hidden z-50">
+    <div v-else class="fixed bottom-6 right-6 sm:block hidden z-50">
       <router-link
         to="/auth"
-        class="flex items-center justify-center px-6 py-3 font-medium rounded-full shadow-lg transition-all duration-200"
+        class="group relative flex items-center justify-center px-6 py-3 font-medium rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
         :style="{
-          backgroundColor: isDark ? '#2563eb' : '#3b82f6',
+          backgroundColor: isDark ? '#3b82f6' : '#2563eb',
           color: '#ffffff'
         }"
       >
-        <ArrowRightOnRectangleIcon class="h-5 w-5 mr-2" />
+        <ArrowRightOnRectangleIcon class="h-5 w-5 mr-2 group-hover:translate-x-1 transition-transform duration-300" />
         Sign In
       </router-link>
     </div>
@@ -246,7 +283,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { useTheme } from '../composables/useTheme'
 import { useRouter } from 'vue-router'
@@ -272,6 +309,23 @@ const handleLogout = async () => {
   router.push('/auth')
 }
 
+const fetchSettings = async () => {
+  try {
+    const response = await fetch('http://localhost:8080/settings')
+    if (response.ok) {
+      const settings = await response.json()
+      navbarTitle.value = settings.navbarTitle || 'PinGO'
+      logoPath.value = settings.logo || '/logos/004571540fcfd318992384ba96ffb6ae07634920f70e009cf76cf9a1aac603ab.png'
+    }
+  } catch (error) {
+    console.error('Failed to fetch settings:', error)
+  }
+}
+
+// Listen for settings updates
+const handleSettingsUpdate = () => {
+  fetchSettings()
+}
 
 const handleImageError = () => {
   console.error('Logo image failed to load:', logoPath.value)
@@ -281,6 +335,15 @@ const handleImageError = () => {
 const handleAvatarError = () => {
   console.error('Avatar image failed to load')
 }
+
+onMounted(() => {
+  fetchSettings()
+  window.addEventListener('settings-updated', handleSettingsUpdate)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('settings-updated', handleSettingsUpdate)
+})
 </script>
 
 <style scoped>
@@ -289,21 +352,16 @@ div:first-child {
   font-family: 'Inter', sans-serif;
 }
 
-/* Logo backdrop for better visibility */
+/* Logo backdrop for better visibility - removed hardcoded colors */
 div:first-child > a {
   padding: 8px 12px;
   border-radius: 12px;
-  background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  /* box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); */
   transition: all 0.2s ease-in-out;
 }
 
 div:first-child > a:hover {
-  /* box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); */
   transform: translateY(-1px);
-    /* Add a subtle scale effect */
-
 }
 
 /* Navigation buttons hover effects */
@@ -311,15 +369,13 @@ div:first-child > a:hover {
   transform: scale(1.1);
 }
 
-/* Add backdrop blur for better visibility */
+/* Remove hardcoded backdrop colors from group elements */
 .group {
   backdrop-filter: blur(10px);
-  background-color: rgba(255, 255, 255, 0.95);
 }
 
-/* Mobile menu container */
-.sm\:hidden .bg-white {
-  background-color: rgba(255, 255, 255, 0.95);
+/* Remove hardcoded mobile menu colors */
+.sm\:hidden {
   backdrop-filter: blur(10px);
 }
 </style>

@@ -8,10 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { useTheme } from '../../../composables/useTheme'
 import AdminSettings from '../../../components/AdminSettings.vue'
-
-const { isDark } = useTheme()
 
 // Props
 interface Props {

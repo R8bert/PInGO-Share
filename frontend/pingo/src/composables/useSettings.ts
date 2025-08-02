@@ -1,0 +1,47 @@
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+interface Settings {
+  id: number
+  theme: string
+  logo: string
+  backgroundImage: string
+  navbarTitle: string
+  maxUploadSize: number
+  uploadBoxTransparency: number
+  blurIntensity: number
+  maxValidity: string
+  allowRegistration: boolean
+}
+
+export function useSettings() {
+  const settings = ref<Settings | null>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+
+  const fetchSettings = async () => {
+    loading.value = true
+    error.value = null
+    
+    try {
+      const response = await axios.get('http://localhost:8080/settings')
+      settings.value = response.data
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to fetch settings'
+      console.error('Error fetching settings:', err)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  onMounted(() => {
+    fetchSettings()
+  })
+
+  return {
+    settings,
+    loading,
+    error,
+    fetchSettings
+  }
+}

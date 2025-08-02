@@ -1253,23 +1253,25 @@ func main() {
 
 		// Get uploader information from database
 		var uploaderInfo struct {
-			Username string `json:"username"`
-			Avatar   string `json:"avatar"`
-			Email    string `json:"email"`
+			Username  string     `json:"username"`
+			Avatar    string     `json:"avatar"`
+			Email     string     `json:"email"`
+			ExpiresAt *time.Time `json:"expirationDate"`
 		}
 
 		err := db.QueryRow(`
-			SELECT u.username, COALESCE(u.avatar, '') as avatar, up.email 
+			SELECT u.username, COALESCE(u.avatar, '') as avatar, up.email, up.expires_at
 			FROM uploads up 
 			JOIN users u ON up.user_id = u.id 
 			WHERE up.upload_id = $1
-		`, id).Scan(&uploaderInfo.Username, &uploaderInfo.Avatar, &uploaderInfo.Email)
+		`, id).Scan(&uploaderInfo.Username, &uploaderInfo.Avatar, &uploaderInfo.Email, &uploaderInfo.ExpiresAt)
 
 		if err != nil {
 			// If no uploader found, continue without uploader info
 			uploaderInfo.Username = "Unknown"
 			uploaderInfo.Avatar = ""
 			uploaderInfo.Email = ""
+			uploaderInfo.ExpiresAt = nil
 		}
 
 		files, _ := os.ReadDir("./uploads")
@@ -1301,12 +1303,8 @@ func main() {
 		}
 
 		c.JSON(200, gin.H{
-			"files": fileInfos,
-			"uploader": gin.H{
-				"username": uploaderInfo.Username,
-				"avatar":   uploaderInfo.Avatar,
-				"email":    uploaderInfo.Email,
-			},
+			"files":    fileInfos,
+			"uploader": uploaderInfo,
 		})
 	})
 

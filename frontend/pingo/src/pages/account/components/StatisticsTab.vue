@@ -32,8 +32,9 @@
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-lg font-semibold transition-colors duration-300"
-                    :style="{ color: isDark ? '#f9fafb' : '#111827' }">Total Users</h3>
-                <p class="text-3xl font-bold text-blue-600">{{ adminStats.totalUsers }}</p>
+                    :style="{ color: isDark ? '#e0e7ff' : '#111827' }">Total Users</h3>
+                <p class="text-3xl font-bold transition-colors duration-300"
+                   :style="{ color: isDark ? '#93c5fd' : '#2563eb' }">{{ adminStats.totalUsers }}</p>
               </div>
               <UserGroupIcon class="w-12 h-12 opacity-20 transition-colors duration-300"
                              :style="{ color: isDark ? '#60a5fa' : '#3b82f6' }" />
@@ -48,8 +49,9 @@
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-lg font-semibold transition-colors duration-300"
-                    :style="{ color: isDark ? '#f9fafb' : '#111827' }">Total Uploads</h3>
-                <p class="text-3xl font-bold text-green-600">{{ adminStats.totalUploads }}</p>
+                    :style="{ color: isDark ? '#d1fae5' : '#111827' }">Total Uploads</h3>
+                <p class="text-3xl font-bold transition-colors duration-300"
+                   :style="{ color: isDark ? '#86efac' : '#16a34a' }">{{ adminStats.totalUploads }}</p>
               </div>
               <CloudArrowUpIcon class="w-12 h-12 opacity-20 transition-colors duration-300"
                                 :style="{ color: isDark ? '#34d399' : '#10b981' }" />
@@ -64,8 +66,9 @@
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-lg font-semibold transition-colors duration-300"
-                    :style="{ color: isDark ? '#f9fafb' : '#111827' }">Storage Used</h3>
-                <p class="text-3xl font-bold text-purple-600">{{ formatBytes(adminStats.totalStorage) }}</p>
+                    :style="{ color: isDark ? '#ede9fe' : '#111827' }">Storage Used</h3>
+                <p class="text-3xl font-bold transition-colors duration-300"
+                   :style="{ color: isDark ? '#c4b5fd' : '#9333ea' }">{{ formatBytes(adminStats.totalStorage) }}</p>
               </div>
               <ArchiveBoxIcon class="w-12 h-12 opacity-20 transition-colors duration-300"
                               :style="{ color: isDark ? '#a78bfa' : '#8b5cf6' }" />

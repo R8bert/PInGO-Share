@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 import { useAuth } from './composables/useAuth'
 import { useTheme } from './composables/useTheme'
 import Navbar from './components/Navbar.vue'
@@ -17,8 +17,23 @@ import Navbar from './components/Navbar.vue'
 const { fetchCurrentUser } = useAuth()
 const { } = useTheme() // Initialize theme system
 
+let initTimeout: number | null = null
+
 onMounted(async () => {
-  // Try to authenticate user on app start
-  await fetchCurrentUser()
+  // Debounce the initialization to prevent rapid refresh issues
+  if (initTimeout) {
+    clearTimeout(initTimeout)
+  }
+  
+  initTimeout = setTimeout(async () => {
+    // Try to authenticate user on app start
+    await fetchCurrentUser()
+  }, 50) // Small delay to debounce rapid page refreshes
+})
+
+onBeforeUnmount(() => {
+  if (initTimeout) {
+    clearTimeout(initTimeout)
+  }
 })
 </script>

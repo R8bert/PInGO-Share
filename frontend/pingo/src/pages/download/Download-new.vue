@@ -388,9 +388,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useTheme } from '../../composables/useTheme'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { XMarkIcon, ArrowDownTrayIcon, DocumentIcon, EyeIcon, EyeSlashIcon, UserIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
 
@@ -409,7 +409,7 @@ interface UploaderInfo {
 }
 
 // Dark mode
-const { isDark } = useTheme()
+const { isDark } = useDarkMode()
 
 // Router
 const route = useRoute()
@@ -443,7 +443,7 @@ const formatTotalSize = () => {
 
 const getFileIcon = (file: FileInfo) => {
   const extension = getFileExtension(file).toLowerCase()
-  const iconMap: Record<string, string> = {
+  const iconMap: { [key: string]: string } = {
     pdf: '/src/assets/images/train/icons/file-pdf.png',
     jpg: '/src/assets/images/train/icons/file-jpg.png',
     jpeg: '/src/assets/images/train/icons/file-jpg.png',
@@ -539,18 +539,17 @@ const formatExpirationDate = (dateString: string) => {
 const fetchShareData = async () => {
   try {
     loading.value = true
-    const response = await axios.get(`http://localhost:8080/files/${shareId.value}`)
+    const response = await axios.get(`http://localhost:8080/api/share/${shareId.value}`)
     
-    // Backend returns { files: [...], uploader: {...} } directly
-    files.value = response.data.files || []
-    uploader.value = response.data.uploader || null
+    if (response.data.success) {
+      files.value = response.data.files || []
+      uploader.value = response.data.uploader || null
+    } else {
+      error.value = response.data.message || 'Failed to load files'
+    }
   } catch (err: any) {
     console.error('Error fetching share data:', err)
-    if (err.response?.status === 404) {
-      error.value = 'Files not found or have expired'
-    } else {
-      error.value = err.response?.data?.error || 'Failed to load files'
-    }
+    error.value = err.response?.data?.message || 'Failed to load files'
   } finally {
     loading.value = false
   }
@@ -603,7 +602,7 @@ const downloadAll = async () => {
   downloadingAll.value = true
   
   try {
-    const response = await axios.get(`http://localhost:8080/download/${shareId.value}`, {
+    const response = await axios.get(`http://localhost:8080/api/share/${shareId.value}/download-all`, {
       responseType: 'blob'
     })
     
@@ -611,16 +610,7 @@ const downloadAll = async () => {
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    
-    // If multiple files, backend returns ZIP; if single file, returns the file directly
-    if (files.value.length > 1) {
-      link.download = `shared-files-${shareId.value}.zip`
-    } else if (files.value.length === 1) {
-      link.download = files.value[0].name
-    } else {
-      link.download = `files-${shareId.value}.zip`
-    }
-    
+    link.download = `shared-files-${shareId.value}.zip`
     link.click()
     window.URL.revokeObjectURL(url)
   } catch (err) {

@@ -5,7 +5,7 @@
       <!-- Header Section -->
       <div class="text-center mb-12">
         <div class="relative inline-block mb-6">
-          <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+          <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg from-blue-500 to-indigo-600 flex items-center justify-center">
             <img 
               v-if="user?.avatar" 
               :src="`http://localhost:8080${user.avatar}`" 

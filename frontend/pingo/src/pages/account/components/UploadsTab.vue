@@ -32,10 +32,15 @@
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <div class="flex items-center space-x-3 mb-3">
-              <div class="p-2 rounded-lg transition-colors duration-300"
-                   :style="{ backgroundColor: isDark ? '#1e3a8a' : '#dbeafe' }">
-                <DocumentIcon class="w-5 h-5 transition-colors duration-300"
-                              :style="{ color: isDark ? '#60a5fa' : '#2563eb' }" />
+              <div class="p-3 rounded-xl shadow-sm transition-all duration-300"
+                   :style="{ 
+                     background: isDark 
+                       ? 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' 
+                       : 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+                     border: isDark ? '1px solid #1d4ed8' : '1px solid #93c5fd'
+                   }">
+                <DocumentIcon class="w-6 h-6 transition-colors duration-300"
+                              :style="{ color: isDark ? '#e0e7ff' : '#1e40af' }" />
               </div>
               <div>
                 <h3 class="font-medium transition-colors duration-300"
@@ -99,39 +104,46 @@
           <div class="flex items-center space-x-2">
             <button
               @click="copyToClipboard(`${getBaseUrl()}${upload.download_url}`)"
-              class="p-2 rounded-lg transition-all duration-300 hover:bg-blue-100 dark:hover:bg-blue-900"
-              :style="{ color: isDark ? '#9ca3af' : '#6b7280' }"
+              class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
+              :class="isDark ? 'hover:bg-blue-500/20 bg-blue-500/10' : 'hover:bg-blue-50 bg-blue-25'"
               title="Copy link"
             >
-              <ClipboardDocumentIcon class="w-5 h-5" />
+              <ClipboardDocumentIcon class="w-5 h-5 transition-colors duration-300"
+                                   :class="isDark ? 'text-blue-400 group-hover:text-blue-300' : 'text-blue-600 group-hover:text-blue-700'" />
             </button>
             <button
               @click="goToFiles(upload.download_url)"
-              class="p-2 rounded-lg transition-all duration-300 hover:bg-green-100 dark:hover:bg-green-900"
-              :style="{ color: isDark ? '#9ca3af' : '#6b7280' }"
+              class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
+              :class="isDark ? 'hover:bg-emerald-500/20 bg-emerald-500/10' : 'hover:bg-emerald-50 bg-emerald-25'"
               title="Go to files"
             >
-              <FolderIcon class="w-5 h-5" />
+              <FolderIcon class="w-5 h-5 transition-colors duration-300"
+                         :class="isDark ? 'text-emerald-400 group-hover:text-emerald-300' : 'text-emerald-600 group-hover:text-emerald-700'" />
             </button>
             <button
               @click="toggleAvailability(upload.upload_id, upload.is_available)"
-              class="p-2 rounded-lg transition-all duration-300"
-              :class="upload.is_available ? 'hover:bg-orange-100 dark:hover:bg-orange-900' : 'hover:bg-green-100 dark:hover:bg-green-900'"
-              :style="{ color: isDark ? '#9ca3af' : '#6b7280' }"
+              class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
+              :class="upload.is_available 
+                ? (isDark ? 'hover:bg-amber-500/20 bg-amber-500/10' : 'hover:bg-amber-50 bg-amber-25')
+                : (isDark ? 'hover:bg-green-500/20 bg-green-500/10' : 'hover:bg-green-50 bg-green-25')"
               :title="upload.is_available ? 'Make unavailable' : 'Make available'"
             >
-              <EyeSlashIcon v-if="upload.is_available" class="w-5 h-5" />
-              <EyeIcon v-else class="w-5 h-5" />
+              <EyeSlashIcon v-if="upload.is_available" class="w-5 h-5 transition-colors duration-300"
+                           :class="isDark ? 'text-amber-400 group-hover:text-amber-300' : 'text-amber-600 group-hover:text-amber-700'" />
+              <EyeIcon v-else class="w-5 h-5 transition-colors duration-300"
+                      :class="isDark ? 'text-green-400 group-hover:text-green-300' : 'text-green-600 group-hover:text-green-700'" />
             </button>
             
             <!-- Expiration Dropdown -->
             <div class="relative">
               <button
                 @click="toggleExpirationDropdown(upload.upload_id)"
-                class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
+                :class="isDark ? 'hover:bg-purple-500/20 bg-purple-500/10' : 'hover:bg-purple-50 bg-purple-25'"
                 title="Change expiration"
               >
-                <ClockIcon class="w-5 h-5" />
+                <ClockIcon class="w-5 h-5 transition-colors duration-300"
+                          :class="isDark ? 'text-purple-400 group-hover:text-purple-300' : 'text-purple-600 group-hover:text-purple-700'" />
               </button>
               <div v-if="showExpirationDropdown[upload.upload_id]" 
                    class="absolute right-0 mt-2 w-48 rounded-md shadow-lg border z-10 transition-colors duration-300"
@@ -180,11 +192,12 @@
             </div>
             <button
               @click="deleteUpload(upload.upload_id)"
-              class="p-2 rounded-lg transition-all duration-300 hover:bg-red-100 dark:hover:bg-red-900"
-              :style="{ color: isDark ? '#9ca3af' : '#6b7280' }"
+              class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
+              :class="isDark ? 'hover:bg-red-500/20 bg-red-500/10' : 'hover:bg-red-50 bg-red-25'"
               title="Delete upload"
             >
-              <TrashIcon class="w-5 h-5" />
+              <TrashIcon class="w-5 h-5 transition-colors duration-300"
+                        :class="isDark ? 'text-red-400 group-hover:text-red-300' : 'text-red-600 group-hover:text-red-700'" />
             </button>
           </div>
         </div>

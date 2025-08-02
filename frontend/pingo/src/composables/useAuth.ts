@@ -28,6 +28,8 @@ const user = ref<User | null>(null)
 const token = ref<string | null>(null)
 const isLoading = ref(false)
 const uploads = ref<Upload[]>([])
+const isInitializing = ref(false)
+const initPromise = ref<Promise<boolean> | null>(null)
 
 // Setup axios defaults
 axios.defaults.baseURL = 'http://localhost:8080'
@@ -50,11 +52,19 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Clear auth state if unauthorized
-      user.value = null
-      token.value = null
-      localStorage.removeItem('auth_token')
+    // Only clear auth state for specific 401 errors from auth endpoints
+    if (error.response?.status === 401 && 
+        (error.config?.url?.includes('/me') || 
+         error.config?.url?.includes('/login') || 
+         error.config?.url?.includes('/logout'))) {
+      // Add a small delay to prevent race conditions during rapid refreshes
+      setTimeout(() => {
+        if (!isInitializing.value) {
+          user.value = null
+          token.value = null
+          localStorage.removeItem('auth_token')
+        }
+      }, 100)
     }
     return Promise.reject(error)
   }
@@ -137,16 +147,36 @@ export const useAuth = () => {
   }
 
   const fetchCurrentUser = async () => {
-    try {
-      if (!token.value) return false
-      
-      const response = await axios.get('/me')
-      user.value = response.data.user
-      return true
-    } catch (error) {
-      clearAuth()
+    // If already initializing, return the existing promise
+    if (initPromise.value) {
+      return initPromise.value
+    }
+
+    // If no token, don't make a request
+    if (!token.value) {
       return false
     }
+
+    // Create a new initialization promise
+    initPromise.value = (async () => {
+      try {
+        isInitializing.value = true
+        const response = await axios.get('/me')
+        user.value = response.data.user
+        return true
+      } catch (error: any) {
+        // Only clear auth if it's a definitive 401 (unauthorized)
+        if (error.response?.status === 401) {
+          clearAuth()
+        }
+        return false
+      } finally {
+        isInitializing.value = false
+        initPromise.value = null
+      }
+    })()
+
+    return initPromise.value
   }
 
   const fetchUploads = async () => {
