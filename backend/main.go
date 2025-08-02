@@ -577,18 +577,17 @@ func main() {
 		}
 		defer file.Close()
 
-		// Validate file type (images and GIFs)
+		// Validate file type (only PNG, JPG, JPEG, and GIF)
 		allowedTypes := map[string]bool{
 			"image/jpeg": true,
 			"image/jpg":  true,
 			"image/png":  true,
 			"image/gif":  true,
-			"image/webp": true,
 		}
 
 		contentType := header.Header.Get("Content-Type")
 		if !allowedTypes[contentType] {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file type. Only PNG, JPG, JPEG, and GIF are allowed"})
 			return
 		}
 
@@ -625,8 +624,6 @@ func main() {
 				ext = ".png"
 			case "image/gif":
 				ext = ".gif"
-			case "image/webp":
-				ext = ".webp"
 			default:
 				ext = ".jpg"
 			}

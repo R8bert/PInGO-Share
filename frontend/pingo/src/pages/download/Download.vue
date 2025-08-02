@@ -1,36 +1,49 @@
 <template>
-  <div class="min-h-screen transition-colors duration-300" 
+  <div class="min-h-screen transition-colors duration-300 relative overflow-hidden" 
        :style="{ backgroundColor: isDark ? '#000000' : '#fbfbfd' }">
     
-    <!-- Apple-style Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-all duration-300"
-         :style="{ 
-           backgroundColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(251, 251, 253, 0.8)',
-           borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-         }">
-      <div class="max-w-screen-xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
-        <router-link to="/" class="flex items-center space-x-3 group">
-          <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:scale-105"
-               :style="{ backgroundColor: isDark ? '#1d4ed8' : '#2563eb' }">
-            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z"/>
-            </svg>
-          </div>
-          <span class="font-medium transition-colors duration-300" 
-                :style="{ color: isDark ? '#ffffff' : '#1d1d1f' }">Back to Home</span>
-        </router-link>
-        
-        <div class="flex items-center space-x-4">
-          <div class="text-sm font-medium transition-colors duration-300"
-               :style="{ color: isDark ? '#a1a1aa' : '#6e6e73' }">
-            {{ loading ? 'Loading...' : `${files.length} file${files.length !== 1 ? 's' : ''}` }}
-          </div>
-        </div>
+    <!-- Starfield Background -->
+    <div v-if="isDark" class="fixed inset-0 z-0">
+      <!-- Twinkling Stars -->
+      <div v-for="star in stars" :key="`star-${star.id}`"
+           class="absolute rounded-full bg-white animate-twinkle"
+           :style="{
+             left: star.x + '%',
+             top: star.y + '%',
+             width: star.size + 'px',
+             height: star.size + 'px',
+             animationDelay: star.delay + 's',
+             animationDuration: star.duration + 's'
+           }">
       </div>
-    </nav>
+      
+      <!-- Constellations -->
+      <div v-for="constellation in constellations" :key="`constellation-${constellation.id}`"
+           class="absolute opacity-30"
+           :style="{
+             left: constellation.x + '%',
+             top: constellation.y + '%'
+           }">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="10" cy="10" r="1" fill="white" />
+          <circle cx="30" cy="20" r="1.5" fill="white" />
+          <circle cx="45" cy="15" r="1" fill="white" />
+          <circle cx="20" cy="40" r="1" fill="white" />
+          <circle cx="50" cy="45" r="1.5" fill="white" />
+          <line x1="10" y1="10" x2="30" y2="20" stroke="white" stroke-width="0.3" opacity="0.5" />
+          <line x1="30" y1="20" x2="45" y2="15" stroke="white" stroke-width="0.3" opacity="0.5" />
+          <line x1="30" y1="20" x2="20" y2="40" stroke="white" stroke-width="0.3" opacity="0.5" />
+          <line x1="20" y1="40" x2="50" y2="45" stroke="white" stroke-width="0.3" opacity="0.5" />
+        </svg>
+      </div>
+      
+      <!-- Nebula Effect -->
+      <div class="absolute top-20 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-10 animate-float-slow bg-blue-500"></div>
+      <div class="absolute bottom-20 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-10 animate-float-slower bg-purple-500"></div>
+    </div>
 
     <!-- Main Content -->
-    <main class="pt-16">
+    <main class="relative z-10 pt-8">
       <!-- Hero Section with Apple-style Typography -->
       <section class="relative overflow-hidden">
         <!-- Subtle background gradient -->
@@ -42,6 +55,7 @@
         </div>
         
         <div class="relative max-w-4xl mx-auto px-6 lg:px-8 pt-20 pb-16 text-center">
+          
           <!-- Apple-style large headline -->
           <h1 class="text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-fade-in"
               :style="{ 
@@ -424,6 +438,48 @@ const downloadingFiles = ref(new Set<number>())
 const downloadingAll = ref(false)
 const textContent = ref(new Map<number, string>())
 
+// Star animation data
+const stars = ref<Array<{
+  id: number
+  x: number
+  y: number
+  size: number
+  delay: number
+  duration: number
+}>>([])
+
+const constellations = ref<Array<{
+  id: number
+  x: number
+  y: number
+}>>([])
+
+// Initialize star field
+const initializeStars = () => {
+  if (!isDark.value) return
+  
+  // Generate twinkling stars
+  for (let i = 0; i < 200; i++) {
+    stars.value.push({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 2 + 1,
+      delay: Math.random() * 5,
+      duration: Math.random() * 3 + 2
+    })
+  }
+  
+  // Generate constellations
+  for (let i = 0; i < 8; i++) {
+    constellations.value.push({
+      id: i,
+      x: Math.random() * 90,
+      y: Math.random() * 90
+    })
+  }
+}
+
 // Computed properties
 const shareId = computed(() => route.params.id as string)
 
@@ -649,11 +705,24 @@ const handlePreviewError = () => {
 
 // Lifecycle
 onMounted(() => {
+  initializeStars()
   fetchShareData()
 })
 </script>
 
 <style scoped>
+/* Star animations */
+@keyframes twinkle {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.2); 
+  }
+}
+
 /* Apple-style animations */
 @keyframes fade-in {
   from { 
@@ -724,6 +793,10 @@ onMounted(() => {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+.animate-twinkle {
+  animation: twinkle var(--duration, 3s) ease-in-out infinite;
 }
 
 .animate-fade-in {

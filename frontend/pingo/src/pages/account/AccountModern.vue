@@ -28,7 +28,7 @@
           <input 
             ref="avatarInput" 
             type="file" 
-            accept="image/*,.gif" 
+            accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" 
             @change="handleAvatarUpload" 
             class="hidden"
           />
@@ -272,10 +272,98 @@
       </div>
     </div>
   </div>
+
+  <!-- Avatar Upload Dialog -->
+  <div v-if="showAvatarDialog" 
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-dialog-backdrop"
+       @click="closeAvatarDialog">
+    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300"></div>
+    
+    <div class="relative bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-dialog-content"
+         :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }"
+         @click.stop>
+      
+      <!-- Close button -->
+      <button @click="closeAvatarDialog" 
+              class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200"
+              :style="{ 
+                backgroundColor: isDark ? '#374151' : '#f3f4f6',
+                color: isDark ? '#9ca3af' : '#6b7280'
+              }">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <!-- Dialog content -->
+      <div class="text-center">
+        <!-- Animated avatar icon -->
+        <div class="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center animate-avatar-pulse"
+             :style="{ backgroundColor: isDark ? '#3b82f6' : '#60a5fa' }">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2-2H5a2 2 0 01-2-2V9z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </div>
+
+        <!-- Animated title -->
+        <h2 class="text-3xl font-bold mb-2 animate-slide-up"
+            :style="{ color: isDark ? '#ffffff' : '#1a1a1a' }">
+          Choose your avatar
+        </h2>
+
+        <!-- Animated file types with text reveal loop -->
+        <p class="text-lg mb-8 animate-slide-up-delay flex items-center justify-center"
+           :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+          Supported formats: 
+          <span class="inline-block relative h-8 w-24 overflow-hidden ml-2">
+            <span 
+              v-for="(format, index) in fileFormats" 
+              :key="format"
+              class="absolute inset-0 flex items-center justify-start text-transparent bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text font-semibold transition-all duration-700 ease-in-out"
+              :class="{
+                'animate-text-reveal-in': currentFileFormat === index,
+                'animate-text-reveal-out': currentFileFormat !== index
+              }"
+              :style="{
+                transform: currentFileFormat === index ? 'translateY(0)' : 'translateY(100%)',
+                opacity: currentFileFormat === index ? 1 : 0
+              }"
+            >
+              {{ format }}
+            </span>
+          </span>
+        </p>
+
+        <!-- Action buttons -->
+        <div class="space-y-3">
+          <button @click="selectAvatarFile"
+                  class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold transition-all duration-200 hover:scale-105 animate-slide-up-delay-2">
+            Select Avatar
+          </button>
+          
+          <button @click="closeAvatarDialog"
+                  class="w-full py-3 px-6 border border-gray-300 dark:border-gray-600 rounded-2xl font-medium transition-all duration-200 hover:scale-105 animate-slide-up-delay-3"
+                  :style="{ 
+                    color: isDark ? '#9ca3af' : '#6b7280',
+                    borderColor: isDark ? '#4b5563' : '#d1d5db'
+                  }">
+            Cancel
+          </button>
+        </div>
+
+        <!-- Additional info -->
+        <p class="text-sm mt-4 animate-slide-up-delay-4"
+           :style="{ color: isDark ? '#6b7280' : '#9ca3af' }">
+          Maximum file size: 5MB
+        </p>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useTheme } from '../../composables/useTheme'
 import UploadsTab from './components/UploadsTab.vue'
@@ -646,6 +734,10 @@ onMounted(async () => {
   }
 })
 
+onBeforeUnmount(() => {
+  stopFileFormatAnimation()
+})
+
 // Watch for tab changes to load admin data when needed
 watch(activeTab, async (newTab: string) => {
   if ((newTab === 'statistics' || newTab === 'users' || newTab === 'settings') && isAdmin.value && adminStats.value.totalUsers === 0) {
@@ -653,9 +745,42 @@ watch(activeTab, async (newTab: string) => {
   }
 })
 
+const showAvatarDialog = ref(false)
+const currentFileFormat = ref(0)
+const fileFormats = ['.PNG', '.JPG', '.JPEG', '.GIF']
+
 // Avatar functions
 const openAvatarUpload = () => {
+  showAvatarDialog.value = true
+  startFileFormatAnimation()
+}
+
+const closeAvatarDialog = () => {
+  showAvatarDialog.value = false
+  stopFileFormatAnimation()
+}
+
+const selectAvatarFile = () => {
+  showAvatarDialog.value = false
+  stopFileFormatAnimation()
   avatarInput.value?.click()
+}
+
+// File format animation
+let formatInterval: number | null = null
+
+const startFileFormatAnimation = () => {
+  currentFileFormat.value = 0
+  formatInterval = setInterval(() => {
+    currentFileFormat.value = (currentFileFormat.value + 1) % fileFormats.length
+  }, 1200) // Change every 1.2 seconds
+}
+
+const stopFileFormatAnimation = () => {
+  if (formatInterval) {
+    clearInterval(formatInterval)
+    formatInterval = null
+  }
 }
 
 const handleAvatarError = () => {
@@ -668,10 +793,10 @@ const handleAvatarUpload = async (event: Event) => {
 
   const file = target.files[0]
   
-  // Validate file type
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+  // Validate file type - only PNG, JPG, JPEG, and GIF
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
   if (!allowedTypes.includes(file.type)) {
-    alert('Please select a valid image file (JPEG, PNG, GIF, or WebP)')
+    alert('Please select a valid image file (PNG, JPG, JPEG, or GIF only)')
     return
   }
 
@@ -712,3 +837,124 @@ const handleAvatarUpload = async (event: Event) => {
 }
 
 </script>
+
+<style scoped>
+/* Dialog animations */
+@keyframes dialog-backdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialog-content {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95) translateY(-20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+  }
+}
+
+@keyframes avatar-pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% { 
+    transform: scale(1.05); 
+    box-shadow: 0 0 0 20px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes slide-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes text-reveal-in {
+  0% { 
+    transform: translateY(100%); 
+    opacity: 0; 
+  }
+  100% { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
+@keyframes text-reveal-out {
+  0% { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: translateY(-100%); 
+    opacity: 0; 
+  }
+}
+
+/* Animation classes */
+.animate-dialog-backdrop {
+  animation: dialog-backdrop 0.3s ease-out;
+}
+
+.animate-dialog-content {
+  animation: dialog-content 0.4s ease-out;
+}
+
+.animate-avatar-pulse {
+  animation: avatar-pulse 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+
+.animate-slide-up-delay {
+  animation: slide-up 0.6s ease-out 0.2s both;
+}
+
+.animate-slide-up-delay-2 {
+  animation: slide-up 0.6s ease-out 0.4s both;
+}
+
+.animate-slide-up-delay-3 {
+  animation: slide-up 0.6s ease-out 0.6s both;
+}
+
+.animate-slide-up-delay-4 {
+  animation: slide-up 0.6s ease-out 0.8s both;
+}
+
+.animate-rainbow {
+  background-size: 400% 400%;
+  animation: rainbow 3s ease-in-out infinite;
+}
+
+.animate-text-reveal-in {
+  animation: text-reveal-in 0.7s ease-out forwards;
+}
+
+.animate-text-reveal-out {
+  animation: text-reveal-out 0.7s ease-out forwards;
+}
+
+/* Apple-style backdrop blur */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+</style>
