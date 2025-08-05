@@ -507,8 +507,8 @@ const getFileIcon = (file: FileInfo) => {
     mp4: '/src/assets/images/train/icons/file-mp4.png',
     avi: '/src/assets/images/train/icons/file-mp4.png',
     mov: '/src/assets/images/train/icons/file-mp4.png',
-    docx: '/src/assets/images/train/icons/file-docx.png',
-    doc: '/src/assets/images/train/icons/file-docx.png',
+    docx: '/src/images/icons/word_docx_doc.svg',
+    doc: '/src/images/icons/word_docx_doc.svg',
     ppt: '/src/images/icons/ppt_pptx_file.svg',
     pptx: '/src/images/icons/ppt_pptx_file.svg',
     folder: '/src/assets/images/train/icons/file-folder.png'

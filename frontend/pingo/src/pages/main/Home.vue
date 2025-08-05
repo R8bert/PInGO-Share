@@ -536,12 +536,12 @@ import { CloudArrowUpIcon, EnvelopeIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from
 import filePdfIcon from '../../assets/images/train/icons/file-pdf.png'
 import fileFolderIcon from '../../assets/images/train/icons/file-folder.png'
 import pptPptxIcon from '../../images/icons/ppt_pptx_file.svg'
+import wordDocIcon from '../../images/icons/word_docx_doc.svg'
 
 // Use generic file icon for missing specific types
 const fileMp4Icon = fileFolderIcon
 const filePngIcon = fileFolderIcon  
 const fileJpgIcon = fileFolderIcon
-const fileDocxIcon = fileFolderIcon
 
 interface Message {
   text: string
@@ -605,18 +605,18 @@ const iconMap: Record<string, string> = {
   jpeg: fileJpgIcon,
   gif: fileJpgIcon, // Use jpg icon for gif
   webp: fileJpgIcon, // Use jpg icon for webp
-  docx: fileDocxIcon,
-  doc: fileDocxIcon,
+  docx: wordDocIcon,
+  doc: wordDocIcon,
   ppt: pptPptxIcon,
   pptx: pptPptxIcon,
   mp4: fileMp4Icon,
   avi: fileMp4Icon, // Use mp4 icon for avi
   mov: fileMp4Icon, // Use mp4 icon for mov
-  txt: fileDocxIcon, // Use docx icon for text files
-  md: fileDocxIcon, // Use docx icon for markdown
-  json: fileDocxIcon, // Use docx icon for json
-  csv: fileDocxIcon, // Use docx icon for csv
-  xml: fileDocxIcon, // Use docx icon for xml
+  txt: wordDocIcon, // Use word icon for text files
+  md: wordDocIcon, // Use word icon for markdown
+  json: wordDocIcon, // Use word icon for json
+  csv: wordDocIcon, // Use word icon for csv
+  xml: wordDocIcon, // Use word icon for xml
   mp3: fileMp4Icon, // Use mp4 icon for audio (temporary)
   wav: fileMp4Icon, // Use mp4 icon for audio (temporary)
   flac: fileMp4Icon, // Use mp4 icon for audio (temporary)
