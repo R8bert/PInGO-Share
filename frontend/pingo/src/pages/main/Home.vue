@@ -9,13 +9,14 @@
         <div v-if="isDark" class="fixed inset-0 pointer-events-none overflow-hidden z-0">
           <!-- Regular twinkling stars -->
           <div class="starfield">
-            <div v-for="n in 200" :key="`star-${n}`" 
+            <div v-for="star in stars" :key="`star-${star.id}`" 
                  class="star"
                  :style="{
-                   left: Math.random() * 100 + 'vw',
-                   top: Math.random() * 100 + 'vh',
-                   animationDelay: Math.random() * 3 + 's',
-                   animationDuration: (2 + Math.random() * 3) + 's'
+                   left: star.x + 'vw',
+                   top: star.y + 'vh',
+                   animationDelay: star.animationDelay + 's',
+                   animationDuration: star.animationDuration + 's',
+                   '--fade-delay': star.fadeDelay + 's'
                  }"></div>
           </div>
           
@@ -27,11 +28,6 @@
           <!-- Shooting stars -->
           <div class="shooting-stars">
             <!-- Each star positioned strategically like the example -->
-            <div class="shooting-star" style="top: 0; right: 0; animation-delay: 0s; animation-duration: 1s;"></div>
-            <div class="shooting-star" style="top: 0; right: 80px; animation-delay: 0.2s; animation-duration: 3s;"></div>
-            <div class="shooting-star" style="top: 80px; right: 0px; animation-delay: 0.4s; animation-duration: 2s;"></div>
-            <div class="shooting-star" style="top: 0; right: 180px; animation-delay: 0.6s; animation-duration: 1.5s;"></div>
-            <div class="shooting-star" style="top: 0; right: 400px; animation-delay: 0.8s; animation-duration: 2.5s;"></div>
             <div class="shooting-star" style="top: 0; right: 600px; animation-delay: 1s; animation-duration: 3s;"></div>
             <div class="shooting-star" style="top: 300px; right: 0px; animation-delay: 1.2s; animation-duration: 1.75s;"></div>
             <div class="shooting-star" style="top: 0px; right: 700px; animation-delay: 1.4s; animation-duration: 1.25s;"></div>
@@ -95,13 +91,6 @@
           >
             <input type="file" ref="fileInput" @change="onFileChange" class="hidden" multiple />
             
-            <!-- Animated layer with icons at 45° -->
-            <div v-if="selectedFiles.length > 0" class="absolute inset-0 opacity-10 pointer-events-none z-0">
-              <div class="absolute -inset-[100%] origin-center rotate-45">
-                <div class="w-full h-full animate-diagonal-scroll bg-repeat" :style="{ backgroundImage: `url(${getFileIcon(selectedFiles[0])})`, backgroundSize: '80px 80px' }" />
-              </div>
-            </div>
-            
             <div class="text-center relative z-10">
               <div class="mb-6">
                 <CloudArrowUpIcon 
@@ -126,8 +115,9 @@
               
               <button 
                 v-if="selectedFiles.length === 0"
-                class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105"
+                class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl transform active:scale-95"
               >
+                <CloudArrowUpIcon class="w-5 h-5 mr-2" />
                 Select files
               </button>
             </div>
@@ -158,17 +148,23 @@
                     <img :src="getFileIcon(file)" alt="File type" class="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 class="font-medium text-gray-900 dark:text-gray-100 transition-colors duration-300">{{ file.name }}</h4>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">{{ formatFileSize(file.size) }}</p>
+                    <h4 class="font-medium transition-colors duration-300"
+                        :style="{ color: isDark ? '#f9fafb' : '#111827' }">{{ file.name }}</h4>
+                    <p class="text-sm transition-colors duration-300"
+                       :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">{{ formatFileSize(file.size) }}</p>
                   </div>
                 </div>
                 <div class="flex items-center space-x-2">
                   <button 
-                    v-if="['mp4', 'pdf', 'jpg', 'jpeg', 'png'].includes(getFileExtension(file))" 
+                    v-if="['mp4', 'pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'txt', 'md', 'json', 'csv', 'xml', 'mp3', 'wav', 'flac'].includes(getFileExtension(file))" 
                     @click="togglePreview(index)"
-                    class="text-white px-3 py-1 rounded text-sm font-medium hover:opacity-90 transition-all duration-200"
-                    :class="previewingFiles.has(index) ? 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700' : 'bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700'"
+                    class="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-105 transform active:scale-95"
+                    :class="previewingFiles.has(index) 
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg' 
+                      : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg'"
                     :disabled="isUploading">
+                    <EyeIcon v-if="!previewingFiles.has(index)" class="w-4 h-4 mr-1 inline" />
+                    <EyeSlashIcon v-else class="w-4 h-4 mr-1 inline" />
                     {{ previewingFiles.has(index) ? 'Hide' : 'Preview' }}
                   </button>
                   <button 
@@ -182,12 +178,13 @@
 
               <!-- Individual Preview -->
               <div v-if="previewingFiles.has(index)" class="mt-3">
-                <!-- Image preview for JPG/JPEG/PNG -->
-                <div v-if="['jpg', 'jpeg', 'png'].includes(getFileExtension(file))" class="w-full">
+                <!-- Image preview for JPG/JPEG/PNG/GIF/WEBP -->
+                <div v-if="['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(getFileExtension(file))" class="w-full">
                   <img 
                     :src="previewUrls.get(index)" 
                     :alt="file.name"
-                    class="w-full max-w-md mx-auto rounded-lg shadow-md" 
+                    class="w-full max-w-lg mx-auto rounded-2xl shadow-2xl border"
+                    :style="{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }"
                     @error="() => console.error('Image preview failed')">
                 </div>
 
@@ -196,7 +193,8 @@
                   <video 
                     :ref="(el) => setVideoRef(index, el)"
                     controls 
-                    class="w-full max-w-md mx-auto rounded-lg shadow-md" 
+                    class="w-full max-w-lg mx-auto rounded-2xl shadow-2xl border" 
+                    :style="{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }"
                     :src="previewUrls.get(index)" 
                     @loadedmetadata="updateVideoMetadata">
                     Your browser does not support the video tag.
@@ -208,9 +206,61 @@
                   <object 
                     :data="previewUrls.get(index)" 
                     type="application/pdf" 
-                    class="w-full max-w-md mx-auto h-64 rounded-lg shadow-md">
-                    <p>Your browser does not support PDF preview. <a :href="previewUrls.get(index)" download>Download the PDF</a> to view it.</p>
+                    class="w-full max-w-lg mx-auto h-96 rounded-2xl shadow-2xl border"
+                    :style="{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }">
+                    <div class="flex items-center justify-center h-96 rounded-2xl"
+                         :style="{ backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }">
+                      <div class="text-center p-8">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+                             :style="{ backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)' }">
+                          <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/>
+                            <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                          </svg>
+                        </div>
+                        <p class="mb-4 font-medium transition-colors duration-300"
+                           :style="{ color: isDark ? '#f3f4f6' : '#1f2937' }">PDF preview not supported</p>
+                        <p class="text-sm transition-colors duration-300"
+                           :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">Download the file to view it</p>
+                      </div>
+                    </div>
                   </object>
+                </div>
+
+                <!-- Text preview for TXT/MD/JSON/CSV/XML -->
+                <div v-else-if="['txt', 'md', 'json', 'csv', 'xml'].includes(getFileExtension(file))" class="w-full">
+                  <div class="max-w-lg mx-auto rounded-2xl p-6 shadow-2xl border"
+                       :style="{ 
+                         backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(248, 250, 252, 1)',
+                         borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                       }">
+                    <pre class="text-sm whitespace-pre-wrap overflow-auto max-h-64 font-mono leading-relaxed"
+                         :style="{ color: isDark ? '#e5e7eb' : '#374151' }">{{ textPreviews.get(index) || 'Loading preview...' }}</pre>
+                  </div>
+                </div>
+
+                <!-- Audio preview for MP3/WAV/FLAC -->
+                <div v-else-if="['mp3', 'wav', 'flac'].includes(getFileExtension(file))" class="w-full text-center">
+                  <div class="inline-block p-8 rounded-2xl shadow-2xl border"
+                       :style="{ 
+                         backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(248, 250, 252, 1)',
+                         borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                       }">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+                         :style="{ backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }">
+                      <svg class="w-8 h-8 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12a7.971 7.971 0 00-1.343-4.243 1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        <path fill-rule="evenodd" d="M13.828 8.172a1 1 0 011.414 0A5.983 5.983 0 0117 12a5.983 5.983 0 01-1.758 3.828 1 1 0 11-1.414-1.414A3.987 3.987 0 0015 12a3.987 3.987 0 00-1.172-2.828 1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                    <audio 
+                      controls 
+                      class="w-80 max-w-full"
+                      :src="previewUrls.get(index)"
+                      @error="() => console.error('Audio preview failed')">
+                      Your browser does not support the audio tag.
+                    </audio>
+                  </div>
                 </div>
               </div>
             </div>
@@ -316,15 +366,15 @@
               </div>
 
               <!-- Action Buttons -->
-              <div class="flex space-x-3">
+              <div class="flex space-x-4">
                 <button 
                   @click="handleUpload"
                   :disabled="isUploading || selectedFiles.length === 0 || getTotalFileSize() > maxUploadSize"
                   :class="[
-                    'flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200',
+                    'flex-1 py-4 px-3 rounded-4xl font-semibold transition-all duration-100',
                     isUploading || selectedFiles.length === 0 || getTotalFileSize() > maxUploadSize
                       ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white hover:scale-105'
+                      : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white hover:scale-101 hover:shadow-xl active:scale-95'
                   ]"
                 >
                   <span v-if="isUploading" class="flex items-center justify-center">
@@ -334,14 +384,18 @@
                     </svg>
                     Uploading...
                   </span>
-                  <span v-else>Transfer</span>
+                  <span v-else class="flex items-center justify-center">
+                    <CloudArrowUpIcon class="w-5 h-5 mr-2" />
+                    Transfer Files
+                  </span>
                 </button>
                 
                 <button 
                   @click="clearFile"
-                  class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105"
+                  class="px-8 py-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded-2xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-300 hover:scale-105 transform active:scale-95"
                 >
-                  Clear
+                  <XMarkIcon class="w-5 h-5 mr-2 inline" />
+                  Clear All
                 </button>
               </div>
 
@@ -472,11 +526,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useTheme } from '../../composables/useTheme'
 import axios from 'axios'
-import { CloudArrowUpIcon, EnvelopeIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { CloudArrowUpIcon, EnvelopeIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 
 // Import icons
 import fileMp4Icon from './images/train/icons/file-mp4.png'
@@ -513,8 +567,21 @@ const logoPath = ref<string | null>('/logos/004571540fcfd318992384ba96ffb6ae0763
 const maxUploadSize = ref<number>(104857600) // Default 100 MB
 const previewingFiles = ref<Set<number>>(new Set())
 const previewUrls = ref<Map<number, string>>(new Map())
+const textPreviews = ref<Map<number, string>>(new Map())
 const videoRefs = ref<Map<number, HTMLVideoElement>>(new Map())
 const videoMetadata = ref<VideoMetadata>({ duration: 0 })
+
+// Star field data for dark mode animation
+interface Star {
+  id: number
+  x: number
+  y: number
+  animationDelay: number
+  animationDuration: number
+  fadeDelay: number
+}
+
+const stars = ref<Star[]>([])
 
 // Validity options and selected validity
 const validityOptions = ref([
@@ -533,8 +600,21 @@ const iconMap: Record<string, string> = {
   png: filePngIcon,
   jpg: fileJpgIcon,
   jpeg: fileJpgIcon,
+  gif: fileJpgIcon, // Use jpg icon for gif
+  webp: fileJpgIcon, // Use jpg icon for webp
   docx: fileDocxIcon,
+  doc: fileDocxIcon,
   mp4: fileMp4Icon,
+  avi: fileMp4Icon, // Use mp4 icon for avi
+  mov: fileMp4Icon, // Use mp4 icon for mov
+  txt: fileDocxIcon, // Use docx icon for text files
+  md: fileDocxIcon, // Use docx icon for markdown
+  json: fileDocxIcon, // Use docx icon for json
+  csv: fileDocxIcon, // Use docx icon for csv
+  xml: fileDocxIcon, // Use docx icon for xml
+  mp3: fileMp4Icon, // Use mp4 icon for audio (temporary)
+  wav: fileMp4Icon, // Use mp4 icon for audio (temporary)
+  flac: fileMp4Icon, // Use mp4 icon for audio (temporary)
 }
 
 // Helper functions
@@ -585,9 +665,29 @@ const togglePreview = (index: number) => {
       URL.revokeObjectURL(url)
       previewUrls.value.delete(index)
     }
+    // Clean up text preview
+    textPreviews.value.delete(index)
   } else {
     previewingFiles.value.add(index)
-    createPreviewUrl(selectedFiles.value[index], index)
+    const file = selectedFiles.value[index]
+    const fileExtension = getFileExtension(file)
+    
+    if (['txt', 'md', 'json', 'csv', 'xml'].includes(fileExtension)) {
+      // Handle text file preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const content = e.target?.result as string
+        // Truncate content if too long (first 1000 characters)
+        const truncatedContent = content.length > 1000 
+          ? content.substring(0, 1000) + '\n\n... (truncated)'
+          : content
+        textPreviews.value.set(index, truncatedContent)
+      }
+      reader.readAsText(file)
+    } else {
+      // Handle other file types (images, videos, audio)
+      createPreviewUrl(file, index)
+    }
   }
 }
 
@@ -606,6 +706,7 @@ const removeFile = (index: number) => {
       URL.revokeObjectURL(url)
       previewUrls.value.delete(index)
     }
+    textPreviews.value.delete(index)
   }
   
   // Remove the file
@@ -614,6 +715,7 @@ const removeFile = (index: number) => {
   // Reset all preview indices since array shifted
   const newPreviewingFiles = new Set<number>()
   const newPreviewUrls = new Map<number, string>()
+  const newTextPreviews = new Map<number, string>()
   const newVideoRefs = new Map<number, HTMLVideoElement>()
   
   previewingFiles.value.forEach(oldIndex => {
@@ -621,12 +723,16 @@ const removeFile = (index: number) => {
       newPreviewingFiles.add(oldIndex - 1)
       const url = previewUrls.value.get(oldIndex)
       if (url) newPreviewUrls.set(oldIndex - 1, url)
+      const textPreview = textPreviews.value.get(oldIndex)
+      if (textPreview) newTextPreviews.set(oldIndex - 1, textPreview)
       const videoEl = videoRefs.value.get(oldIndex)
       if (videoEl) newVideoRefs.set(oldIndex - 1, videoEl)
     } else if (oldIndex < index) {
       newPreviewingFiles.add(oldIndex)
       const url = previewUrls.value.get(oldIndex)
       if (url) newPreviewUrls.set(oldIndex, url)
+      const textPreview = textPreviews.value.get(oldIndex)
+      if (textPreview) newTextPreviews.set(oldIndex, textPreview)
       const videoEl = videoRefs.value.get(oldIndex)
       if (videoEl) newVideoRefs.set(oldIndex, videoEl)
     }
@@ -634,6 +740,7 @@ const removeFile = (index: number) => {
   
   previewingFiles.value = newPreviewingFiles
   previewUrls.value = newPreviewUrls
+  textPreviews.value = newTextPreviews
   videoRefs.value = newVideoRefs
 }
 
@@ -718,6 +825,7 @@ const clearFile = () => {
   progress.value = 0
   previewingFiles.value.clear()
   previewUrls.value.clear()
+  textPreviews.value.clear()
   videoRefs.value.clear()
   videoMetadata.value.duration = 0
   
@@ -774,8 +882,32 @@ const loadSettings = async () => {
   }
 }
 
+// Generate stars for dark mode animation
+const generateStars = () => {
+  const newStars: Star[] = []
+  for (let i = 0; i < 200; i++) {
+    newStars.push({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      animationDelay: Math.random() * 3,
+      animationDuration: 2 + Math.random() * 3,
+      fadeDelay: Math.random() * 3
+    })
+  }
+  stars.value = newStars
+}
+
 onMounted(() => {
+  generateStars()
   loadSettings()
+})
+
+// Watch for dark mode changes and regenerate stars
+watch(isDark, (newIsDark) => {
+  if (newIsDark) {
+    generateStars()
+  }
 })
 </script>
 
@@ -1245,7 +1377,7 @@ onMounted(() => {
 /* Smooth transitions */
 .transition-all {
   transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
 }
 
 /* Enhanced hover effects */
@@ -1255,15 +1387,6 @@ onMounted(() => {
 
 .hover\:scale-110:hover {
   transform: scale(1.10);
-}
-
-/* Continuous diagonal scroll effect */
-@keyframes diagonal-scroll { 
-  0% { background-position: 0 0; } 
-  100% { background-position: -240px 240px; } 
-}
-.animate-diagonal-scroll { 
-  animation: diagonal-scroll 10s linear infinite; 
 }
 
 /* Progress bar pulse */

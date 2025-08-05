@@ -41,7 +41,7 @@
             <CalendarIcon class="w-4 h-4 mr-1" />
             Member since {{ formatDate(user?.created_at) }}
           </span>
-          <span v-if="isAdmin" class="flex items-center text-purple-600">
+          <span v-if="isAdmin" class="flex items-center text-blue-600">
             <ShieldCheckIcon class="w-4 h-4 mr-1" />
             Administrator
           </span>

@@ -114,7 +114,7 @@ type Claims struct {
 }
 
 func initDB() {
-	connStr := "host=192.168.31.180 port=5555 user=pingo password=pingo_filetrasnfer dbname=pingo_db sslmode=disable"
+	connStr := "host=localhost port=5432 user=user password=pass dbname=filesharing sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
@@ -455,6 +455,15 @@ func main() {
 			return
 		}
 
+		// Check if this will be the first user (should be admin)
+		var userCount int
+		err = db.QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check user count"})
+			return
+		}
+		isFirstUser := userCount == 0
+
 		// Hash password
 		hashedPassword, err := hashPassword(req.Password)
 		if err != nil {
@@ -462,10 +471,10 @@ func main() {
 			return
 		}
 
-		// Create user
+		// Create user (first user is automatically admin)
 		var userID int
-		err = db.QueryRow("INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id",
-			req.Username, req.Email, hashedPassword).Scan(&userID)
+		err = db.QueryRow("INSERT INTO users (username, email, password_hash, is_admin) VALUES ($1, $2, $3, $4) RETURNING id",
+			req.Username, req.Email, hashedPassword, isFirstUser).Scan(&userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 			return
@@ -481,13 +490,19 @@ func main() {
 		// Set cookie
 		c.SetCookie("auth_token", token, 86400, "/", "", false, true)
 
+		message := "User created successfully"
+		if isFirstUser {
+			message = "First user created successfully with admin privileges"
+		}
+
 		c.JSON(http.StatusCreated, gin.H{
-			"message": "User created successfully",
+			"message": message,
 			"token":   token,
 			"user": gin.H{
 				"id":       userID,
 				"username": req.Username,
 				"email":    req.Email,
+				"is_admin": isFirstUser,
 			},
 		})
 	})
