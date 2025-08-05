@@ -758,6 +758,15 @@ func main() {
 	router.POST("/avatar", authMiddleware(), func(c *gin.Context) {
 		userID := c.GetInt("user_id")
 
+		// Get current user info to get username and old avatar
+		var user User
+		err := db.QueryRow("SELECT id, username, email, is_admin, COALESCE(avatar, '') as avatar, created_at FROM users WHERE id = $1", userID).
+			Scan(&user.ID, &user.Username, &user.Email, &user.IsAdmin, &user.Avatar, &user.CreatedAt)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user info"})
+			return
+		}
+
 		// Parse multipart form
 		file, header, err := c.Request.FormFile("avatar")
 		if err != nil {
@@ -792,13 +801,14 @@ func main() {
 			os.MkdirAll(avatarsDir, 0755)
 		}
 
-		// Generate unique filename with hash
+		// Read file content for checksum
 		fileContent, err := io.ReadAll(file)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
 			return
 		}
 
+		// Generate checksum
 		hash := sha256.Sum256(fileContent)
 		hashString := hex.EncodeToString(hash[:])
 
@@ -818,11 +828,21 @@ func main() {
 			}
 		}
 
-		filename := hashString + ext
+		// Create new filename: username + checksum + extension
+		filename := user.Username + "$" + hashString + ext
 		avatarPath := "/avatars/" + filename
 		fullPath := "./avatars/" + filename
 
-		// Save file
+		// Delete old avatar if it exists and is different from new one
+		if user.Avatar != "" && user.Avatar != avatarPath {
+			oldAvatarPath := "." + user.Avatar
+			if _, err := os.Stat(oldAvatarPath); err == nil {
+				os.Remove(oldAvatarPath)
+				fmt.Printf("Deleted old avatar: %s\n", oldAvatarPath)
+			}
+		}
+
+		// Save new file
 		err = os.WriteFile(fullPath, fileContent, 0644)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save avatar"})
@@ -1393,11 +1413,18 @@ func main() {
 
 		// Check if file is available or if the user who uploaded it is requesting it
 		currentUserID := -1
-		if tokenString := c.GetHeader("Authorization"); tokenString != "" {
-			if cookie, err := c.Cookie("auth_token"); err == nil {
-				tokenString = cookie
-			}
-			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+		var tokenString string
+
+		// Try Authorization header first
+		if authHeader := c.GetHeader("Authorization"); authHeader != "" {
+			tokenString = strings.TrimPrefix(authHeader, "Bearer ")
+		} else if cookie, err := c.Cookie("auth_token"); err == nil {
+			// Fallback to cookie if no Authorization header
+			tokenString = cookie
+		}
+
+		// Validate token if present
+		if tokenString != "" {
 			if claims, err := validateJWT(tokenString); err == nil {
 				currentUserID = claims.UserID
 			}
@@ -1463,6 +1490,34 @@ func main() {
 	router.GET("/files/:id", func(c *gin.Context) {
 		id := c.Param("id")
 
+		// Check if upload exists and is available
+		var isAvailable bool
+		var uploaderUserID int
+		err := db.QueryRow("SELECT COALESCE(is_available, TRUE), user_id FROM uploads WHERE upload_id = $1", id).Scan(&isAvailable, &uploaderUserID)
+		if err != nil {
+			c.JSON(404, gin.H{"error": "files not found"})
+			return
+		}
+
+		// Check if file is available or if the user who uploaded it is requesting it
+		currentUserID := -1
+		if tokenString := c.GetHeader("Authorization"); tokenString != "" {
+			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+			if claims, err := validateJWT(tokenString); err == nil {
+				currentUserID = claims.UserID
+			}
+		} else if cookie, err := c.Cookie("auth_token"); err == nil {
+			if claims, err := validateJWT(cookie); err == nil {
+				currentUserID = claims.UserID
+			}
+		}
+
+		// If file is not available and requester is not the owner, return expired message
+		if !isAvailable && currentUserID != uploaderUserID {
+			c.JSON(410, gin.H{"error": "This file has expired or is no longer available"})
+			return
+		}
+
 		// Get uploader information from database
 		var uploaderInfo struct {
 			Username  string     `json:"username"`
@@ -1471,7 +1526,7 @@ func main() {
 			ExpiresAt *time.Time `json:"expirationDate"`
 		}
 
-		err := db.QueryRow(`
+		err = db.QueryRow(`
 			SELECT u.username, COALESCE(u.avatar, '') as avatar, up.email, up.expires_at
 			FROM uploads up 
 			JOIN users u ON up.user_id = u.id 
@@ -1504,7 +1559,7 @@ func main() {
 				fileInfos = append(fileInfos, map[string]interface{}{
 					"name": originalName,
 					"size": fileInfo.Size(),
-					"url":  "/uploads/" + f.Name(),
+					"url":  "/download/" + id, // Use controlled download endpoint instead of direct file access
 				})
 			}
 		}
@@ -1522,6 +1577,16 @@ func main() {
 
 	// Admin-only settings endpoints
 	router.POST("/admin/settings", authMiddleware(), adminMiddleware(), func(c *gin.Context) {
+		userID := c.GetInt("user_id")
+
+		// Get username for file naming
+		var username string
+		err := db.QueryRow("SELECT username FROM users WHERE id = $1", userID).Scan(&username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user info"})
+			return
+		}
+
 		// Load existing settings
 		settings, err := getSettings()
 		if err != nil {
@@ -1574,6 +1639,7 @@ func main() {
 				oldLogoPath := "." + settings.LogoPath
 				if _, err := os.Stat(oldLogoPath); err == nil {
 					os.Remove(oldLogoPath)
+					fmt.Printf("Deleted old logo: %s\n", oldLogoPath)
 				}
 			}
 
@@ -1598,7 +1664,10 @@ func main() {
 			if logoExt == "" {
 				logoExt = ".png"
 			}
-			logoPath := filepath.Join(logoDir, hashString+logoExt)
+
+			// Create filename: username + $ + checksum + extension
+			filename := username + "$" + hashString + logoExt
+			logoPath := filepath.Join(logoDir, filename)
 			out, err := os.Create(logoPath)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save logo"})
@@ -1612,7 +1681,7 @@ func main() {
 				return
 			}
 
-			settings.LogoPath = "/logos/" + hashString + logoExt
+			settings.LogoPath = "/logos/" + filename
 		}
 
 		// Handle background image upload
@@ -2007,10 +2076,10 @@ func main() {
 		}
 	}()
 
-	// Serve static files for logos, backgrounds, and uploads
+	// Serve static files for logos, backgrounds, and avatars only
+	// NOTE: uploads directory is NOT served statically for security - access is controlled through /download/:id endpoint
 	router.Static("/logos", "./logos")
 	router.Static("/backgrounds", "./backgrounds")
-	router.Static("/uploads", "./uploads")
 	router.Static("/avatars", "./avatars")
 
 	// Ensure directories exist

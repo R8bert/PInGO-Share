@@ -32,16 +32,11 @@
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <div class="flex items-center space-x-3 mb-3">
-              <div class="p-3 rounded-xl shadow-sm transition-all duration-300"
-                   :style="{ 
-                     background: isDark 
-                       ? 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' 
-                       : 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
-                     border: isDark ? '1px solid #1d4ed8' : '1px solid #93c5fd'
-                   }">
-                <DocumentIcon class="w-6 h-6 transition-colors duration-300"
-                              :style="{ color: isDark ? '#e0e7ff' : '#1e40af' }" />
-              </div>
+              <img src="../../../images/icons/files_uploaded2.svg" 
+                   alt="Files uploaded" 
+                   class="w-12 h-12 transition-all duration-300"
+                   :class="isDark ? '' : 'drop-shadow-sm'"
+                   :style="{ opacity: isDark ? '0.9' : '1' }" />
               <div>
                 <h3 class="font-medium transition-colors duration-300"
                     :style="{ color: isDark ? '#f9fafb' : '#111827' }">
@@ -211,7 +206,6 @@ import { useRouter } from 'vue-router'
 import { useTheme } from '../../../composables/useTheme'
 import {
   CloudArrowUpIcon,
-  DocumentIcon,
   LinkIcon,
   ClockIcon,
   ShareIcon,

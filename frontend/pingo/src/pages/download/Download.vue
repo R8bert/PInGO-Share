@@ -509,6 +509,8 @@ const getFileIcon = (file: FileInfo) => {
     mov: '/src/assets/images/train/icons/file-mp4.png',
     docx: '/src/assets/images/train/icons/file-docx.png',
     doc: '/src/assets/images/train/icons/file-docx.png',
+    ppt: '/src/images/icons/ppt_pptx_file.svg',
+    pptx: '/src/images/icons/ppt_pptx_file.svg',
     folder: '/src/assets/images/train/icons/file-folder.png'
   }
   return iconMap[extension] || '/src/assets/images/train/icons/file-folder.png'

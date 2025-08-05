@@ -535,6 +535,7 @@ import { CloudArrowUpIcon, EnvelopeIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from
 // Import icons
 import filePdfIcon from '../../assets/images/train/icons/file-pdf.png'
 import fileFolderIcon from '../../assets/images/train/icons/file-folder.png'
+import pptPptxIcon from '../../images/icons/ppt_pptx_file.svg'
 
 // Use generic file icon for missing specific types
 const fileMp4Icon = fileFolderIcon
@@ -606,6 +607,8 @@ const iconMap: Record<string, string> = {
   webp: fileJpgIcon, // Use jpg icon for webp
   docx: fileDocxIcon,
   doc: fileDocxIcon,
+  ppt: pptPptxIcon,
+  pptx: pptPptxIcon,
   mp4: fileMp4Icon,
   avi: fileMp4Icon, // Use mp4 icon for avi
   mov: fileMp4Icon, // Use mp4 icon for mov
