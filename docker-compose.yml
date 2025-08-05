@@ -1,17 +1,73 @@
 
 version: '3.8'
+
 services:
   postgres_pingo:
-    image: postgres:latest
+    image: postgres:15-alpine  # More secure and smaller
     environment:
       POSTGRES_DB: filesharing
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-b8jcpfWddxWgkezXow153RHm6DC9RZ/XyyNIi2U8v3k=}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"  # Bind to localhost only
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - pingo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-user}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - DB_HOST=postgres_pingo
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-user}
+      - DB_PASSWORD=${DB_PASSWORD:-b8jcpfWddxWgkezXow153RHm6DC9RZ/XyyNIi2U8v3k=}
+      - DB_NAME=filesharing
+      - DB_SSLMODE=disable
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173}
+      - GIN_MODE=release
+    ports:
+      - "127.0.0.1:8080:8080"  # Bind to localhost only
+    volumes:
+      - ./uploads:/uploads
+      - ./backend/settings.json:/settings.json:ro
+    depends_on:
+      postgres_pingo:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - pingo-network
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+networks:
+  pingo-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
 
 volumes:
   postgres_data:
+    driver: local

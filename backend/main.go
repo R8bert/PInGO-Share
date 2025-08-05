@@ -2,17 +2,20 @@ package main
 
 import (
 	"archive/zip"
+	"bufio"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -24,7 +27,69 @@ import (
 )
 
 var db *sql.DB
-var jwtSecret = []byte("your-super-secret-jwt-key-change-in-production")
+var jwtSecret []byte
+
+// Load environment variables from .env file
+func loadEnvFile() {
+	envFile := ".env"
+	// Try to find .env file in current directory or parent directory
+	if _, err := os.Stat(envFile); os.IsNotExist(err) {
+		envFile = "../.env"
+		if _, err := os.Stat(envFile); os.IsNotExist(err) {
+			log.Println("No .env file found, using system environment variables only")
+			return
+		}
+	}
+
+	file, err := os.Open(envFile)
+	if err != nil {
+		log.Printf("Warning: Could not open .env file: %v", err)
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+
+		// Skip empty lines and comments
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		// Parse KEY=VALUE format
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		// Only set if not already set in environment
+		if os.Getenv(key) == "" {
+			os.Setenv(key, value)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("Warning: Error reading .env file: %v", err)
+	} else {
+		log.Println("Loaded environment variables from .env file")
+	}
+}
+
+// Initialize JWT secret from environment variable
+func initJWTSecret() {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+	if len(secret) < 32 {
+		log.Fatal("JWT_SECRET must be at least 32 characters long")
+	}
+	jwtSecret = []byte(secret)
+}
 
 type Settings struct {
 	ID                    int    `json:"id" db:"id"`
@@ -114,7 +179,17 @@ type Claims struct {
 }
 
 func initDB() {
-	connStr := "host=localhost port=5432 user=user password=pass dbname=filesharing sslmode=disable"
+	// Get database configuration from environment variables
+	host := getEnvOrDefault("DB_HOST", "localhost")
+	port := getEnvOrDefault("DB_PORT", "5432")
+	user := getEnvOrDefault("DB_USER", "user")
+	password := getEnvOrDefault("DB_PASSWORD", "pass")
+	dbname := getEnvOrDefault("DB_NAME", "filesharing")
+	sslmode := getEnvOrDefault("DB_SSLMODE", "disable")
+
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		host, port, user, password, dbname, sslmode)
+
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
@@ -127,6 +202,88 @@ func initDB() {
 
 	createTables()
 	fmt.Println("Database connected successfully")
+}
+
+// Helper function to get environment variable with default value
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+// File type validation
+func isAllowedFileType(filename, contentType string) bool {
+	// Get allowed file types from environment variable
+	allowedTypes := getEnvOrDefault("ALLOWED_FILE_TYPES", "image/jpeg,image/png,image/gif,image/webp,application/pdf,text/plain,application/zip,application/x-zip-compressed,video/mp4,video/avi,audio/mpeg,audio/wav")
+	allowedTypesSlice := strings.Split(allowedTypes, ",")
+
+	// Check MIME type
+	for _, allowedType := range allowedTypesSlice {
+		if strings.TrimSpace(allowedType) == contentType {
+			return true
+		}
+	}
+
+	// Also check file extension as backup
+	ext := strings.ToLower(filepath.Ext(filename))
+	allowedExtensions := map[string]bool{
+		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,
+		".pdf": true, ".txt": true, ".zip": true,
+		".mp4": true, ".avi": true, ".mov": true,
+		".mp3": true, ".wav": true, ".ogg": true,
+		".doc": true, ".docx": true, ".xls": true, ".xlsx": true, ".ppt": true, ".pptx": true,
+	}
+
+	return allowedExtensions[ext]
+}
+
+// Sanitize filename to prevent directory traversal
+func sanitizeFilename(filename string) string {
+	// Remove any path separators and only keep the base filename
+	filename = filepath.Base(filename)
+	// Remove any potentially dangerous characters
+	filename = strings.ReplaceAll(filename, "..", "")
+	filename = strings.ReplaceAll(filename, "/", "")
+	filename = strings.ReplaceAll(filename, "\\", "")
+	return filename
+}
+
+// Simple rate limiting middleware
+var rateLimitMap = make(map[string][]time.Time)
+var rateLimitMutex sync.RWMutex
+
+func rateLimitMiddleware(requestsPerMinute int) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clientIP := c.ClientIP()
+		now := time.Now()
+
+		rateLimitMutex.Lock()
+		defer rateLimitMutex.Unlock()
+
+		// Clean old entries
+		var validRequests []time.Time
+		if requests, exists := rateLimitMap[clientIP]; exists {
+			for _, requestTime := range requests {
+				if now.Sub(requestTime) < time.Minute {
+					validRequests = append(validRequests, requestTime)
+				}
+			}
+		}
+
+		// Check if limit exceeded
+		if len(validRequests) >= requestsPerMinute {
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
+			c.Abort()
+			return
+		}
+
+		// Add current request
+		validRequests = append(validRequests, now)
+		rateLimitMap[clientIP] = validRequests
+
+		c.Next()
+	}
 }
 
 func createTables() {
@@ -418,22 +575,39 @@ func getSettings() (Settings, error) {
 }
 
 func main() {
+	// Load environment variables from .env file first
+	loadEnvFile()
+
+	// Initialize JWT secret
+	initJWTSecret()
+
 	initDB()
 	defer db.Close()
 
 	router := gin.Default()
 	router.MaxMultipartMemory = 100 << 20
 
-	// Enable CORS
+	// Add security headers middleware
+	router.Use(func(c *gin.Context) {
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("X-Frame-Options", "DENY")
+		c.Header("X-XSS-Protection", "1; mode=block")
+		c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		c.Header("Content-Security-Policy", "default-src 'self'")
+		c.Next()
+	})
+
+	// Enable CORS with environment-based configuration
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:5173", "http://localhost:5174", "http://localhost:5175"}
+	allowedOrigins := getEnvOrDefault("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:5175")
+	config.AllowOrigins = strings.Split(allowedOrigins, ",")
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
 	config.AllowCredentials = true
 	router.Use(cors.New(config))
 
-	// Auth routes
-	router.POST("/register", func(c *gin.Context) {
+	// Auth routes with rate limiting
+	router.POST("/register", rateLimitMiddleware(5), func(c *gin.Context) {
 		// Check if registration is allowed
 		settings, err := getSettings()
 		if err == nil && !settings.AllowRegistration {
@@ -507,7 +681,7 @@ func main() {
 		})
 	})
 
-	router.POST("/login", func(c *gin.Context) {
+	router.POST("/login", rateLimitMiddleware(10), func(c *gin.Context) {
 		var req LoginRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -669,7 +843,7 @@ func main() {
 	})
 
 	// Protected upload endpoint
-	router.POST("/upload", authMiddleware(), blockCheckMiddleware(), func(c *gin.Context) {
+	router.POST("/upload", rateLimitMiddleware(20), authMiddleware(), blockCheckMiddleware(), func(c *gin.Context) {
 		userID := c.GetInt("user_id")
 
 		// Load current settings from database
@@ -697,10 +871,22 @@ func main() {
 			return
 		}
 
-		// Check total size of all files
+		// Check total size and validate file types
 		var totalSize int64
 		for _, file := range files {
 			totalSize += file.Size
+
+			// Validate file type by checking both extension and MIME type
+			if !isAllowedFileType(file.Filename, file.Header.Get("Content-Type")) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("File type not allowed: %s", file.Filename)})
+				return
+			}
+
+			// Check individual file size (prevent single huge files)
+			if file.Size > maxSize {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("File %s is too large (%d bytes)", file.Filename, file.Size)})
+				return
+			}
 		}
 		if totalSize > maxSize {
 			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Total file size (%d bytes) exceeds maximum allowed size (%d bytes)", totalSize, maxSize)})
@@ -732,7 +918,21 @@ func main() {
 			}
 			defer file.Close()
 
-			outPath := "./uploads/" + id + "_" + fileHeader.Filename
+			// Sanitize filename to prevent directory traversal
+			sanitizedFilename := sanitizeFilename(fileHeader.Filename)
+			if sanitizedFilename == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filename"})
+				return
+			}
+
+			// Ensure uploads directory exists and is secure
+			uploadsDir := "./uploads"
+			if err := os.MkdirAll(uploadsDir, 0755); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create uploads directory"})
+				return
+			}
+
+			outPath := filepath.Join(uploadsDir, id+"_"+sanitizedFilename)
 			out, err := os.Create(outPath)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save file"})
@@ -1819,7 +2019,10 @@ func main() {
 	os.MkdirAll("./backgrounds", os.ModePerm)
 	os.MkdirAll("./avatars", os.ModePerm)
 
-	router.Run(":8080")
+	// Start server on configurable port
+	port := getEnvOrDefault("SERVER_PORT", "8080")
+	log.Printf("Starting server on port %s", port)
+	router.Run(":" + port)
 }
 
 // Helper function to parse size (e.g., "10MB", "500KB", "1GB")

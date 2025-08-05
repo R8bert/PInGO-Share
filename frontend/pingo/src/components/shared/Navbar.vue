@@ -284,8 +284,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useAuth } from '../composables/useAuth'
-import { useTheme } from '../composables/useTheme'
+import { useAuth } from '../../composables/useAuth'
+import { useTheme } from '../../composables/useTheme'
 import { useRouter } from 'vue-router'
 import { ArrowUpTrayIcon, UserIcon, CloudArrowUpIcon, Bars3Icon, XMarkIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
 // import axios from 'axios'

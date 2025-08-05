@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import AdminSettings from '../../../components/AdminSettings.vue'
+import AdminSettings from './AdminSettings.vue'
 
 // Props
 interface Props {

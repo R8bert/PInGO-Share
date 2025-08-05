@@ -533,12 +533,14 @@ import axios from 'axios'
 import { CloudArrowUpIcon, EnvelopeIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 
 // Import icons
-import fileMp4Icon from './images/train/icons/file-mp4.png'
-import filePdfIcon from './images/train/icons/file-pdf.png'
-import fileFolderIcon from './images/train/icons/file-folder.png'
-import filePngIcon from './images/train/icons/file-png.png'
-import fileJpgIcon from './images/train/icons/file-jpg.png'
-import fileDocxIcon from './images/train/icons/file-docx.png'
+import filePdfIcon from '../../assets/images/train/icons/file-pdf.png'
+import fileFolderIcon from '../../assets/images/train/icons/file-folder.png'
+
+// Use generic file icon for missing specific types
+const fileMp4Icon = fileFolderIcon
+const filePngIcon = fileFolderIcon  
+const fileJpgIcon = fileFolderIcon
+const fileDocxIcon = fileFolderIcon
 
 interface Message {
   text: string

@@ -12,7 +12,7 @@
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useAuth } from './composables/useAuth'
 import { useTheme } from './composables/useTheme'
-import Navbar from './components/Navbar.vue'
+import Navbar from './components/shared/Navbar.vue'
 
 const { fetchCurrentUser } = useAuth()
 const { } = useTheme() // Initialize theme system

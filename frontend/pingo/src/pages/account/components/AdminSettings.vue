@@ -320,8 +320,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useAuth } from '../composables/useAuth'
-import { useTheme } from '../composables/useTheme'
+import { useAuth } from '../../../composables/useAuth'
+import { useTheme } from '../../../composables/useTheme'
 import {
   ClockIcon,
   SwatchIcon,
