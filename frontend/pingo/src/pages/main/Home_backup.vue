@@ -4,138 +4,241 @@
     <!-- Main Content -->
     <main class="relative">
       <!-- Hero Section with background effect -->
-      <div class="relative overflow-hidden transition-colors duration-300 pb-24">
-        <!-- Apple-style starfield animation for dark mode -->
+      <div class="relative overflow-hidden min-h-screen flex items-center justify-center transition-colors duration-300">
+        <!-- Simplified background for dark mode -->
         <div v-if="isDark" class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          <!-- Regular twinkling stars -->
-          <div class="starfield">
-            <div v-for="star in stars" :key="`star-${star.id}`" 
-                 class="star"
-                 :style="{
-                   left: star.x + 'vw',
-                   top: star.y + 'vh',
-                   animationDelay: star.animationDelay + 's',
-                   animationDuration: star.animationDuration + 's',
-                   '--fade-delay': star.fadeDelay + 's'
-                 }"></div>
+          <!-- Subtle animated dots -->
+          <div class="absolute inset-0 opacity-20">
+            <div class="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <div class="absolute top-1/3 right-1/3 w-1 h-1 bg-purple-500 rounded-full animate-pulse" style="animation-delay: 1s;"></div>
+            <div class="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" style="animation-delay: 2s;"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-1 h-1 bg-yellow-500 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
           </div>
           
-          <!-- Constellation patterns -->
-          <div class="constellation constellation-1"></div>
-          <div class="constellation constellation-2"></div>
-          <div class="constellation constellation-3"></div>
-          
-          <!-- Shooting stars -->
-          <div class="shooting-stars">
-            <!-- Each star positioned strategically like the example -->
-            <div class="shooting-star" style="top: 0; right: 600px; animation-delay: 1s; animation-duration: 3s;"></div>
-            <div class="shooting-star" style="top: 300px; right: 0px; animation-delay: 1.2s; animation-duration: 1.75s;"></div>
-            <div class="shooting-star" style="top: 0px; right: 700px; animation-delay: 1.4s; animation-duration: 1.25s;"></div>
-            <div class="shooting-star" style="top: 0px; right: 1000px; animation-delay: 0.75s; animation-duration: 2.25s;"></div>
-            <div class="shooting-star" style="top: 0px; right: 450px; animation-delay: 2.75s; animation-duration: 2.75s;"></div>
-          </div>
-          
-          <!-- Floating nebula effects -->
-          <div class="nebula nebula-1"></div>
-          <div class="nebula nebula-2"></div>
-          <div class="nebula nebula-3"></div>
+          <!-- Subtle gradient overlay -->
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-transparent to-purple-900/10"></div>
         </div>
         
         <!-- Light mode subtle background -->
         <div v-else class="absolute inset-0 pointer-events-none">
-          <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-30 animate-float-slow"
-               style="background: linear-gradient(45deg, #dbeafe, #f3e8ff);"></div>
-          <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-20 animate-float-slower"
-               style="background: linear-gradient(135deg, #fef3c7, #fed7e2);"></div>
+          <div class="absolute top-1/4 left-1/4 w-64 h-64 rounded-full blur-3xl opacity-20 bg-gradient-to-r from-blue-400 to-purple-400 animate-pulse"></div>
+          <div class="absolute bottom-1/3 right-1/3 w-48 h-48 rounded-full blur-3xl opacity-15 bg-gradient-to-r from-green-400 to-blue-400 animate-pulse" style="animation-delay: 1s;"></div>
         </div>
         
-        <div class="relative max-w-screen-xl mx-auto px-6 lg:px-8 pt-20 pb-16">
-          <div class="text-center">
-            <!-- Main headline with stagger animation -->
-            <h1 class="text-5xl font-bold mb-6 animate-fade-in transition-colors duration-300" 
+        <div class="relative max-w-6xl mx-auto px-6 py-20 text-center">
+          <!-- Main headline -->
+          <div class="mb-8">
+            <h1 class="text-6xl md:text-7xl lg:text-8xl font-bold mb-4 tracking-tight" 
                 :style="{ color: isDark ? '#ffffff' : '#000000' }">
-              Share files <span class="text-transparent bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text animate-rainbow">simply</span>
+              Share
+              <span class="block text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text">
+                Simply
+              </span>
             </h1>
             
-            <!-- Subtitle with delay -->
-            <p class="text-xl max-w-2xl mx-auto animate-fade-in-delay transition-colors duration-300"
-               :style="{ color: isDark ? '#cccccc' : '#666666' }">
-              Transfer files of any size securely and quickly. No registration required.
+            <p class="text-xl md:text-2xl max-w-3xl mx-auto font-medium opacity-80"
+               :style="{ color: isDark ? '#e5e7eb' : '#374151' }">
+              Transfer files of any size, securely and instantly. No registration required.
             </p>
           </div>
-        </div>
-
-        <!-- Upload Section -->
-        <div class="relative max-w-4xl mx-auto px-6 lg:px-8">
-          <!-- Upload Area -->
-          <div class="rounded-2xl shadow-xl overflow-hidden animate-slide-up transition-colors duration-300"
-               :style="{ 
-                 backgroundColor: isDark ? '#0a0a0a' : '#ffffff',
-               borderColor: isDark ? '#374151cc' : '#e5e7ebcc',
-               borderWidth: '1px'
-             }">
-          <!-- Upload Zone -->
-          <div 
-            @dragover.prevent 
-            @drop.prevent="onDrop" 
-            @dragenter="isDragging = true" 
-            @dragleave="isDragging = false"
-            @click="triggerFileInput"
-            :class="[
-              'relative border-2 border-dashed transition-all duration-300 cursor-pointer',
-              isDragging 
-                ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/30 scale-105' 
-                : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-800/30'
-            ]"
-            class="p-12"
-          >
-            <input type="file" ref="fileInput" @change="onFileChange" class="hidden" multiple />
-            
-            <div class="text-center relative z-10">
-              <div class="mb-6">
-                <CloudArrowUpIcon 
-                  :class="[
-                    'w-16 h-16 mx-auto transition-all duration-300',
-                    isDragging 
-                      ? 'text-blue-500 dark:text-blue-400 scale-110' 
-                      : 'text-gray-400 dark:text-gray-500 animate-float'
-                  ]" 
-                />
-              </div>
+          <!-- Upload Card -->
+          <div class="max-w-2xl mx-auto">
+            <div class="backdrop-blur-xl rounded-3xl p-8 border border-white/10 transition-all duration-300"
+                 :style="{ 
+                   backgroundColor: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.8)',
+                   boxShadow: isDark 
+                     ? '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)' 
+                     : '0 25px 50px -12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+                 }">
               
-              <h3 class="text-2xl font-semibold mb-2 transition-colors duration-300"
-                  :style="{ color: isDark ? '#ffffff' : '#111827' }">
-                {{ selectedFiles.length > 0 ? `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected` : 'Drop your files here' }}
-              </h3>
-              
-              <p class="mb-6 transition-colors duration-300"
-                 :style="{ color: isDark ? '#9ca3af' : '#4b5563' }">
-                {{ selectedFiles.length > 0 ? selectedFiles.map(f => f.name).join(', ') : 'or click to browse' }}
-              </p>
-              
-              <button 
-                v-if="selectedFiles.length === 0"
-                class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl transform active:scale-95"
+              <!-- Upload Zone -->
+              <div 
+                @dragover.prevent 
+                @drop.prevent="onDrop" 
+                @dragenter="isDragging = true" 
+                @dragleave="isDragging = false"
+                @click="triggerFileInput"
+                :class="[
+                  'relative border-2 border-dashed rounded-2xl p-12 cursor-pointer transition-all duration-300',
+                  isDragging 
+                    ? 'border-blue-400 bg-blue-500/10 transform scale-105' 
+                    : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                ]"
               >
-                <CloudArrowUpIcon class="w-5 h-5 mr-2" />
-                Select files
-              </button>
-            </div>
+                <input type="file" ref="fileInput" @change="onFileChange" class="hidden" multiple />
+                
+                <div class="text-center">
+                  <div class="mb-6">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-all duration-300"
+                         :style="{ 
+                           backgroundColor: isDragging 
+                             ? 'rgba(59, 130, 246, 0.2)' 
+                             : (isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)')
+                         }">
+                      <CloudArrowUpIcon 
+                        :class="[
+                          'w-10 h-10 transition-all duration-300',
+                          isDragging 
+                            ? 'text-blue-500 scale-110' 
+                            : (isDark ? 'text-gray-400' : 'text-gray-500')
+                        ]" 
+                      />
+                    </div>
+                  </div>
+                  
+                  <h3 class="text-2xl font-bold mb-3 transition-colors duration-300"
+                      :style="{ color: isDark ? '#ffffff' : '#111827' }">
+                    {{ selectedFiles.length > 0 ? `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected` : 'Drop files here' }}
+                  </h3>
+                  
+                  <p class="text-lg mb-8 opacity-70"
+                     :style="{ color: isDark ? '#d1d5db' : '#6b7280' }">
+                    {{ selectedFiles.length > 0 ? selectedFiles.map(f => f.name).slice(0, 2).join(', ') + (selectedFiles.length > 2 ? ` and ${selectedFiles.length - 2} more` : '') : 'or click to browse your device' }}
+                  </p>
+                  
+                  <button 
+                    v-if="selectedFiles.length === 0"
+                    class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    <CloudArrowUpIcon class="w-6 h-6 mr-3" />
+                    Choose Files
+                  </button>
+                </div>
 
-            <!-- Drag overlay -->
-            <div 
-              v-if="isDragging" 
-              class="absolute inset-0 rounded-lg flex items-center justify-center animate-pulse transition-colors duration-300 z-20"
-              :style="{ backgroundColor: isDark ? '#1e3a8acc' : '#dbeafeff' }"
-            >
-              <div class="font-semibold text-lg transition-colors duration-300"
-                   :style="{ color: isDark ? '#60a5fa' : '#2563eb' }">Drop files here</div>
+                <!-- Drag overlay -->
+                <div 
+                  v-if="isDragging" 
+                  class="absolute inset-0 rounded-2xl flex items-center justify-center backdrop-blur-sm"
+                  :style="{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }"
+                >
+                  <div class="text-center">
+                    <CloudArrowUpIcon class="w-12 h-12 mx-auto mb-4 text-blue-500" />
+                    <div class="font-bold text-xl text-blue-600 dark:text-blue-400">Drop files here</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Upload Actions -->
+              <div v-if="selectedFiles.length > 0" class="mt-8 space-y-6">
+                <!-- File Summary -->
+                <div class="flex items-center justify-between p-4 rounded-xl"
+                     :style="{ backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)' }">
+                  <div class="flex items-center space-x-3">
+                    <img :src="getSummaryIcon()" alt="File type" class="w-8 h-8" />
+                    <div>
+                      <p class="font-bold" :style="{ color: isDark ? '#ffffff' : '#111827' }">
+                        {{ selectedFiles.length }} file{{ selectedFiles.length > 1 ? 's' : '' }}
+                      </p>
+                      <p class="text-sm opacity-70" :style="{ color: isDark ? '#d1d5db' : '#6b7280' }">
+                        {{ formatTotalFileSize() }}
+                      </p>
+                    </div>
+                  </div>
+                  <button 
+                    @click="clearFile"
+                    class="p-2 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors"
+                  >
+                    <XMarkIcon class="w-5 h-5" />
+                  </button>
+                </div>
+
+                <!-- Email Input (Optional) -->
+                <div>
+                  <label class="block text-sm font-bold mb-2 opacity-80"
+                         :style="{ color: isDark ? '#d1d5db' : '#374151' }">
+                    Send to email (optional)
+                  </label>
+                  <input 
+                    v-model="email"
+                    type="email" 
+                    placeholder="recipient@example.com"
+                    class="w-full px-4 py-3 rounded-xl border-0 transition-all duration-200 focus:ring-2 focus:ring-blue-500"
+                    :style="{
+                      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                      color: isDark ? '#f9fafb' : '#111827'
+                    }"
+                  />
+                </div>
+
+                <!-- Upload Button -->
+                <button 
+                  @click="handleUpload"
+                  :disabled="isUploading || selectedFiles.length === 0 || getTotalFileSize() > maxUploadSize"
+                  :class="[
+                    'w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300',
+                    isUploading || selectedFiles.length === 0 || getTotalFileSize() > maxUploadSize
+                      ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white hover:scale-105 shadow-lg hover:shadow-xl'
+                  ]"
+                >
+                  <span v-if="isUploading" class="flex items-center justify-center">
+                    <svg class="animate-spin -ml-1 mr-3 h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Uploading...
+                  </span>
+                  <span v-else class="flex items-center justify-center">
+                    <CloudArrowUpIcon class="w-6 h-6 mr-3" />
+                    Share Files
+                  </span>
+                </button>
+
+                <!-- Progress Bar -->
+                <div v-if="progress > 0 && progress < 100" class="mt-4">
+                  <div class="flex justify-between text-sm mb-2" :style="{ color: isDark ? '#d1d5db' : '#6b7280' }">
+                    <span>Uploading...</span>
+                    <span>{{ progress }}%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div 
+                      class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-300"
+                      :style="{ width: progress + '%' }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-
-          <!-- Files List with Individual Previews -->
+        </div>
+      </div>
           <div v-if="selectedFiles.length > 0" class="space-y-4">
             <div v-for="(file, index) in selectedFiles" :key="index" class="rounded-lg p-4 transition-colors duration-300"
+                 :style="{ 
+                   backgroundColor: isDark ? '#111111' : '#f9fafb',
+                   borderColor: isDark ? '#333333' : '#e5e7eb',
+                   borderWidth: '1px'
+                 }">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                  <img :src="getFileIcon(file)" alt="File type" class="w-10 h-10" />
+                  <div>
+                    <h4 class="font-medium transition-colors duration-300"
+                        :style="{ color: isDark ? '#f9fafb' : '#111827' }">{{ file.name }}</h4>
+                    <p class="text-sm transition-colors duration-300"
+                       :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">{{ formatFileSize(file.size) }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button 
+                    v-if="['mp4', 'pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'txt', 'md', 'json', 'csv', 'xml', 'mp3', 'wav', 'flac'].includes(getFileExtension(file))" 
+                    @click="togglePreview(index)"
+                    class="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-105 transform active:scale-95"
+                    :class="previewingFiles.has(index) 
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg' 
+                      : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg'"
+                    :disabled="isUploading">
+                    <EyeIcon v-if="!previewingFiles.has(index)" class="w-4 h-4 mr-1 inline" />
+                    <EyeSlashIcon v-else class="w-4 h-4 mr-1 inline" />
+                    {{ previewingFiles.has(index) ? 'Hide' : 'Preview' }}
+                  </button>
+                  <button 
+                    @click="removeFile(index)"
+                    class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
+                  >
+                    <XMarkIcon class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
                  :style="{ 
                    backgroundColor: isDark ? '#111111' : '#f9fafb',
                    borderColor: isDark ? '#333333' : '#e5e7eb',

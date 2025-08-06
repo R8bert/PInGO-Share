@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import AccountPage from '../pages/account/AccountModern.vue'
 import HomePage from '../pages/main/Home.vue'
+import HomeWeTransferPage from '../pages/main/HomeWeTransfer.vue'
 import AuthPage from '../pages/auth/Auth.vue'
 
 const routes = [
@@ -9,6 +10,12 @@ const routes = [
     path: '/',
     name: 'Upload',
     component: HomePage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/wetransfer',
+    name: 'WeTransfer',
+    component: HomeWeTransferPage,
     meta: { requiresAuth: true }
   },
   // Download page route (public)

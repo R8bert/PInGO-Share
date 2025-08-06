@@ -2,7 +2,41 @@
   <div class="min-h-screen transition-colors duration-300 relative overflow-hidden" 
        :style="{ backgroundColor: isDark ? '#000000' : '#fbfbfd' }">
     
-    <!-- Starfield Background -->
+    <!-- Arc Carousel Background -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+      <!-- Arc Carousel Container -->
+      <div class="arc-carousel-container">
+        <div v-for="(item, index) in arcCarouselItems" :key="`arc-${index}`"
+             class="arc-carousel-item arc-slide"
+             :class="[item.size]"
+             :style="{
+               '--delay': item.delay + 's',
+               '--duration': item.duration + 's',
+               opacity: item.opacity
+             }">
+          <div class="arc-carousel-icon">
+            <img :src="item.icon" :alt="item.type" class="w-full h-full object-contain filter drop-shadow-lg" />
+          </div>
+        </div>
+      </div>
+      
+      <!-- Floating File Icons -->
+      <div v-for="(floatingIcon, index) in floatingIcons" :key="`float-${index}`"
+           class="floating-file-icon"
+           :class="floatingIcon.animation"
+           :style="{
+             left: floatingIcon.x + '%',
+             top: floatingIcon.y + '%',
+             '--delay': floatingIcon.delay + 's',
+             '--duration': floatingIcon.duration + 's',
+             opacity: floatingIcon.opacity
+           }">
+        <img :src="floatingIcon.icon" :alt="floatingIcon.type" 
+             class="w-6 h-6 object-contain drop-shadow-sm" />
+      </div>
+    </div>
+
+    <!-- Starfield Background (Dark Mode Only) -->
     <div v-if="isDark" class="fixed inset-0 z-0">
       <!-- Twinkling Stars -->
       <div v-for="star in stars" :key="`star-${star.id}`"
@@ -237,11 +271,8 @@
             >
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4 flex-1 min-w-0">
-                  <!-- Apple-style File Icon -->
-                  <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors duration-300"
-                       :style="{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }">
-                    <img :src="getFileIcon(file)" alt="File type" class="w-10 h-10" />
-                  </div>
+                  <!-- File Icon -->
+                  <img :src="getFileIcon(file)" alt="File type" class="w-10 h-10 flex-shrink-0" />
                   
                   <!-- File Details -->
                   <div class="flex-1 min-w-0">
@@ -454,7 +485,42 @@ const constellations = ref<Array<{
   y: number
 }>>([])
 
-// Initialize star field
+// Arc Carousel data for background animation
+const arcCarouselItems = ref<Array<{
+  icon: string
+  type: string
+  rotation: number
+  radius: number
+  delay: number
+  duration: number
+  size: string
+  opacity: number
+  animation: string
+}>>([])
+
+const floatingIcons = ref<Array<{
+  icon: string
+  type: string
+  x: number
+  y: number
+  delay: number
+  duration: number
+  opacity: number
+  animation: string
+}>>([])
+
+// Available file type icons for carousel
+const availableIcons = [
+  { path: '/src/images/icons/files_pdf.svg', type: 'pdf' },
+  { path: '/src/images/icons/word_docx_doc.svg', type: 'document' },
+  { path: '/src/images/icons/ppt_pptx_file.svg', type: 'presentation' },
+  { path: '/src/images/icons/unknown_file_formats.svg', type: 'file' },
+  { path: '/src/images/icons/files_uploaded.svg', type: 'upload' },
+  { path: '/src/images/icons/total_files_icon.svg', type: 'folder' },
+  { path: '/src/images/icons/multimedia-photo-viewer.svg', type: 'image' },
+  { path: '/src/assets/images/train/icons/file-pdf.svg', type: 'pdf-alt' }
+]
+
 const initializeStars = () => {
   if (!isDark.value) return
   
@@ -476,6 +542,50 @@ const initializeStars = () => {
       id: i,
       x: Math.random() * 90,
       y: Math.random() * 90
+    })
+  }
+}
+
+// Initialize arc carousel background animation
+const initializeArcCarousel = () => {
+  // Create arc carousel items that slide along an arc path
+  const numArcItems = 8
+  
+  arcCarouselItems.value = []
+  
+  for (let i = 0; i < numArcItems; i++) {
+    const icon = availableIcons[i % availableIcons.length]
+    
+    arcCarouselItems.value.push({
+      icon: icon.path,
+      type: icon.type,
+      rotation: 0,
+      radius: 300,
+      delay: (i * 2.5), // 2.5 second intervals for smoother flow
+      duration: 15, // Faster 15 seconds to complete the arc
+      size: i % 3 === 0 ? 'w-14 h-14' : i % 2 === 0 ? 'w-12 h-12' : 'w-10 h-10',
+      opacity: 0.18 + (i * 0.02),
+      animation: 'arc-slide'
+    })
+  }
+  
+  // Create fewer floating icons
+  const numFloatingIcons = 6
+  
+  floatingIcons.value = []
+  
+  for (let i = 0; i < numFloatingIcons; i++) {
+    const icon = availableIcons[(i + 4) % availableIcons.length]
+    
+    floatingIcons.value.push({
+      icon: icon.path,
+      type: icon.type,
+      x: 10 + Math.random() * 80,
+      y: 15 + Math.random() * 70,
+      delay: Math.random() * 12,
+      duration: 20 + Math.random() * 8, // Faster floating animations too
+      opacity: 0.06 + Math.random() * 0.08,
+      animation: 'float-gentle'
     })
   }
 }
@@ -513,7 +623,7 @@ const getFileIcon = (file: FileInfo) => {
     pptx: '/src/images/icons/ppt_pptx_file.svg',
     folder: '/src/assets/images/train/icons/file-folder.png'
   }
-  return iconMap[extension] || '/src/assets/images/train/icons/file-folder.png'
+  return iconMap[extension] || '/src/images/icons/unknown_file_formats.svg'
 }
 
 const getFileExtension = (file: FileInfo) => {
@@ -708,6 +818,7 @@ const handlePreviewError = () => {
 // Lifecycle
 onMounted(() => {
   initializeStars()
+  initializeArcCarousel()
   fetchShareData()
 })
 </script>
@@ -860,6 +971,116 @@ onMounted(() => {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Arc Carousel Animations */
+.arc-carousel-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.arc-carousel-item {
+  position: absolute;
+  animation-delay: var(--delay);
+  animation-duration: var(--duration);
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.arc-slide {
+  animation-name: arc-slide-animation;
+}
+
+@keyframes arc-slide-animation {
+  0% {
+    /* Start from left side */
+    left: -8%;
+    top: 75%;
+    transform: translateX(-50%) translateY(-50%) rotate(-10deg) scale(0.9);
+    opacity: var(--base-opacity, 0.2);
+  }
+  
+  25% {
+    /* Quarter way - moving up the arc */
+    left: 25%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%) rotate(-3deg) scale(1);
+    opacity: calc(var(--base-opacity, 0.2) * 1.2);
+  }
+  
+  50% {
+    /* Middle of screen - top of the arc */
+    left: 50%;
+    top: 35%;
+    transform: translateX(-50%) translateY(-50%) rotate(0deg) scale(1.1);
+    opacity: calc(var(--base-opacity, 0.2) * 1.4);
+  }
+  
+  75% {
+    /* Three-quarters - descending the arc */
+    left: 75%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%) rotate(3deg) scale(1);
+    opacity: calc(var(--base-opacity, 0.2) * 1.2);
+  }
+  
+  100% {
+    /* End at right side */
+    left: 108%;
+    top: 75%;
+    transform: translateX(-50%) translateY(-50%) rotate(10deg) scale(0.9);
+    opacity: var(--base-opacity, 0.2);
+  }
+}
+
+.arc-carousel-icon {
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+  animation: icon-float 4s ease-in-out infinite;
+}
+
+@keyframes icon-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Floating File Icons */
+.floating-file-icon {
+  position: absolute;
+  animation-delay: var(--delay);
+  animation-duration: var(--duration);
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.float-gentle {
+  animation-name: float-gentle-animation;
+}
+
+@keyframes float-gentle-animation {
+  0%, 100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-6px) translateX(2px) rotate(1deg);
+  }
+  50% {
+    transform: translateY(-10px) translateX(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-6px) translateX(-2px) rotate(-1deg);
   }
 }
 </style>

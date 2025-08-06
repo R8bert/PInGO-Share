@@ -32,7 +32,7 @@
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <div class="flex items-center space-x-3 mb-3">
-              <img src="../../../images/icons/files_uploaded2.svg" 
+              <img src="../../../images/icons/com.belmoussaoui.ReadItLater.svg" 
                    alt="Files uploaded" 
                    class="w-12 h-12 transition-all duration-300"
                    :class="isDark ? '' : 'drop-shadow-sm'"
