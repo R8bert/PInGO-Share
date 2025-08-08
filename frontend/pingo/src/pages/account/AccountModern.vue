@@ -801,10 +801,10 @@ const handleAvatarUpload = async (event: Event) => {
   }
 
   // Validate file size (5MB max)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('File size must be less than 5MB')
-    return
-  }
+//   if (file.size > 5 * 1024 * 1024) {
+//     alert('File size must be less than 5MB')
+//     return
+//   }
 
   const formData = new FormData()
   formData.append('avatar', file)

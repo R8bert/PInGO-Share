@@ -19,21 +19,7 @@
           </div>
         </div>
       </div>
-      
-      <!-- Floating File Icons -->
-      <div v-for="(floatingIcon, index) in floatingIcons" :key="`float-${index}`"
-           class="floating-file-icon"
-           :class="floatingIcon.animation"
-           :style="{
-             left: floatingIcon.x + '%',
-             top: floatingIcon.y + '%',
-             '--delay': floatingIcon.delay + 's',
-             '--duration': floatingIcon.duration + 's',
-             opacity: floatingIcon.opacity
-           }">
-        <img :src="floatingIcon.icon" :alt="floatingIcon.type" 
-             class="w-6 h-6 object-contain drop-shadow-sm" />
-      </div>
+
     </div>
 
     <!-- Starfield Background (Dark Mode Only) -->
@@ -80,13 +66,7 @@
     <main class="relative z-10 pt-8">
       <!-- Hero Section with Apple-style Typography -->
       <section class="relative overflow-hidden">
-        <!-- Subtle background gradient -->
-        <div class="absolute inset-0">
-          <div class="absolute top-20 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-20 animate-float-slow"
-               :style="{ backgroundColor: isDark ? '#3b82f6' : '#60a5fa' }"></div>
-          <div class="absolute bottom-20 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-20 animate-float-slower"
-               :style="{ backgroundColor: isDark ? '#8b5cf6' : '#a78bfa' }"></div>
-        </div>
+
         
         <div class="relative max-w-4xl mx-auto px-6 lg:px-8 pt-20 pb-16 text-center">
           
@@ -610,18 +590,36 @@ const formatTotalSize = () => {
 const getFileIcon = (file: FileInfo) => {
   const extension = getFileExtension(file).toLowerCase()
   const iconMap: Record<string, string> = {
-    pdf: '/src/assets/images/train/icons/file-pdf.png',
-    jpg: '/src/assets/images/train/icons/file-jpg.png',
-    jpeg: '/src/assets/images/train/icons/file-jpg.png',
-    png: '/src/assets/images/train/icons/file-png.png',
-    mp4: '/src/assets/images/train/icons/file-mp4.png',
-    avi: '/src/assets/images/train/icons/file-mp4.png',
-    mov: '/src/assets/images/train/icons/file-mp4.png',
+    pdf: '/src/images/icons/files_pdf.svg',
+    jpg: '/src/images/icons/multimedia-photo-viewer.svg',
+    jpeg: '/src/images/icons/multimedia-photo-viewer.svg',
+    png: '/src/images/icons/multimedia-photo-viewer.svg',
+    gif: '/src/images/icons/multimedia-photo-viewer.svg',
+    webp: '/src/images/icons/multimedia-photo-viewer.svg',
+    svg: '/src/images/icons/multimedia-photo-viewer.svg',
+    mp4: '/src/images/icons/multimedia-photo-viewer.svg',
+    avi: '/src/images/icons/multimedia-photo-viewer.svg',
+    mov: '/src/images/icons/multimedia-photo-viewer.svg',
+    webm: '/src/images/icons/multimedia-photo-viewer.svg',
+    ogg: '/src/images/icons/multimedia-photo-viewer.svg',
+    mp3: '/src/images/icons/multimedia-photo-viewer.svg',
+    wav: '/src/images/icons/multimedia-photo-viewer.svg',
+    flac: '/src/images/icons/multimedia-photo-viewer.svg',
+    aac: '/src/images/icons/multimedia-photo-viewer.svg',
     docx: '/src/images/icons/word_docx_doc.svg',
     doc: '/src/images/icons/word_docx_doc.svg',
     ppt: '/src/images/icons/ppt_pptx_file.svg',
     pptx: '/src/images/icons/ppt_pptx_file.svg',
-    folder: '/src/assets/images/train/icons/file-folder.png'
+    txt: '/src/images/icons/files_uploaded.svg',
+    md: '/src/images/icons/files_uploaded.svg',
+    js: '/src/images/icons/files_uploaded.svg',
+    ts: '/src/images/icons/files_uploaded.svg',
+    html: '/src/images/icons/files_uploaded.svg',
+    css: '/src/images/icons/files_uploaded.svg',
+    json: '/src/images/icons/files_uploaded.svg',
+    xml: '/src/images/icons/files_uploaded.svg',
+    csv: '/src/images/icons/files_uploaded.svg',
+    folder: '/src/images/icons/total_files_icon.svg'
   }
   return iconMap[extension] || '/src/images/icons/unknown_file_formats.svg'
 }

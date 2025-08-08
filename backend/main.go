@@ -790,10 +790,10 @@ func main() {
 		}
 
 		// Validate file size (max 5MB)
-		if header.Size > 5*1024*1024 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "File size too large. Maximum 5MB allowed"})
-			return
-		}
+		// if header.Size > 5*1024*1024 {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "File size too large. Maximum 5MB allowed"})
+		// 	return
+		// }
 
 		// Create avatars directory if it doesn't exist
 		avatarsDir := "./avatars"
@@ -1486,6 +1486,59 @@ func main() {
 		}
 	})
 
+	// Individual file access endpoint for previews
+	router.GET("/file/:id/:filename", func(c *gin.Context) {
+		id := c.Param("id")
+		filename := c.Param("filename")
+
+		// Check if upload exists and is available
+		var isAvailable bool
+		var userID int
+		err := db.QueryRow("SELECT COALESCE(is_available, TRUE), user_id FROM uploads WHERE upload_id = $1", id).Scan(&isAvailable, &userID)
+		if err != nil {
+			c.JSON(404, gin.H{"error": "not found"})
+			return
+		}
+
+		// Check if file is available or if the user who uploaded it is requesting it
+		currentUserID := -1
+		var tokenString string
+
+		// Try Authorization header first
+		if authHeader := c.GetHeader("Authorization"); authHeader != "" {
+			tokenString = strings.TrimPrefix(authHeader, "Bearer ")
+		} else if cookie, err := c.Cookie("auth_token"); err == nil {
+			// Fallback to cookie if no Authorization header
+			tokenString = cookie
+		}
+
+		// Validate token if present
+		if tokenString != "" {
+			if claims, err := validateJWT(tokenString); err == nil {
+				currentUserID = claims.UserID
+			}
+		}
+
+		// If file is not available and requester is not the owner, return expired message
+		if !isAvailable && currentUserID != userID {
+			c.JSON(410, gin.H{"error": "This file has expired or is no longer available"})
+			return
+		}
+
+		// Construct the actual file path
+		actualFilename := id + "_" + filename
+		filePath := "./uploads/" + actualFilename
+
+		// Check if the file exists
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			c.JSON(404, gin.H{"error": "file not found"})
+			return
+		}
+
+		// Serve the file directly
+		c.File(filePath)
+	})
+
 	// Files metadata endpoint
 	router.GET("/files/:id", func(c *gin.Context) {
 		id := c.Param("id")
@@ -1559,7 +1612,7 @@ func main() {
 				fileInfos = append(fileInfos, map[string]interface{}{
 					"name": originalName,
 					"size": fileInfo.Size(),
-					"url":  "/download/" + id, // Use controlled download endpoint instead of direct file access
+					"url":  "/file/" + id + "/" + originalName, // Individual file access for previews
 				})
 			}
 		}

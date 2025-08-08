@@ -64,11 +64,7 @@
             </div>
 
             <div class="flex items-center space-x-4 text-sm">
-              <span class="flex items-center transition-colors duration-300"
-                    :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
-                <LinkIcon class="w-4 h-4 mr-1" />
-                {{ upload.download_url }}
-              </span>
+
               <span v-if="upload.expires_at" :class="[
                 'flex items-center',
                 isExpiringSoon(upload.expires_at) ? 'text-red-600' : ''
