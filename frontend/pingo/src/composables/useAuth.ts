@@ -22,6 +22,8 @@ interface Upload {
   is_available: boolean
   is_reverse: boolean
   reverse_token?: string
+  is_deleted: boolean
+  deleted_at: string | null
 }
 
 const user = ref<User | null>(null)
@@ -193,7 +195,14 @@ export const useAuth = () => {
   const deleteUpload = async (uploadId: string) => {
     try {
       await axios.delete(`/uploads/${uploadId}`)
-      uploads.value = uploads.value.filter(upload => upload.upload_id !== uploadId)
+      
+      // Update the local upload to show as deleted instead of removing it
+      const uploadIndex = uploads.value.findIndex(upload => upload.upload_id === uploadId)
+      if (uploadIndex !== -1) {
+        uploads.value[uploadIndex].is_deleted = true
+        uploads.value[uploadIndex].deleted_at = new Date().toISOString()
+      }
+      
       return { success: true, message: 'Upload deleted successfully' }
     } catch (error: any) {
       const message = error.response?.data?.error || 'Failed to delete upload'

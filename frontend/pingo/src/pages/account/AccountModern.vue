@@ -214,7 +214,7 @@
               @toggle-availability="toggleAvailability"
               @change-expiration="changeExpiration"
               @toggle-expiration-dropdown="toggleExpirationDropdown"
-              @delete-upload="deleteUpload"
+              @delete-upload="handleDeleteUpload"
             />
           </div>
 
@@ -268,7 +268,7 @@
     >
       <div class="flex items-center">
         <ClipboardDocumentIcon class="w-5 h-5 mr-2" />
-        Link copied to clipboard!
+        {{ successMessage }}
       </div>
     </div>
   </div>
@@ -360,6 +360,70 @@
       </div>
     </div>
   </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <div v-if="showDeleteDialog" 
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-dialog-backdrop"
+       @click="cancelDelete">
+    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300"></div>
+    
+    <div class="relative bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-dialog-content"
+         :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }"
+         @click.stop>
+      
+      <!-- Close button -->
+      <button @click="cancelDelete" 
+              class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200"
+              :style="{ 
+                backgroundColor: isDark ? '#374151' : '#f3f4f6',
+                color: isDark ? '#9ca3af' : '#6b7280'
+              }">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <!-- Dialog content -->
+      <div class="text-center">
+        <!-- Animated warning icon -->
+        <div class="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center animate-pulse"
+             :style="{ backgroundColor: isDark ? '#dc2626' : '#fca5a5' }">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-3xl font-bold mb-4"
+            :style="{ color: isDark ? '#ffffff' : '#1a1a1a' }">
+          Delete Upload
+        </h2>
+
+        <!-- Message -->
+        <p class="text-lg mb-8"
+           :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+          Are you sure you want to delete this upload? The files will be marked as deleted but remain visible in your list.
+        </p>
+
+        <!-- Action buttons -->
+        <div class="space-y-3">
+          <button @click="confirmDelete"
+                  class="w-full py-4 px-6 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-semibold transition-all duration-200 hover:scale-105">
+            Yes, Delete Upload
+          </button>
+          
+          <button @click="cancelDelete"
+                  class="w-full py-3 px-6 border border-gray-300 dark:border-gray-600 rounded-2xl font-medium transition-all duration-200 hover:scale-105"
+                  :style="{ 
+                    color: isDark ? '#9ca3af' : '#6b7280',
+                    borderColor: isDark ? '#4b5563' : '#d1d5db'
+                  }">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -390,6 +454,46 @@ import {
 const { user, uploads, isAuthenticated, isAdmin, isLoading, fetchCurrentUser, fetchUploads, deleteUpload } = useAuth()
 const { isDark } = useTheme()
 
+// Enhanced delete function with proper error handling
+const handleDeleteUpload = async (uploadId: string) => {
+  uploadToDelete.value = uploadId
+  showDeleteDialog.value = true
+}
+
+const confirmDelete = async () => {
+  if (!uploadToDelete.value) return
+
+  try {
+    console.log('Attempting to delete upload:', uploadToDelete.value)
+    const result = await deleteUpload(uploadToDelete.value)
+    
+    if (result.success) {
+      console.log('Upload deleted successfully')
+      // Show success message
+      successMessage.value = 'Upload deleted successfully!'
+      showCopySuccess.value = true
+      setTimeout(() => {
+        showCopySuccess.value = false
+        successMessage.value = 'Link copied to clipboard!'
+      }, 2000)
+    } else {
+      console.error('Failed to delete upload:', result.message)
+      alert(result.message || 'Failed to delete upload')
+    }
+  } catch (error) {
+    console.error('Error deleting upload:', error)
+    alert('Failed to delete upload. Please try again.')
+  } finally {
+    showDeleteDialog.value = false
+    uploadToDelete.value = null
+  }
+}
+
+const cancelDelete = () => {
+  showDeleteDialog.value = false
+  uploadToDelete.value = null
+}
+
 const activeTab = ref('uploads')
 const showCreateToken = ref(false)
 const reverseTokens = ref<ReverseToken[]>([])
@@ -399,8 +503,13 @@ const newToken = ref({
   expires_in: ''
 })
 
-// Success message for copy operations
+// Success message for copy operations and other actions
 const showCopySuccess = ref(false)
+const successMessage = ref('Link copied to clipboard!')
+
+// Delete confirmation dialog
+const showDeleteDialog = ref(false)
+const uploadToDelete = ref<string | null>(null)
 
 // Admin functionality
 const isLoadingAdminSettings = ref(true)
@@ -466,6 +575,7 @@ const formatTotalSize = () => {
 const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text)
+    successMessage.value = 'Link copied to clipboard!'
     showCopySuccess.value = true
     setTimeout(() => {
       showCopySuccess.value = false

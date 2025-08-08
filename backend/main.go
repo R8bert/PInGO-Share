@@ -149,6 +149,8 @@ type Upload struct {
 	IsAvailable  bool       `json:"is_available" db:"is_available"`   // User can toggle availability
 	IsReverse    bool       `json:"is_reverse" db:"is_reverse"`       // Uploaded via reverse share token
 	ReverseToken string     `json:"reverse_token" db:"reverse_token"` // Token used for reverse upload
+	IsDeleted    bool       `json:"is_deleted" db:"is_deleted"`       // Soft delete flag
+	DeletedAt    *time.Time `json:"deleted_at" db:"deleted_at"`       // Soft delete timestamp
 }
 
 type RegisterRequest struct {
@@ -375,7 +377,9 @@ func createTables() {
 	ALTER TABLE uploads ALTER COLUMN expires_at DROP NOT NULL;
 	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE;
 	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS is_reverse BOOLEAN DEFAULT FALSE;
-	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS reverse_token VARCHAR(255);`
+	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS reverse_token VARCHAR(255);
+	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
+	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL;`
 
 	// Alter settings table to add allow_registration
 	alterSettingsTable := `
@@ -1003,7 +1007,8 @@ func main() {
 
 		rows, err := db.Query(`
 			SELECT id, upload_id, files, total_size, email, download_url, created_at, expires_at, 
-			       COALESCE(is_available, TRUE), COALESCE(is_reverse, FALSE), COALESCE(reverse_token, '')
+			       COALESCE(is_available, TRUE), COALESCE(is_reverse, FALSE), COALESCE(reverse_token, ''),
+			       COALESCE(is_deleted, FALSE), deleted_at
 			FROM uploads 
 			WHERE user_id = $1 
 			ORDER BY created_at DESC
@@ -1021,6 +1026,7 @@ func main() {
 				&upload.ID, &upload.UploadID, &upload.Files, &upload.TotalSize,
 				&upload.Email, &upload.DownloadURL, &upload.CreatedAt, &upload.ExpiresAt,
 				&upload.IsAvailable, &upload.IsReverse, &upload.ReverseToken,
+				&upload.IsDeleted, &upload.DeletedAt,
 			)
 			if err != nil {
 				continue
@@ -1032,56 +1038,29 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"uploads": uploads})
 	})
 
-	// Delete upload
+	// Soft delete upload
 	router.DELETE("/uploads/:id", authMiddleware(), func(c *gin.Context) {
 		userID := c.GetInt("user_id")
 		uploadID := c.Param("id")
 
-		// Get upload details to log before deletion
-		var upload Upload
-		var username string
+		// Check if upload exists and belongs to user
+		var exists bool
 		err := db.QueryRow(`
-			SELECT u.upload_id, u.files, u.total_size, u.email, u.download_url, 
-			       u.created_at, u.expires_at, u.is_reverse, u.reverse_token, users.username
-			FROM uploads u
-			JOIN users ON u.user_id = users.id
-			WHERE u.user_id = $1 AND u.upload_id = $2
-		`, userID, uploadID).Scan(
-			&upload.UploadID, &upload.Files, &upload.TotalSize, &upload.Email,
-			&upload.DownloadURL, &upload.CreatedAt, &upload.ExpiresAt,
-			&upload.IsReverse, &upload.ReverseToken, &username)
+			SELECT EXISTS(SELECT 1 FROM uploads WHERE user_id = $1 AND upload_id = $2)
+		`, userID, uploadID).Scan(&exists)
 
-		if err != nil {
+		if err != nil || !exists {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Upload not found"})
 			return
 		}
 
-		// Log deletion before deleting
+		// Soft delete the upload
 		_, err = db.Exec(`
-			INSERT INTO deletion_logs (
-				user_id, username, upload_id, files, total_size, email, 
-				download_url, uploaded_at, expires_at, is_reverse, reverse_token, deletion_reason
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-		`, userID, username, upload.UploadID, upload.Files, upload.TotalSize,
-			upload.Email, upload.DownloadURL, upload.CreatedAt, upload.ExpiresAt,
-			upload.IsReverse, upload.ReverseToken, "User deleted")
+			UPDATE uploads 
+			SET is_deleted = TRUE, deleted_at = CURRENT_TIMESTAMP 
+			WHERE user_id = $1 AND upload_id = $2
+		`, userID, uploadID)
 
-		if err != nil {
-			fmt.Printf("Failed to log deletion: %v\n", err)
-			// Continue with deletion even if logging fails
-		}
-
-		// Parse files and delete them
-		var files []string
-		json.Unmarshal([]byte(upload.Files), &files)
-
-		for _, filename := range files {
-			filePath := "./uploads/" + upload.UploadID + "_" + filename
-			os.Remove(filePath)
-		}
-
-		// Delete from database
-		_, err = db.Exec("DELETE FROM uploads WHERE user_id = $1 AND upload_id = $2", userID, uploadID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete upload"})
 			return
