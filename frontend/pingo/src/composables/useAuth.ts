@@ -194,8 +194,9 @@ export const useAuth = () => {
 
   const deleteUpload = async (uploadId: string) => {
     try {
+      console.log('Deleting upload:', uploadId)
       await axios.delete(`/uploads/${uploadId}`)
-      
+      console.log('Deleting upload:', uploadId)
       // Update the local upload to show as deleted instead of removing it
       const uploadIndex = uploads.value.findIndex(upload => upload.upload_id === uploadId)
       if (uploadIndex !== -1) {

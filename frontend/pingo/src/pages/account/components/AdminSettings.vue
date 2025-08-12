@@ -54,60 +54,6 @@
         </p>
       </div>
 
-      <!-- Theme Setting -->
-      <div class="rounded-xl p-6 border transition-colors duration-300"
-           :style="{
-             background: isDark 
-               ? 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)' 
-               : 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
-             borderColor: isDark ? '#3b82f6' : '#93c5fd'
-           }">
-        <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
-            :style="{ color: isDark ? '#dbeafe' : '#111827' }">
-          <SwatchIcon class="w-5 h-5 mr-2"
-                      :style="{ color: isDark ? '#60a5fa' : '#2563eb' }" />
-          Theme
-        </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label :class="[
-            'relative flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all',
-            settings.theme === 'light'
-              ? (isDark ? 'border-blue-400 bg-blue-600 text-white' : 'border-blue-500 bg-blue-500 text-white')
-              : (isDark 
-                  ? 'border-gray-600 bg-gray-700 text-gray-200 hover:border-blue-400' 
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
-                )
-          ]">
-            <input
-              type="radio"
-              v-model="settings.theme"
-              value="light"
-              class="sr-only"
-            />
-            <SunIcon class="w-5 h-5 mr-3" />
-            <span class="font-medium">Light Theme</span>
-          </label>
-          <label :class="[
-            'relative flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all',
-            settings.theme === 'dark'
-              ? (isDark ? 'border-blue-400 bg-blue-600 text-white' : 'border-blue-500 bg-blue-500 text-white')
-              : (isDark 
-                  ? 'border-gray-600 bg-gray-700 text-gray-200 hover:border-blue-400' 
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
-                )
-          ]">
-            <input
-              type="radio"
-              v-model="settings.theme"
-              value="dark"
-              class="sr-only"
-            />
-            <MoonIcon class="w-5 h-5 mr-3" />
-            <span class="font-medium">Dark Theme</span>
-          </label>
-        </div>
-      </div>
-
       <!-- User Registration Setting -->
       <div class="rounded-xl p-6 border transition-colors duration-300"
            :style="{
@@ -145,6 +91,90 @@
         </div>
       </div>
 
+      <!-- File Expiration Behavior Setting -->
+      <div class="rounded-xl p-6 border transition-colors duration-300"
+           :style="{
+             background: isDark 
+               ? 'linear-gradient(135deg, #7c2d12 0%, #9a3412 100%)' 
+               : 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%)',
+             borderColor: isDark ? '#ea580c' : '#fb923c'
+           }">
+        <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
+            :style="{ color: isDark ? '#fff7ed' : '#111827' }">
+          <ClockIcon class="w-5 h-5 mr-2"
+                     :style="{ color: isDark ? '#fb923c' : '#ea580c' }" />
+          File Expiration Behavior
+        </h3>
+        <p class="text-sm mb-4 transition-colors duration-300"
+           :style="{ color: isDark ? '#fed7aa' : '#6b7280' }">
+          Choose what happens to files when they expire
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label
+            :class="[
+              'relative flex flex-col p-4 rounded-lg border-2 cursor-pointer transition-all',
+              settings.expirationAction === 'unavailable'
+                ? (isDark ? 'border-orange-400 bg-orange-600 text-white' : 'border-orange-500 bg-orange-500 text-white')
+                : (isDark 
+                    ? 'border-gray-600 bg-gray-700 text-gray-200 hover:border-orange-400' 
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-orange-300'
+                  )
+            ]"
+          >
+            <input
+              type="radio"
+              v-model="settings.expirationAction"
+              value="unavailable"
+              class="sr-only"
+            />
+            <div class="flex items-center mb-2">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L12 12m-3.122-3.122L9.878 9.878"></path>
+              </svg>
+              <span class="font-medium">Make Unavailable</span>
+            </div>
+            <p class="text-sm opacity-90">Files become inaccessible but remain on the server</p>
+          </label>
+          
+          <label
+            :class="[
+              'relative flex flex-col p-4 rounded-lg border-2 cursor-pointer transition-all',
+              settings.expirationAction === 'delete'
+                ? (isDark ? 'border-orange-400 bg-orange-600 text-white' : 'border-orange-500 bg-orange-500 text-white')
+                : (isDark 
+                    ? 'border-gray-600 bg-gray-700 text-gray-200 hover:border-orange-400' 
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-orange-300'
+                  )
+            ]"
+          >
+            <input
+              type="radio"
+              v-model="settings.expirationAction"
+              value="delete"
+              class="sr-only"
+            />
+            <div class="flex items-center mb-2">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              <span class="font-medium">Delete Files</span>
+            </div>
+            <p class="text-sm opacity-90">Files are permanently removed from the server</p>
+          </label>
+        </div>
+        <div class="mt-4 p-3 rounded-lg border transition-colors duration-300"
+             :style="{
+               backgroundColor: isDark ? 'rgba(251, 146, 60, 0.1)' : 'rgba(234, 88, 12, 0.1)',
+               borderColor: isDark ? '#fb923c' : '#ea580c'
+             }">
+          <p class="text-sm transition-colors duration-300"
+             :style="{ color: isDark ? '#fed7aa' : '#9a3412' }">
+            <strong>Note:</strong> This setting affects how the system handles files after they expire.
+            The cleanup process runs every hour.
+          </p>
+        </div>
+      </div>
+
       <!-- Upload Settings -->
       <div class="rounded-xl p-6 border transition-colors duration-300"
            :style="{
@@ -159,7 +189,7 @@
                             :style="{ color: isDark ? '#34d399' : '#059669' }" />
           Upload Settings
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="max-w-md">
           <div>
             <label class="block text-sm font-medium mb-2 transition-colors duration-300"
                    :style="{ color: isDark ? '#d1fae5' : '#374151' }">
@@ -174,29 +204,24 @@
                 color: isDark ? '#f9fafb' : '#111827'
               }"
             >
+              <option value="1048576">1 MB</option>
+              <option value="5242880">5 MB</option>
               <option value="10485760">10 MB</option>
+              <option value="26214400">25 MB</option>
               <option value="52428800">50 MB</option>
               <option value="104857600">100 MB</option>
+              <option value="262144000">250 MB</option>
               <option value="524288000">500 MB</option>
               <option value="1073741824">1 GB</option>
               <option value="2147483648">2 GB</option>
+              <option value="5368709120">5 GB</option>
+              <option value="10737418240">10 GB</option>
+              <option value="-1">Unlimited</option>
             </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-2 transition-colors duration-300"
-                   :style="{ color: isDark ? '#d1fae5' : '#374151' }">
-              Upload Box Transparency ({{ settings.uploadBoxTransparency }}%)
-            </label>
-            <input
-              type="range"
-              v-model="settings.uploadBoxTransparency"
-              min="0"
-              max="100"
-              class="w-full h-2 rounded-lg appearance-none cursor-pointer slider transition-colors duration-300"
-              :style="{
-                backgroundColor: isDark ? '#6b7280' : '#e5e7eb'
-              }"
-            />
+            <p class="text-sm mt-1 transition-colors duration-300"
+               :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
+              Set the maximum file size users can upload. Choose "Unlimited" to allow any size.
+            </p>
           </div>
         </div>
       </div>
@@ -324,13 +349,10 @@ import { useAuth } from '../../../composables/useAuth'
 import { useTheme } from '../../../composables/useTheme'
 import {
   ClockIcon,
-  SwatchIcon,
   CloudArrowUpIcon,
   PhotoIcon,
   ScaleIcon,
   CheckCircleIcon,
-  SunIcon,
-  MoonIcon,
   UserGroupIcon
 } from '@heroicons/vue/24/outline'
 
@@ -339,15 +361,14 @@ const { isDark } = useTheme()
 const { saveAdminSettings, getSettings, isLoading } = useAuth()
 
 const settings = ref({
-  theme: 'light',
   logo: '',
   backgroundImage: '',
   navbarTitle: 'PinGO',
   maxUploadSize: 104857600,
-  uploadBoxTransparency: 0,
   blurIntensity: 0,
   maxValidity: '7days',
-  allowRegistration: true
+  allowRegistration: true,
+  expirationAction: 'unavailable'
 })
 
 const logoFile = ref<File | null>(null)
@@ -380,13 +401,12 @@ const saveSettings = async () => {
   try {
     const formData = new FormData()
     
-    formData.append('theme', settings.value.theme)
     formData.append('navbarTitle', settings.value.navbarTitle)
     formData.append('maxUploadSize', settings.value.maxUploadSize.toString())
-    formData.append('uploadBoxTransparency', settings.value.uploadBoxTransparency.toString())
     formData.append('blurIntensity', settings.value.blurIntensity.toString())
     formData.append('maxValidity', settings.value.maxValidity)
     formData.append('allowRegistration', settings.value.allowRegistration.toString())
+    formData.append('expirationAction', settings.value.expirationAction)
     
     if (logoFile.value) {
       formData.append('logo', logoFile.value)
@@ -424,15 +444,14 @@ const loadSettings = async () => {
   try {
     const currentSettings = await getSettings()
     settings.value = {
-      theme: currentSettings.theme || 'light',
       logo: currentSettings.logo || '',
       backgroundImage: currentSettings.backgroundImage || '',
       navbarTitle: currentSettings.navbarTitle || 'PinGO',
       maxUploadSize: currentSettings.maxUploadSize || 104857600,
-      uploadBoxTransparency: currentSettings.uploadBoxTransparency || 0,
       blurIntensity: currentSettings.blurIntensity || 0,
       maxValidity: currentSettings.maxValidity || '7days',
-      allowRegistration: currentSettings.allowRegistration !== undefined ? currentSettings.allowRegistration : true
+      allowRegistration: currentSettings.allowRegistration !== undefined ? currentSettings.allowRegistration : true,
+      expirationAction: currentSettings.expirationAction || 'unavailable'
     }
   } catch (error) {
     console.error('Failed to load settings:', error)

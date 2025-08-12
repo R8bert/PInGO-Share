@@ -1,5 +1,66 @@
 <template>
   <div>
+    <!-- Filter Controls -->
+    <div v-if="!isLoading && uploads.length > 0" class="mb-6 p-4 rounded-xl border transition-colors duration-300"
+         :style="{ 
+           backgroundColor: isDark ? '#1f2937' : '#f8fafc',
+           borderColor: isDark ? '#374151' : '#e2e8f0'
+         }">
+      <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <!-- Filter by Status -->
+        <div class="flex items-center space-x-3">
+          <label class="text-sm font-medium transition-colors duration-300"
+                 :style="{ color: isDark ? '#f3f4f6' : '#374151' }">
+            Filter:
+          </label>
+          <select 
+            v-model="deletionFilter"
+            @change="onFilterChange"
+            class="px-3 py-2 rounded-lg border text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :style="{ 
+              backgroundColor: isDark ? '#374151' : '#ffffff',
+              borderColor: isDark ? '#4b5563' : '#d1d5db',
+              color: isDark ? '#f3f4f6' : '#374151'
+            }">
+            <option value="all">Show All</option>
+            <option value="active">Not Deleted Only</option>
+            <option value="deleted">Deleted Only</option>
+          </select>
+        </div>
+
+        <!-- Items per page -->
+        <div class="flex items-center space-x-3">
+          <label class="text-sm font-medium transition-colors duration-300"
+                 :style="{ color: isDark ? '#f3f4f6' : '#374151' }">
+            Items per page:
+          </label>
+          <select 
+            v-model="itemsPerPage"
+            @change="onItemsPerPageChange"
+            class="px-3 py-2 rounded-lg border text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :style="{ 
+              backgroundColor: isDark ? '#374151' : '#ffffff',
+              borderColor: isDark ? '#4b5563' : '#d1d5db',
+              color: isDark ? '#f3f4f6' : '#374151'
+            }">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Results Info -->
+      <div class="mt-3 text-sm transition-colors duration-300"
+           :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+        Showing {{ displayedUploads.length }} of {{ filteredUploads.length }} uploads
+        <span v-if="deletionFilter !== 'all'">
+          ({{ deletionFilter === 'deleted' ? 'deleted' : 'active' }})
+        </span>
+      </div>
+    </div>
+
     <div v-if="isLoading" class="flex justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
     </div>
@@ -19,12 +80,29 @@
       </router-link>
     </div>
 
+    <div v-else-if="displayedUploads.length === 0" class="text-center py-12">
+      <svg class="w-16 h-16 mx-auto mb-4 transition-colors duration-300" 
+           :style="{ color: isDark ? '#4b5563' : '#d1d5db' }"
+           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <h3 class="text-lg font-medium mb-2 transition-colors duration-300"
+          :style="{ color: isDark ? '#f9fafb' : '#111827' }">No uploads found</h3>
+      <p class="mb-6 transition-colors duration-300"
+         :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+        Try changing your filter settings.
+      </p>
+    </div>
+
     <div v-else class="space-y-4">
       <div
-        v-for="upload in uploads"
+        v-for="upload in displayedUploads"
         :key="upload.id"
-        class="rounded-xl p-6 border hover:shadow-md transition-all duration-300"
-        :class="upload.is_deleted ? 'opacity-75' : ''"
+        class="rounded-xl p-6 border hover:shadow-md transition-all duration-300 upload-container"
+        :class="[
+          upload.is_deleted ? 'opacity-75' : '',
+          newlyDeletedUploads.has(upload.upload_id) ? 'animate-delete-transition' : ''
+        ]"
         :style="{ 
           backgroundColor: upload.is_deleted 
             ? (isDark ? '#7f1d1d' : '#fecaca') 
@@ -209,10 +287,32 @@
         </div>
       </div>
     </div>
+
+    <!-- Pagination (if there are more items than displayed) -->
+    <div v-if="filteredUploads.length > itemsPerPage" class="mt-6 text-center">
+      <div class="inline-flex items-center space-x-2 p-2 rounded-lg border transition-colors duration-300"
+           :style="{ 
+             backgroundColor: isDark ? '#1f2937' : '#f8fafc',
+             borderColor: isDark ? '#374151' : '#e2e8f0'
+           }">
+        <span class="text-sm transition-colors duration-300"
+              :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+          Showing {{ displayedUploads.length }} of {{ filteredUploads.length }} items
+        </span>
+        <button 
+          v-if="currentlyShowing < filteredUploads.length"
+          @click="loadMore"
+          class="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200"
+        >
+          Load More ({{ Math.min(itemsPerPage, filteredUploads.length - currentlyShowing) }})
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTheme } from '../../../composables/useTheme'
 import {
@@ -235,7 +335,7 @@ interface Props {
   showExpirationDropdown: Record<string, boolean>
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 // Emits
 const emit = defineEmits<{
@@ -249,8 +349,111 @@ const emit = defineEmits<{
 // Router
 const router = useRouter()
 
+// Cookie utility functions
+const setCookie = (name: string, value: string, days: number = 30) => {
+  const expires = new Date()
+  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000))
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`
+}
+
+const getCookie = (name: string): string | null => {
+  const nameEQ = name + "="
+  const ca = document.cookie.split(';')
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i]
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length)
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length)
+  }
+  return null
+}
+
+// Filter and pagination state with cookie persistence
+const deletionFilter = ref<'all' | 'active' | 'deleted'>(
+  (() => {
+    const saved = getCookie('uploads_deletion_filter') as 'all' | 'active' | 'deleted'
+    return ['all', 'active', 'deleted'].includes(saved) ? saved : 'all'
+  })()
+)
+const itemsPerPage = ref<number>(
+  (() => {
+    const saved = parseInt(getCookie('uploads_items_per_page') || '25')
+    return [10, 25, 50, 100].includes(saved) ? saved : 25
+  })()
+)
+const currentlyShowing = ref<number>(itemsPerPage.value)
+
+// Animation state for newly deleted uploads
+const newlyDeletedUploads = ref<Set<string>>(new Set())
+
+// Function to handle animation after successful delete
+const handleSuccessfulDelete = (uploadId: string) => {
+  newlyDeletedUploads.value.add(uploadId)
+  // Remove the animation class after animation completes
+  setTimeout(() => {
+    newlyDeletedUploads.value.delete(uploadId)
+  }, 1000) // Duration matches CSS animation
+}
+
+// Watch for changes in uploads to detect newly deleted items
+watch(() => props.uploads, (newUploads, oldUploads) => {
+  if (oldUploads) {
+    // Find uploads that changed from not deleted to deleted
+    newUploads.forEach(newUpload => {
+      const oldUpload = oldUploads.find(old => old.upload_id === newUpload.upload_id)
+      if (oldUpload && !oldUpload.is_deleted && newUpload.is_deleted) {
+        handleSuccessfulDelete(newUpload.upload_id)
+      }
+    })
+  }
+}, { deep: true })
+
 // For infinity icon
 const InfinityIcon = { template: '<span class="text-lg">∞</span>' }
+
+// Computed properties for filtering and pagination
+const filteredUploads = computed(() => {
+  if (deletionFilter.value === 'all') {
+    return props.uploads
+  } else if (deletionFilter.value === 'deleted') {
+    return props.uploads.filter(upload => upload.is_deleted)
+  } else {
+    return props.uploads.filter(upload => !upload.is_deleted)
+  }
+})
+
+const displayedUploads = computed(() => {
+  return filteredUploads.value.slice(0, Math.min(currentlyShowing.value, filteredUploads.value.length))
+})
+
+// Filter change handlers
+const onFilterChange = () => {
+  // Reset the currently showing count when filter changes
+  currentlyShowing.value = itemsPerPage.value
+  // Save to cookie
+  setCookie('uploads_deletion_filter', deletionFilter.value)
+}
+
+const onItemsPerPageChange = () => {
+  // Update the currently showing count when items per page changes
+  currentlyShowing.value = itemsPerPage.value
+  // Save to cookie
+  setCookie('uploads_items_per_page', itemsPerPage.value.toString())
+}
+
+// Watch for filter changes to save to cookies
+watch(deletionFilter, (newValue) => {
+  setCookie('uploads_deletion_filter', newValue)
+})
+
+watch(itemsPerPage, (newValue) => {
+  setCookie('uploads_items_per_page', newValue.toString())
+})
+
+const loadMore = () => {
+  // Increase the number of items being shown
+  const newCount = currentlyShowing.value + itemsPerPage.value
+  currentlyShowing.value = Math.min(newCount, filteredUploads.value.length)
+}
 
 // Helper functions
 const formatDate = (dateString: string | undefined) => {
@@ -307,4 +510,56 @@ const toggleExpirationDropdown = (uploadId: string) => {
 const deleteUpload = (uploadId: string) => {
   emit('deleteUpload', uploadId)
 }
+
+// Initialize component when mounted
+onMounted(() => {
+  // Ensure currentlyShowing matches itemsPerPage on load
+  currentlyShowing.value = itemsPerPage.value
+})
 </script>
+
+<style scoped>
+/* Upload container animations */
+.upload-container {
+  transform-origin: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Delete transition animation - transforms to deleted state */
+.animate-delete-transition {
+  animation: deleteTransition 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes deleteTransition {
+  0% {
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+  20% {
+    transform: scale(1.02);
+    filter: brightness(1.1) saturate(1.2);
+  }
+  40% {
+    transform: scale(0.98);
+    filter: brightness(0.9) saturate(1.5);
+  }
+  60% {
+    transform: scale(1.01);
+    filter: brightness(0.8) saturate(2);
+  }
+  80% {
+    transform: scale(0.99);
+    filter: brightness(0.7) saturate(1.8) hue-rotate(10deg);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(0.75) saturate(1.5) hue-rotate(15deg);
+  }
+}
+
+/* Deleted state styling enhancement */
+.upload-container.animate-delete-transition {
+  background-color: var(--deleted-bg) !important;
+  border-color: var(--deleted-border) !important;
+}
+</style>

@@ -568,7 +568,9 @@ const formatFileSize = (bytes: number) => {
 }
 
 const formatTotalSize = () => {
-  const totalBytes = uploads.value.reduce((sum, upload) => sum + upload.total_size, 0)
+  const totalBytes = uploads.value
+    .filter(upload => !upload.is_deleted) // Only include non-deleted uploads
+    .reduce((sum, upload) => sum + upload.total_size, 0)
   return formatFileSize(totalBytes)
 }
 

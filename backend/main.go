@@ -102,6 +102,7 @@ type Settings struct {
 	BlurIntensity         int    `json:"blurIntensity" db:"blur_intensity"`                  // Blur intensity (0-24)
 	MaxValidity           string `json:"maxValidity" db:"max_validity"`                      // "7days", "1month", "6months", "1year", "never"
 	AllowRegistration     bool   `json:"allowRegistration" db:"allow_registration"`          // Allow user registration
+	ExpirationAction      string `json:"expirationAction" db:"expiration_action"`            // "delete" or "unavailable"
 }
 
 type UploadRequest struct {
@@ -137,20 +138,20 @@ type DeletionLog struct {
 }
 
 type Upload struct {
-	ID           int        `json:"id" db:"id"`
-	UserID       int        `json:"user_id" db:"user_id"`
-	UploadID     string     `json:"upload_id" db:"upload_id"`
-	Files        string     `json:"files" db:"files"`
-	TotalSize    int64      `json:"total_size" db:"total_size"`
-	Email        string     `json:"email" db:"email"`
-	DownloadURL  string     `json:"download_url" db:"download_url"`
-	CreatedAt    time.Time  `json:"created_at" db:"created_at"`
-	ExpiresAt    *time.Time `json:"expires_at" db:"expires_at"`
-	IsAvailable  bool       `json:"is_available" db:"is_available"`   // User can toggle availability
-	IsReverse    bool       `json:"is_reverse" db:"is_reverse"`       // Uploaded via reverse share token
-	ReverseToken string     `json:"reverse_token" db:"reverse_token"` // Token used for reverse upload
-	IsDeleted    bool       `json:"is_deleted" db:"is_deleted"`       // Soft delete flag
-	DeletedAt    *time.Time `json:"deleted_at" db:"deleted_at"`       // Soft delete timestamp
+	ID           int            `json:"id" db:"id"`
+	UserID       int            `json:"user_id" db:"user_id"`
+	UploadID     string         `json:"upload_id" db:"upload_id"`
+	Files        string         `json:"files" db:"files"` // NOT NULL, so string is fine
+	TotalSize    int64          `json:"total_size" db:"total_size"`
+	Email        sql.NullString `json:"email" db:"email"`               // Nullable
+	DownloadURL  string         `json:"download_url" db:"download_url"` // NOT NULL, so string is fine
+	CreatedAt    time.Time      `json:"created_at" db:"created_at"`
+	ExpiresAt    *time.Time     `json:"expires_at" db:"expires_at"` // Already correct
+	IsAvailable  bool           `json:"is_available" db:"is_available"`
+	IsReverse    bool           `json:"is_reverse" db:"is_reverse"`       // Has default, so bool is fine
+	ReverseToken sql.NullString `json:"reverse_token" db:"reverse_token"` // Nullable
+	IsDeleted    bool           `json:"is_deleted" db:"is_deleted"`
+	DeletedAt    *time.Time     `json:"deleted_at" db:"deleted_at"`
 }
 
 type RegisterRequest struct {
@@ -384,7 +385,8 @@ func createTables() {
 	// Alter settings table to add allow_registration
 	alterSettingsTable := `
 	ALTER TABLE settings ADD COLUMN IF NOT EXISTS allow_registration BOOLEAN DEFAULT TRUE;
-	ALTER TABLE settings ADD COLUMN IF NOT EXISTS navbar_title VARCHAR(255) DEFAULT 'PInGO Share';`
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS navbar_title VARCHAR(255) DEFAULT 'PInGO Share';
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS expiration_action VARCHAR(20) DEFAULT 'unavailable';`
 
 	// Create indexes
 	indexes := `
@@ -398,8 +400,8 @@ func createTables() {
 
 	// Insert default settings if none exist
 	defaultSettings := `
-	INSERT INTO settings (theme, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration)
-	SELECT 'light', 104857600, 0, 0, '7days', TRUE
+	INSERT INTO settings (theme, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration, expiration_action)
+	SELECT 'light', 104857600, 0, 0, '7days', TRUE, 'unavailable'
 	WHERE NOT EXISTS (SELECT 1 FROM settings);`
 
 	tables := []string{usersTable, settingsTable, uploadsTable, reverseTokensTable, deletionLogsTable, alterUsersTable, alterUploadsTable, alterSettingsTable, indexes, defaultSettings}
@@ -569,11 +571,11 @@ func isValidityAllowed(requestedValidity, maxValidity string) bool {
 func getSettings() (Settings, error) {
 	var settings Settings
 	err := db.QueryRow(`
-		SELECT id, theme, COALESCE(logo_path, ''), COALESCE(background_path, ''), 
-		       COALESCE(navbar_title, 'PInGO Share'), max_upload_size, upload_box_transparency, blur_intensity, max_validity, COALESCE(allow_registration, TRUE)
+		SELECT id, theme, COALESCE(logo_path, ''), COALESCE(background_path, ''),
+		       COALESCE(navbar_title, 'PInGO Share'), max_upload_size, upload_box_transparency, blur_intensity, max_validity, COALESCE(allow_registration, TRUE), COALESCE(expiration_action, 'unavailable')
 		FROM settings ORDER BY id LIMIT 1
 	`).Scan(&settings.ID, &settings.Theme, &settings.LogoPath, &settings.BackgroundPath,
-		&settings.NavbarTitle, &settings.MaxUploadSize, &settings.UploadBoxTransparency, &settings.BlurIntensity, &settings.MaxValidity, &settings.AllowRegistration)
+		&settings.NavbarTitle, &settings.MaxUploadSize, &settings.UploadBoxTransparency, &settings.BlurIntensity, &settings.MaxValidity, &settings.AllowRegistration, &settings.ExpirationAction)
 
 	return settings, err
 }
@@ -1006,11 +1008,11 @@ func main() {
 		userID := c.GetInt("user_id")
 
 		rows, err := db.Query(`
-			SELECT id, upload_id, files, total_size, email, download_url, created_at, expires_at, 
+			SELECT id, upload_id, files, total_size, email, download_url, created_at, expires_at,
 			       COALESCE(is_available, TRUE), COALESCE(is_reverse, FALSE), COALESCE(reverse_token, ''),
 			       COALESCE(is_deleted, FALSE), deleted_at
-			FROM uploads 
-			WHERE user_id = $1 
+			FROM uploads
+			WHERE user_id = $1
 			ORDER BY created_at DESC
 		`, userID)
 		if err != nil {
@@ -1043,27 +1045,84 @@ func main() {
 		userID := c.GetInt("user_id")
 		uploadID := c.Param("id")
 
-		// Check if upload exists and belongs to user
-		var exists bool
+		// Get upload details first for deletion log
+		var upload Upload
+		var username, email string
+		var isDeleted bool
 		err := db.QueryRow(`
-			SELECT EXISTS(SELECT 1 FROM uploads WHERE user_id = $1 AND upload_id = $2)
-		`, userID, uploadID).Scan(&exists)
+			SELECT u.upload_id, u.files, u.total_size, u.download_url, u.created_at, u.expires_at, u.is_reverse, u.reverse_token, u.is_deleted, users.username, users.email
+			FROM uploads u
+			JOIN users ON u.user_id = users.id
+			WHERE u.user_id = $1 AND u.upload_id = $2
+		`, userID, uploadID).Scan(&upload.UploadID, &upload.Files, &upload.TotalSize, &upload.DownloadURL, &upload.CreatedAt, &upload.ExpiresAt, &upload.IsReverse, &upload.ReverseToken, &isDeleted, &username, &email)
 
-		if err != nil || !exists {
+		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Upload not found"})
 			return
 		}
 
-		// Soft delete the upload
-		_, err = db.Exec(`
-			UPDATE uploads 
-			SET is_deleted = TRUE, deleted_at = CURRENT_TIMESTAMP 
+		// Check if upload is already deleted
+		if isDeleted {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Upload is already deleted"})
+			return
+		}
+
+		// Parse files list to delete physical files
+		var files []string
+		if err := json.Unmarshal([]byte(upload.Files), &files); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse file list"})
+			return
+		}
+
+		// Start transaction for atomic operation
+		tx, err := db.Begin()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+			return
+		}
+		defer tx.Rollback()
+
+		// Insert into deletion logs
+		_, err = tx.Exec(`
+			INSERT INTO deletion_logs (user_id, username, upload_id, files, total_size, email, download_url, uploaded_at, expires_at, is_reverse, reverse_token, deletion_reason)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'User deleted')
+		`, userID, username, upload.UploadID, upload.Files, upload.TotalSize, email, upload.DownloadURL, upload.CreatedAt, upload.ExpiresAt, upload.IsReverse, upload.ReverseToken)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log deletion"})
+			return
+		}
+
+		// Soft delete the upload in database
+		_, err = tx.Exec(`
+			UPDATE uploads
+			SET is_deleted = TRUE, deleted_at = CURRENT_TIMESTAMP
 			WHERE user_id = $1 AND upload_id = $2
 		`, userID, uploadID)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete upload"})
 			return
+		}
+
+		// Commit transaction first
+		if err = tx.Commit(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit deletion"})
+			return
+		}
+
+		// Delete physical files from filesystem after successful database update
+		for _, filename := range files {
+			// Sanitize filename to prevent directory traversal
+			sanitizedFilename := sanitizeFilename(filename)
+			filePath := filepath.Join("./uploads", upload.UploadID+"_"+sanitizedFilename)
+
+			if err := os.Remove(filePath); err != nil {
+				// Log the error but don't fail the entire operation
+				fmt.Printf("Warning: Failed to delete file %s: %v\n", filePath, err)
+			} else {
+				fmt.Printf("Successfully deleted file: %s\n", filePath)
+			}
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Upload deleted successfully"})
@@ -1194,8 +1253,8 @@ func main() {
 
 		rows, err := db.Query(`
 			SELECT id, token, name, used_count, max_uses, created_at, expires_at
-			FROM reverse_share_tokens 
-			WHERE user_id = $1 
+			FROM reverse_share_tokens
+			WHERE user_id = $1
 			ORDER BY created_at DESC
 		`, userID)
 		if err != nil {
@@ -1243,7 +1302,7 @@ func main() {
 		var tokenData ReverseShareToken
 		err := db.QueryRow(`
 			SELECT id, user_id, name, used_count, max_uses, expires_at
-			FROM reverse_share_tokens 
+			FROM reverse_share_tokens
 			WHERE token = $1
 		`, token).Scan(&tokenData.ID, &tokenData.UserID, &tokenData.Name,
 			&tokenData.UsedCount, &tokenData.MaxUses, &tokenData.ExpiresAt)
@@ -1560,8 +1619,8 @@ func main() {
 
 		err = db.QueryRow(`
 			SELECT u.username, COALESCE(u.avatar, '') as avatar, up.email, up.expires_at
-			FROM uploads up 
-			JOIN users u ON up.user_id = u.id 
+			FROM uploads up
+			JOIN users u ON up.user_id = u.id
 			WHERE up.upload_id = $1
 		`, id).Scan(&uploaderInfo.Username, &uploaderInfo.Avatar, &uploaderInfo.Email, &uploaderInfo.ExpiresAt)
 
@@ -1630,6 +1689,7 @@ func main() {
 				BlurIntensity:         0,
 				MaxValidity:           "7days",
 				AllowRegistration:     true,
+				ExpirationAction:      "unavailable",
 			}
 		}
 
@@ -1805,22 +1865,40 @@ func main() {
 			settings.AllowRegistration = allowReg
 		}
 
+		// Handle expiration action
+		expirationAction := c.PostForm("expirationAction")
+		if expirationAction != "" {
+			validActions := []string{"delete", "unavailable"}
+			valid := false
+			for _, action := range validActions {
+				if expirationAction == action {
+					valid = true
+					break
+				}
+			}
+			if !valid {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid expiration action (must be 'delete' or 'unavailable')"})
+				return
+			}
+			settings.ExpirationAction = expirationAction
+		}
+
 		// Save settings to database
 		if settings.ID == 0 {
 			// Insert new settings
 			err = db.QueryRow(`
-				INSERT INTO settings (theme, logo_path, background_path, navbar_title, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id
+				INSERT INTO settings (theme, logo_path, background_path, navbar_title, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration, expiration_action)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
 			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.NavbarTitle, settings.MaxUploadSize,
-				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration).Scan(&settings.ID)
+				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ExpirationAction).Scan(&settings.ID)
 		} else {
 			// Update existing settings
 			_, err = db.Exec(`
 				UPDATE settings SET theme = $1, logo_path = $2, background_path = $3, navbar_title = $4, max_upload_size = $5,
-				upload_box_transparency = $6, blur_intensity = $7, max_validity = $8, allow_registration = $9, updated_at = CURRENT_TIMESTAMP
-				WHERE id = $10
+				upload_box_transparency = $6, blur_intensity = $7, max_validity = $8, allow_registration = $9, expiration_action = $10, updated_at = CURRENT_TIMESTAMP
+				WHERE id = $11
 			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.NavbarTitle, settings.MaxUploadSize,
-				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ID)
+				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ExpirationAction, settings.ID)
 		}
 
 		if err != nil {
@@ -1858,7 +1936,7 @@ func main() {
 		// Calculate total storage used by summing total_size from uploads
 		var totalSize sql.NullInt64
 		err = db.QueryRow(`
-			SELECT COALESCE(SUM(total_size), 0) as total_size 
+			SELECT COALESCE(SUM(total_size), 0) as total_size
 			FROM uploads
 		`).Scan(&totalSize)
 		if err != nil {
@@ -1889,8 +1967,8 @@ func main() {
 		}
 
 		rows, err := db.Query(`
-			SELECT 
-				u.id, u.username, u.email, COALESCE(u.avatar, ''), u.is_admin, 
+			SELECT
+				u.id, u.username, u.email, COALESCE(u.avatar, ''), u.is_admin,
 				COALESCE(u.is_blocked, false) as is_blocked,
 				u.created_at,
 				COUNT(CASE WHEN up.id IS NOT NULL THEN 1 END) as upload_count,
@@ -2078,9 +2156,17 @@ func main() {
 		defer ticker.Stop()
 
 		for range ticker.C {
-			// Delete expired uploads from database and files (excluding never-expiring uploads)
-			rows, err := db.Query("SELECT upload_id, files FROM uploads WHERE expires_at IS NOT NULL AND expires_at < NOW()")
+			// Get current settings to determine expiration action
+			settings, err := getSettings()
 			if err != nil {
+				fmt.Printf("Failed to get settings for cleanup: %v\n", err)
+				continue
+			}
+
+			// Find expired uploads
+			rows, err := db.Query("SELECT upload_id, files FROM uploads WHERE expires_at IS NOT NULL AND expires_at < NOW() AND is_deleted = FALSE")
+			if err != nil {
+				fmt.Printf("Failed to query expired uploads: %v\n", err)
 				continue
 			}
 
@@ -2092,19 +2178,40 @@ func main() {
 			}
 			rows.Close()
 
-			for _, upload := range expiredUploads {
-				// Parse files and delete them
-				var files []string
-				json.Unmarshal([]byte(upload.Files), &files)
+			fmt.Printf("Found %d expired uploads, action: %s\n", len(expiredUploads), settings.ExpirationAction)
 
-				for _, filename := range files {
-					filePath := "./uploads/" + upload.UploadID + "_" + filename
-					os.Remove(filePath)
+			for _, upload := range expiredUploads {
+				if settings.ExpirationAction == "delete" {
+					// Parse files and delete them from filesystem
+					var files []string
+					json.Unmarshal([]byte(upload.Files), &files)
+
+					for _, filename := range files {
+						filePath := "./uploads/" + upload.UploadID + "_" + filename
+						if err := os.Remove(filePath); err != nil {
+							fmt.Printf("Failed to delete file %s: %v\n", filePath, err)
+						} else {
+							fmt.Printf("Deleted expired file: %s\n", filePath)
+						}
+					}
+
+					// Mark as deleted in database
+					_, err = db.Exec("UPDATE uploads SET is_deleted = TRUE, deleted_at = NOW() WHERE upload_id = $1", upload.UploadID)
+					if err != nil {
+						fmt.Printf("Failed to mark upload as deleted: %v\n", err)
+					} else {
+						fmt.Printf("Marked upload as deleted: %s\n", upload.UploadID)
+					}
+				} else if settings.ExpirationAction == "unavailable" {
+					// Just mark as unavailable, keep files
+					_, err = db.Exec("UPDATE uploads SET is_available = FALSE WHERE upload_id = $1", upload.UploadID)
+					if err != nil {
+						fmt.Printf("Failed to mark upload as unavailable: %v\n", err)
+					} else {
+						fmt.Printf("Marked upload as unavailable: %s\n", upload.UploadID)
+					}
 				}
 			}
-
-			// Delete expired records from database
-			db.Exec("DELETE FROM uploads WHERE expires_at IS NOT NULL AND expires_at < NOW()")
 		}
 	}()
 
