@@ -10,6 +10,12 @@ interface User {
   created_at?: string
 }
 
+interface AdminUser extends User {
+  isBlocked: boolean
+  uploadCount?: number
+  storageUsed?: number
+}
+
 interface Upload {
   id: number
   upload_id: string
@@ -30,6 +36,7 @@ const user = ref<User | null>(null)
 const token = ref<string | null>(null)
 const isLoading = ref(false)
 const uploads = ref<Upload[]>([])
+const adminUsers = ref<AdminUser[]>([])
 const isInitializing = ref(false)
 const initPromise = ref<Promise<boolean> | null>(null)
 
@@ -233,6 +240,35 @@ export const useAuth = () => {
     }
   }
 
+  const fetchAdminUsers = async () => {
+    try {
+      isLoading.value = true
+      const response = await axios.get('/admin/users')
+      adminUsers.value = response.data || []
+      return { success: true }
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch admin users'
+      return { success: false, message }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const toggleUserBlock = async (userId: number, isBlocked: boolean) => {
+    try {
+      await axios.post(`/admin/users/${userId}/block`, { blocked: isBlocked })
+      // Update local state
+      const userIndex = adminUsers.value.findIndex(u => u.id === userId)
+      if (userIndex !== -1) {
+        adminUsers.value[userIndex].isBlocked = isBlocked
+      }
+      return { success: true, message: `User ${isBlocked ? 'blocked' : 'unblocked'} successfully` }
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to update user status'
+      return { success: false, message }
+    }
+  }
+
   // Initialize auth state
   loadTokenFromStorage()
 
@@ -240,6 +276,7 @@ export const useAuth = () => {
     user: computed(() => user.value),
     token: computed(() => token.value),
     uploads: computed(() => uploads.value),
+    adminUsers: computed(() => adminUsers.value),
     isAuthenticated,
     isAdmin,
     isLoading: computed(() => isLoading.value),
@@ -250,6 +287,8 @@ export const useAuth = () => {
     fetchUploads,
     deleteUpload,
     saveAdminSettings,
-    getSettings
+    getSettings,
+    fetchAdminUsers,
+    toggleUserBlock
   }
 }

@@ -1,10 +1,10 @@
 <template>
   <div>
     <!-- Loading skeleton -->
-    <div v-if="isLoading" class="space-y-6">
-      <div class="animate-pulse rounded-xl p-6 border transition-colors duration-300"
+    <div v-if="isLoading" class="space-y-4">
+      <div class="animate-pulse rounded-lg p-6 border transition-colors duration-300"
            :style="{ 
-             backgroundColor: isDark ? '#1a1a1a' : '#f3f4f6',
+             backgroundColor: isDark ? '#111827' : '#ffffff',
              borderColor: isDark ? '#374151' : '#e5e7eb'
            }">
         <div class="h-6 rounded w-1/4 mb-4 transition-colors duration-300"
@@ -19,132 +19,179 @@
     </div>
     
     <!-- User Management Content -->
-    <div v-else class="space-y-8">
-      <div>
-        <h3 class="text-xl font-bold mb-6 transition-colors duration-300"
-            :style="{ color: isDark ? '#f9fafb' : '#111827' }">User Management</h3>
-        <div class="rounded-xl p-6 border transition-colors duration-300"
-             :style="{ 
-               backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
-               borderColor: isDark ? '#374151' : '#e5e7eb'
-             }">
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y transition-colors duration-300"
-                   :style="{ borderColor: isDark ? '#374151' : '#e5e7eb' }">
-              <thead class="transition-colors duration-300"
-                     :style="{ backgroundColor: isDark ? '#1f2937' : '#f9fafb' }">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300"
-                      :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">User</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300"
-                      :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">Uploads</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300"
-                      :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">Storage</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300"
-                      :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">Status</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider transition-colors duration-300"
-                      :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y transition-colors duration-300"
-                     :style="{ 
-                       backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
-                       borderColor: isDark ? '#374151' : '#e5e7eb'
-                     }">
-                <tr v-for="user in adminUsers" :key="user.id" 
-                    class="transition-colors duration-300 hover:bg-opacity-50"
-                    :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center mr-3">
-                        <img 
-                          v-if="user.avatar" 
-                          :src="`http://localhost:8080${user.avatar}`" 
-                          :alt="user.username"
-                          class="w-full h-full object-cover"
-                          @error="handleAvatarError"
-                        />
-                        <UserIcon v-else class="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <div class="text-sm font-medium transition-colors duration-300"
-                             :style="{ color: isDark ? '#f9fafb' : '#111827' }">{{ user.username }}</div>
-                        <div class="text-sm transition-colors duration-300"
-                             :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">{{ user.email }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm transition-colors duration-300"
-                      :style="{ color: isDark ? '#f9fafb' : '#111827' }">{{ user.uploadCount || 0 }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm transition-colors duration-300"
-                      :style="{ color: isDark ? '#f9fafb' : '#111827' }">{{ formatBytes(user.storageUsed || 0) }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span :class="[
-                      'inline-flex px-2 py-1 text-xs font-semibold rounded-full transition-colors duration-300',
-                      user.isBlocked 
-                        ? (isDark ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800')
-                        : (isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800')
-                    ]">
-                      {{ user.isBlocked ? 'Blocked' : 'Active' }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      @click="toggleUserBlock(user.id, !user.isBlocked)"
-                      :class="[
-                        'px-3 py-1 rounded-md text-sm font-medium transition-colors',
-                        user.isBlocked 
-                          ? 'bg-green-600 hover:bg-green-700 text-white' 
-                          : 'bg-red-600 hover:bg-red-700 text-white'
-                      ]"
-                    >
-                      {{ user.isBlocked ? 'Unblock' : 'Block' }}
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+    <div v-else class="space-y-6">
+      <!-- Header with stats -->
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-bold transition-colors duration-300"
+            :style="{ color: isDark ? '#f9fafb' : '#111827' }">
+          User Management
+        </h3>
+        <div class="flex items-center gap-4 text-sm">
+          <div class="px-3 py-1.5 rounded-lg border transition-colors duration-300"
+               :style="{ 
+                 backgroundColor: isDark ? '#1f2937' : '#f9fafb',
+                 borderColor: isDark ? '#374151' : '#e5e7eb',
+                 color: isDark ? '#d1d5db' : '#6b7280'
+               }">
+            Total Users: {{ adminUsers.length }}
+          </div>
+          <div class="px-3 py-1.5 rounded-lg border transition-colors duration-300"
+               :style="{ 
+                 backgroundColor: isDark ? '#1f2937' : '#f9fafb',
+                 borderColor: isDark ? '#374151' : '#e5e7eb',
+                 color: isDark ? '#d1d5db' : '#6b7280'
+               }">
+            Active: {{ adminUsers.filter(u => !u.isBlocked).length }}
           </div>
         </div>
+      </div>
+
+      <!-- Users Grid -->
+      <div class="grid gap-4">
+        <div v-for="user in adminUsers" :key="user.id" 
+             class="rounded-lg p-6 border hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+             :style="{ 
+               backgroundColor: isDark ? '#111827' : '#ffffff',
+               borderColor: isDark ? '#374151' : '#e5e7eb'
+             }">
+          <div class="flex items-center justify-between">
+            <!-- User Info -->
+            <div class="flex items-center space-x-4">
+              <!-- Avatar -->
+              <div class="relative">
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                  <img 
+                    v-if="user.avatar" 
+                    :src="`http://localhost:8080${user.avatar}`" 
+                    :alt="user.username"
+                    class="w-full h-full object-cover"
+                    @error="handleAvatarError"
+                  />
+                  <UserIcon v-else class="w-6 h-6 text-white" />
+                </div>
+                <!-- Status indicator -->
+                <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 transition-colors duration-300"
+                     :class="user.isBlocked 
+                       ? 'bg-red-500 border-red-200' 
+                       : 'bg-green-500 border-green-200'"
+                     :style="{ borderColor: isDark ? '#111827' : '#ffffff' }">
+                </div>
+              </div>
+
+              <!-- User Details -->
+              <div>
+                <h4 class="font-semibold text-base transition-colors duration-300"
+                    :style="{ color: isDark ? '#f9fafb' : '#111827' }">
+                  {{ user.username }}
+                </h4>
+                <p class="text-sm transition-colors duration-300"
+                   :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+                  {{ user.email }}
+                </p>
+                <div class="flex items-center gap-4 mt-1 text-xs">
+                  <span class="flex items-center gap-1 transition-colors duration-300"
+                        :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    {{ user.uploadCount || 0 }} uploads
+                  </span>
+                  <span class="flex items-center gap-1 transition-colors duration-300"
+                        :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"></path>
+                    </svg>
+                    {{ formatBytes(user.storageUsed || 0) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-3">
+              <!-- Status Badge -->
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold transition-colors duration-300"
+                    :style="user.isBlocked 
+                      ? { 
+                          backgroundColor: isDark ? '#7f1d1d' : '#fecaca',
+                          color: isDark ? '#fecaca' : '#7f1d1d'
+                        }
+                      : { 
+                          backgroundColor: isDark ? '#14532d' : '#dcfce7',
+                          color: isDark ? '#bbf7d0' : '#14532d'
+                        }">
+                {{ user.isBlocked ? 'Blocked' : 'Active' }}
+              </span>
+
+              <!-- Action Button -->
+              <button
+                @click="toggleUserBlock(user.id, !user.isBlocked)"
+                class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 hover:scale-105 hover:shadow-md"
+                :style="user.isBlocked 
+                  ? { 
+                      backgroundColor: isDark ? '#059669' : '#10b981',
+                      color: '#ffffff'
+                    }
+                  : { 
+                      backgroundColor: isDark ? '#dc2626' : '#ef4444',
+                      color: '#ffffff'
+                    }"
+                :class="user.isBlocked 
+                  ? 'hover:brightness-110' 
+                  : 'hover:brightness-110'"
+              >
+                {{ user.isBlocked ? 'Unblock User' : 'Block User' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-if="adminUsers.length === 0" class="text-center py-12">
+        <UserIcon class="w-16 h-16 mx-auto mb-4 transition-colors duration-300"
+                  :style="{ color: isDark ? '#4b5563' : '#d1d5db' }" />
+        <h3 class="text-lg font-medium mb-2 transition-colors duration-300"
+            :style="{ color: isDark ? '#f9fafb' : '#111827' }">
+          No users found
+        </h3>
+        <p class="transition-colors duration-300"
+           :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+          Users will appear here once they register.
+        </p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useAuth } from '../../../composables/useAuth'
 import { useTheme } from '../../../composables/useTheme'
 import { UserIcon } from '@heroicons/vue/24/outline'
 
+const { adminUsers, fetchAdminUsers, toggleUserBlock } = useAuth()
 const { isDark } = useTheme()
+const isLoading = ref(true)
 
-// Props
-interface Props {
-  adminUsers: any[]
-  isLoading: boolean
-}
+onMounted(async () => {
+  try {
+    await fetchAdminUsers()
+  } finally {
+    isLoading.value = false
+  }
+})
 
-defineProps<Props>()
-
-// Emits
-const emit = defineEmits<{
-  toggleUserBlock: [userId: number, isBlocked: boolean]
-}>()
-
-// Helper functions
-const formatBytes = (bytes: number) => {
-  if (bytes === 0) return '0 Bytes'
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return '0 B'
   const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-const handleAvatarError = () => {
-  console.error('Failed to load avatar')
-}
-
-// Event handlers
-const toggleUserBlock = (userId: number, isBlocked: boolean) => {
-  emit('toggleUserBlock', userId, isBlocked)
+const handleAvatarError = (event: Event) => {
+  const target = event.target as HTMLImageElement
+  target.style.display = 'none'
 }
 </script>

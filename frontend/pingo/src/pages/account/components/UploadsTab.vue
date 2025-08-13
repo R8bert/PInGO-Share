@@ -1,43 +1,43 @@
 <template>
   <div>
     <!-- Filter Controls -->
-    <div v-if="!isLoading && uploads.length > 0" class="mb-6 p-6 rounded-xl border shadow-sm transition-colors duration-300"
+    <div v-if="!isLoading && uploads.length > 0" class="mb-4 flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg border transition-colors duration-300"
          :style="{ 
            backgroundColor: isDark ? '#111827' : '#ffffff',
            borderColor: isDark ? '#374151' : '#e5e7eb'
          }">
-      <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div class="flex flex-wrap items-center gap-3">
         <!-- Filter by Status -->
-        <div class="flex items-center space-x-3">
-          <label class="text-sm font-semibold transition-colors duration-300"
-                 :style="{ color: isDark ? '#f9fafb' : '#111827' }">
+        <div class="flex items-center gap-2">
+          <label class="text-sm font-medium transition-colors duration-300"
+                 :style="{ color: isDark ? '#d1d5db' : '#6b7280' }">
             Filter:
           </label>
           <select 
             v-model="deletionFilter"
             @change="onFilterChange"
-            class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="px-3 py-1.5 rounded-md border text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             :style="{ 
               backgroundColor: isDark ? '#1f2937' : '#f9fafb',
               borderColor: isDark ? '#4b5563' : '#d1d5db',
               color: isDark ? '#f9fafb' : '#111827'
             }">
-            <option value="all">Show All</option>
-            <option value="active">Not Deleted Only</option>
-            <option value="deleted">Deleted Only</option>
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="deleted">Deleted</option>
           </select>
         </div>
 
         <!-- Items per page -->
-        <div class="flex items-center space-x-3">
-          <label class="text-sm font-semibold transition-colors duration-300"
-                 :style="{ color: isDark ? '#f9fafb' : '#111827' }">
-            Items per page:
+        <div class="flex items-center gap-2">
+          <label class="text-sm font-medium transition-colors duration-300"
+                 :style="{ color: isDark ? '#d1d5db' : '#6b7280' }">
+            Show:
           </label>
           <select 
             v-model="itemsPerPage"
             @change="onItemsPerPageChange"
-            class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="px-3 py-1.5 rounded-md border text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             :style="{ 
               backgroundColor: isDark ? '#1f2937' : '#f9fafb',
               borderColor: isDark ? '#4b5563' : '#d1d5db',
@@ -52,12 +52,9 @@
       </div>
 
       <!-- Results Info -->
-      <div class="mt-4 text-sm font-medium transition-colors duration-300"
-           :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
-        Showing {{ displayedUploads.length }} of {{ filteredUploads.length }} uploads
-        <span v-if="deletionFilter !== 'all'">
-          ({{ deletionFilter === 'deleted' ? 'deleted' : 'active' }})
-        </span>
+      <div class="text-sm font-medium transition-colors duration-300"
+           :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+        {{ displayedUploads.length }} of {{ filteredUploads.length }} uploads
       </div>
     </div>
 
