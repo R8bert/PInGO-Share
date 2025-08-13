@@ -1,26 +1,26 @@
 <template>
   <div>
     <!-- Filter Controls -->
-    <div v-if="!isLoading && uploads.length > 0" class="mb-6 p-4 rounded-xl border transition-colors duration-300"
+    <div v-if="!isLoading && uploads.length > 0" class="mb-6 p-6 rounded-xl border shadow-sm transition-colors duration-300"
          :style="{ 
-           backgroundColor: isDark ? '#1f2937' : '#f8fafc',
-           borderColor: isDark ? '#374151' : '#e2e8f0'
+           backgroundColor: isDark ? '#111827' : '#ffffff',
+           borderColor: isDark ? '#374151' : '#e5e7eb'
          }">
       <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <!-- Filter by Status -->
         <div class="flex items-center space-x-3">
-          <label class="text-sm font-medium transition-colors duration-300"
-                 :style="{ color: isDark ? '#f3f4f6' : '#374151' }">
+          <label class="text-sm font-semibold transition-colors duration-300"
+                 :style="{ color: isDark ? '#f9fafb' : '#111827' }">
             Filter:
           </label>
           <select 
             v-model="deletionFilter"
             @change="onFilterChange"
-            class="px-3 py-2 rounded-lg border text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             :style="{ 
-              backgroundColor: isDark ? '#374151' : '#ffffff',
+              backgroundColor: isDark ? '#1f2937' : '#f9fafb',
               borderColor: isDark ? '#4b5563' : '#d1d5db',
-              color: isDark ? '#f3f4f6' : '#374151'
+              color: isDark ? '#f9fafb' : '#111827'
             }">
             <option value="all">Show All</option>
             <option value="active">Not Deleted Only</option>
@@ -30,18 +30,18 @@
 
         <!-- Items per page -->
         <div class="flex items-center space-x-3">
-          <label class="text-sm font-medium transition-colors duration-300"
-                 :style="{ color: isDark ? '#f3f4f6' : '#374151' }">
+          <label class="text-sm font-semibold transition-colors duration-300"
+                 :style="{ color: isDark ? '#f9fafb' : '#111827' }">
             Items per page:
           </label>
           <select 
             v-model="itemsPerPage"
             @change="onItemsPerPageChange"
-            class="px-3 py-2 rounded-lg border text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             :style="{ 
-              backgroundColor: isDark ? '#374151' : '#ffffff',
+              backgroundColor: isDark ? '#1f2937' : '#f9fafb',
               borderColor: isDark ? '#4b5563' : '#d1d5db',
-              color: isDark ? '#f3f4f6' : '#374151'
+              color: isDark ? '#f9fafb' : '#111827'
             }">
             <option value="10">10</option>
             <option value="25">25</option>
@@ -52,8 +52,8 @@
       </div>
 
       <!-- Results Info -->
-      <div class="mt-3 text-sm transition-colors duration-300"
-           :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+      <div class="mt-4 text-sm font-medium transition-colors duration-300"
+           :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
         Showing {{ displayedUploads.length }} of {{ filteredUploads.length }} uploads
         <span v-if="deletionFilter !== 'all'">
           ({{ deletionFilter === 'deleted' ? 'deleted' : 'active' }})
@@ -98,18 +98,21 @@
       <div
         v-for="upload in displayedUploads"
         :key="upload.id"
-        class="rounded-xl p-6 border hover:shadow-md transition-all duration-300 upload-container"
+        class="rounded-xl p-6 border hover:shadow-lg transition-all duration-300 upload-container"
         :class="[
-          upload.is_deleted ? 'opacity-75' : '',
+          upload.is_deleted ? 'opacity-90' : '',
           newlyDeletedUploads.has(upload.upload_id) ? 'animate-delete-transition' : ''
         ]"
         :style="{ 
           backgroundColor: upload.is_deleted 
-            ? (isDark ? '#7f1d1d' : '#fecaca') 
-            : (isDark ? '#1f2937' : '#f9fafb'),
+            ? (isDark ? '#991b1b' : '#fee2e2') 
+            : (isDark ? '#111827' : '#ffffff'),
           borderColor: upload.is_deleted 
-            ? (isDark ? '#dc2626' : '#ef4444') 
-            : (isDark ? '#374151' : '#e5e7eb')
+            ? (isDark ? '#dc2626' : '#f87171') 
+            : (isDark ? '#374151' : '#e5e7eb'),
+          boxShadow: upload.is_deleted 
+            ? (isDark ? '0 0 0 1px rgba(220, 38, 38, 0.1)' : '0 0 0 1px rgba(239, 68, 68, 0.1)')
+            : 'none'
         }"
       >
         <div class="flex items-start justify-between">
@@ -121,25 +124,25 @@
                    :class="isDark ? '' : 'drop-shadow-sm'"
                    :style="{ opacity: isDark ? '0.9' : '1' }" />
               <div>
-                <h3 class="font-medium transition-colors duration-300"
+                <h3 class="font-semibold text-base transition-colors duration-300"
                     :style="{ color: isDark ? '#f9fafb' : '#111827' }">
                   {{ JSON.parse(upload.files).length }} file{{ JSON.parse(upload.files).length > 1 ? 's' : '' }}
                 </h3>
-                <p class="text-sm transition-colors duration-300"
-                   :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+                <p class="text-sm font-medium transition-colors duration-300"
+                   :style="{ color: isDark ? '#d1d5db' : '#6b7280' }">
                   {{ formatFileSize(upload.total_size) }} • {{ formatDate(upload.created_at) }}
                 </p>
               </div>
             </div>
             
-            <div class="flex flex-wrap gap-2 mb-3">
+            <div class="flex flex-wrap gap-2 mb-4">
               <span
                 v-for="filename in JSON.parse(upload.files)"
                 :key="filename"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors duration-300"
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold transition-colors duration-300"
                 :style="{ 
-                  backgroundColor: isDark ? '#1e3a8a' : '#dbeafe',
-                  color: isDark ? '#93c5fd' : '#1e40af'
+                  backgroundColor: isDark ? '#1e40af' : '#dbeafe',
+                  color: isDark ? '#bfdbfe' : '#1e40af'
                 }"
               >
                 {{ filename }}
@@ -147,33 +150,30 @@
             </div>
 
             <div class="flex items-center space-x-4 text-sm">
-              <span v-if="upload.expires_at" :class="[
-                'flex items-center',
-                isExpiringSoon(upload.expires_at) ? 'text-red-600' : ''
-              ]" :style="!isExpiringSoon(upload.expires_at) ? { color: isDark ? '#9ca3af' : '#6b7280' } : {}">
-                <ClockIcon class="w-4 h-4 mr-1" />
-                {{ upload.expires_at ? `Expires ${formatDate(upload.expires_at)}` : 'Never expires' }}
-              </span>
-              <span v-else class="flex items-center text-green-600">
-                <InfinityIcon class="w-4 h-4 mr-1" />
-                Never expires
-              </span>
-              <span v-if="upload.is_reverse" class="flex items-center text-purple-600">
+              <!-- Only show expiration for non-deleted uploads -->
+              <template v-if="!upload.is_deleted">
+                <span v-if="upload.expires_at" :class="[
+                  'flex items-center font-medium',
+                  isExpiringSoon(upload.expires_at) ? 'text-red-500' : ''
+                ]" :style="!isExpiringSoon(upload.expires_at) ? { color: isDark ? '#d1d5db' : '#4b5563' } : {}">
+                  <ClockIcon class="w-4 h-4 mr-1" />
+                  {{ upload.expires_at ? `Expires ${formatDate(upload.expires_at)}` : 'Never expires' }}
+                </span>
+                <span v-else class="flex items-center text-emerald-500 font-medium">
+                  <InfinityIcon class="w-4 h-4 mr-1" />
+                  Never expires
+                </span>
+              </template>
+              <span v-if="upload.is_reverse" class="flex items-center text-purple-500 font-medium">
                 <ShareIcon class="w-4 h-4 mr-1" />
                 Reverse Upload
               </span>
-              <span v-if="upload.is_deleted" class="flex items-center text-red-600 font-medium">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg>
-                Deleted
-              </span>
-              <span v-else :class="[
-                'flex items-center',
-                upload.is_available ? 'text-green-600' : 'text-red-600'
+              <span v-if="!upload.is_deleted" :class="[
+                'flex items-center font-medium',
+                upload.is_available ? 'text-emerald-500' : 'text-red-500'
               ]">
                 <div class="w-2 h-2 rounded-full mr-1" :class="[
-                  upload.is_available ? 'bg-green-500' : 'bg-red-500'
+                  upload.is_available ? 'bg-emerald-500' : 'bg-red-500'
                 ]"></div>
                 {{ upload.is_available ? 'Available' : 'Unavailable' }}
               </span>
@@ -181,12 +181,32 @@
           </div>
 
           <div class="flex items-center space-x-2">
+            <!-- Deleted status badge (for deleted uploads) -->
+            <div v-if="upload.is_deleted" class="flex flex-col font-bold text-xs px-3 py-2 rounded-md"
+                 :style="{ 
+                   backgroundColor: isDark ? '#7f1d1d' : '#fecaca',
+                   color: isDark ? '#fecaca' : '#7f1d1d'
+                 }">
+              <div class="flex items-center">
+                <svg class="w-4 h-4 mr-1 font-bold" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                DELETED
+              </div>
+              <div class="text-xs font-medium mt-1 opacity-90">
+                {{ formatDate(upload.deleted_at) }}
+              </div>
+              <div v-if="upload.deletion_reason && getDeletionReason(upload.deletion_reason)" class="text-xs font-medium opacity-80">
+                {{ getDeletionReason(upload.deletion_reason) }}
+              </div>
+            </div>
+            
             <!-- Action buttons (disabled for deleted uploads) -->
             <template v-if="!upload.is_deleted">
               <button
                 @click="copyToClipboard(`${getBaseUrl()}${upload.download_url}`)"
                 class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
-                :class="isDark ? 'hover:bg-blue-500/20 bg-blue-500/10' : 'hover:bg-blue-50 bg-blue-25'"
+                :class="isDark ? 'hover:bg-blue-600/20 bg-blue-600/10' : 'hover:bg-blue-100 bg-blue-50'"
                 title="Copy link"
               >
                 <ClipboardDocumentIcon class="w-5 h-5 transition-colors duration-300"
@@ -195,7 +215,7 @@
               <button
                 @click="goToFiles(upload.download_url)"
                 class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
-                :class="isDark ? 'hover:bg-emerald-500/20 bg-emerald-500/10' : 'hover:bg-emerald-50 bg-emerald-25'"
+                :class="isDark ? 'hover:bg-emerald-600/20 bg-emerald-600/10' : 'hover:bg-emerald-100 bg-emerald-50'"
                 title="Go to files"
               >
                 <FolderIcon class="w-5 h-5 transition-colors duration-300"
@@ -205,8 +225,8 @@
                 @click="toggleAvailability(upload.upload_id, upload.is_available)"
                 class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
                 :class="upload.is_available 
-                  ? (isDark ? 'hover:bg-amber-500/20 bg-amber-500/10' : 'hover:bg-amber-50 bg-amber-25')
-                  : (isDark ? 'hover:bg-green-500/20 bg-green-500/10' : 'hover:bg-green-50 bg-green-25')"
+                  ? (isDark ? 'hover:bg-amber-600/20 bg-amber-600/10' : 'hover:bg-amber-100 bg-amber-50')
+                  : (isDark ? 'hover:bg-green-600/20 bg-green-600/10' : 'hover:bg-green-100 bg-green-50')"
                 :title="upload.is_available ? 'Make unavailable' : 'Make available'"
               >
                 <EyeSlashIcon v-if="upload.is_available" class="w-5 h-5 transition-colors duration-300"
@@ -220,51 +240,51 @@
                 <button
                   @click="toggleExpirationDropdown(upload.upload_id)"
                   class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
-                  :class="isDark ? 'hover:bg-purple-500/20 bg-purple-500/10' : 'hover:bg-purple-50 bg-purple-25'"
+                  :class="isDark ? 'hover:bg-purple-600/20 bg-purple-600/10' : 'hover:bg-purple-100 bg-purple-50'"
                   title="Change expiration"
                 >
                   <ClockIcon class="w-5 h-5 transition-colors duration-300"
                             :class="isDark ? 'text-purple-400 group-hover:text-purple-300' : 'text-purple-600 group-hover:text-purple-700'" />
                 </button>
                 <div v-if="showExpirationDropdown[upload.upload_id]" 
-                     class="absolute right-0 mt-2 w-48 rounded-md shadow-lg border z-10 transition-colors duration-300"
+                     class="absolute right-0 mt-2 w-48 rounded-lg shadow-lg border z-10 transition-colors duration-300"
                      :style="{ 
-                       backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                       backgroundColor: isDark ? '#111827' : '#ffffff',
                        borderColor: isDark ? '#374151' : '#e5e7eb'
                      }">
                   <div class="py-1">
                     <button
                       @click="changeExpiration(upload.upload_id, '7days')"
-                      class="block w-full text-left px-4 py-2 text-sm transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      :style="{ color: isDark ? '#e5e7eb' : '#374151' }"
+                      class="block w-full text-left px-4 py-2 text-sm font-medium transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      :style="{ color: isDark ? '#f9fafb' : '#111827' }"
                     >
                       7 days
                     </button>
                     <button
                       @click="changeExpiration(upload.upload_id, '1month')"
-                      class="block w-full text-left px-4 py-2 text-sm transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      :style="{ color: isDark ? '#e5e7eb' : '#374151' }"
+                      class="block w-full text-left px-4 py-2 text-sm font-medium transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      :style="{ color: isDark ? '#f9fafb' : '#111827' }"
                     >
                       1 month
                     </button>
                     <button
                       @click="changeExpiration(upload.upload_id, '6months')"
-                      class="block w-full text-left px-4 py-2 text-sm transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      :style="{ color: isDark ? '#e5e7eb' : '#374151' }"
+                      class="block w-full text-left px-4 py-2 text-sm font-medium transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      :style="{ color: isDark ? '#f9fafb' : '#111827' }"
                     >
                       6 months
                     </button>
                     <button
                       @click="changeExpiration(upload.upload_id, '1year')"
-                      class="block w-full text-left px-4 py-2 text-sm transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      :style="{ color: isDark ? '#e5e7eb' : '#374151' }"
+                      class="block w-full text-left px-4 py-2 text-sm font-medium transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      :style="{ color: isDark ? '#f9fafb' : '#111827' }"
                     >
                       1 year
                     </button>
                     <button
                       @click="changeExpiration(upload.upload_id, 'never')"
-                      class="block w-full text-left px-4 py-2 text-sm transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      :style="{ color: isDark ? '#e5e7eb' : '#374151' }"
+                      class="block w-full text-left px-4 py-2 text-sm font-medium transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      :style="{ color: isDark ? '#f9fafb' : '#111827' }"
                     >
                       Never expires
                     </button>
@@ -275,12 +295,12 @@
               <!-- Delete Button -->
               <button
                 @click="deleteUpload(upload.upload_id)"
-                class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group"
-                :class="isDark ? 'hover:bg-red-500/20 bg-red-500/10' : 'hover:bg-red-50 bg-red-25'"
+                class="p-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md group border"
+                :class="isDark ? 'hover:bg-red-500/30 bg-red-500/20 border-red-400/50' : 'hover:bg-red-100 bg-red-50 border-red-200'"
                 title="Delete upload"
               >
-                <TrashIcon class="w-5 h-5 transition-colors duration-300"
-                          :class="isDark ? 'text-red-400 group-hover:text-red-300' : 'text-red-600 group-hover:text-red-700'" />
+                <TrashIcon class="w-5 h-5 transition-colors duration-300 font-bold"
+                          :class="isDark ? 'text-red-300 group-hover:text-red-200' : 'text-red-700 group-hover:text-red-800'" />
               </button>
             </template>
           </div>
@@ -289,24 +309,33 @@
     </div>
 
     <!-- Pagination (if there are more items than displayed) -->
-    <div v-if="filteredUploads.length > itemsPerPage" class="mt-6 text-center">
-      <div class="inline-flex items-center space-x-2 p-2 rounded-lg border transition-colors duration-300"
-           :style="{ 
-             backgroundColor: isDark ? '#1f2937' : '#f8fafc',
-             borderColor: isDark ? '#374151' : '#e2e8f0'
-           }">
-        <span class="text-sm transition-colors duration-300"
-              :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
-          Showing {{ displayedUploads.length }} of {{ filteredUploads.length }} items
-        </span>
-        <button 
-          v-if="currentlyShowing < filteredUploads.length"
-          @click="loadMore"
-          class="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200"
-        >
-          Load More ({{ Math.min(itemsPerPage, filteredUploads.length - currentlyShowing) }})
-        </button>
-      </div>
+        <!-- Load More/Show Less Controls -->
+    <div v-if="filteredUploads.length > itemsPerPage" 
+         class="flex justify-center items-center space-x-4 p-6 rounded-lg border transition-colors duration-300"
+         :style="{ 
+           backgroundColor: isDark ? '#111827' : '#ffffff',
+           borderColor: isDark ? '#374151' : '#e5e7eb'
+         }">
+      <button
+        v-if="currentlyShowing < filteredUploads.length"
+        @click="loadMore"
+        class="px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg transform hover:scale-105"
+      >
+        Load More ({{ Math.min(itemsPerPage, filteredUploads.length - currentlyShowing) }} more)
+      </button>
+      
+      <span class="font-bold text-lg transition-colors duration-300"
+            :style="{ color: isDark ? '#f9fafb' : '#111827' }">
+        Showing {{ currentlyShowing }} of {{ filteredUploads.length }} uploads
+      </span>
+      
+      <button
+        v-if="currentlyShowing > itemsPerPage"
+        @click="currentlyShowing = itemsPerPage"
+        class="px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-gray-600 text-white hover:bg-gray-700 hover:shadow-lg transform hover:scale-105"
+      >
+        Show Less
+      </button>
     </div>
   </div>
 </template>
@@ -484,6 +513,17 @@ const isExpiringSoon = (expiresAt: string) => {
 
 const getBaseUrl = () => {
   return window.location.origin
+}
+
+const getDeletionReason = (deletionReason: any) => {
+  // Handle SQL nullable string format: { "String": "value", "Valid": true }
+  if (typeof deletionReason === 'string') {
+    return deletionReason
+  }
+  if (typeof deletionReason === 'object' && deletionReason?.Valid && deletionReason?.String) {
+    return deletionReason.String
+  }
+  return null
 }
 
 const goToFiles = (downloadUrl: string) => {

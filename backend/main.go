@@ -138,20 +138,21 @@ type DeletionLog struct {
 }
 
 type Upload struct {
-	ID           int            `json:"id" db:"id"`
-	UserID       int            `json:"user_id" db:"user_id"`
-	UploadID     string         `json:"upload_id" db:"upload_id"`
-	Files        string         `json:"files" db:"files"` // NOT NULL, so string is fine
-	TotalSize    int64          `json:"total_size" db:"total_size"`
-	Email        sql.NullString `json:"email" db:"email"`               // Nullable
-	DownloadURL  string         `json:"download_url" db:"download_url"` // NOT NULL, so string is fine
-	CreatedAt    time.Time      `json:"created_at" db:"created_at"`
-	ExpiresAt    *time.Time     `json:"expires_at" db:"expires_at"` // Already correct
-	IsAvailable  bool           `json:"is_available" db:"is_available"`
-	IsReverse    bool           `json:"is_reverse" db:"is_reverse"`       // Has default, so bool is fine
-	ReverseToken sql.NullString `json:"reverse_token" db:"reverse_token"` // Nullable
-	IsDeleted    bool           `json:"is_deleted" db:"is_deleted"`
-	DeletedAt    *time.Time     `json:"deleted_at" db:"deleted_at"`
+	ID             int            `json:"id" db:"id"`
+	UserID         int            `json:"user_id" db:"user_id"`
+	UploadID       string         `json:"upload_id" db:"upload_id"`
+	Files          string         `json:"files" db:"files"` // NOT NULL, so string is fine
+	TotalSize      int64          `json:"total_size" db:"total_size"`
+	Email          sql.NullString `json:"email" db:"email"`               // Nullable
+	DownloadURL    string         `json:"download_url" db:"download_url"` // NOT NULL, so string is fine
+	CreatedAt      time.Time      `json:"created_at" db:"created_at"`
+	ExpiresAt      *time.Time     `json:"expires_at" db:"expires_at"` // Already correct
+	IsAvailable    bool           `json:"is_available" db:"is_available"`
+	IsReverse      bool           `json:"is_reverse" db:"is_reverse"`       // Has default, so bool is fine
+	ReverseToken   sql.NullString `json:"reverse_token" db:"reverse_token"` // Nullable
+	IsDeleted      bool           `json:"is_deleted" db:"is_deleted"`
+	DeletedAt      *time.Time     `json:"deleted_at" db:"deleted_at"`
+	DeletionReason sql.NullString `json:"deletion_reason" db:"deletion_reason"`
 }
 
 type RegisterRequest struct {
@@ -380,7 +381,8 @@ func createTables() {
 	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS is_reverse BOOLEAN DEFAULT FALSE;
 	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS reverse_token VARCHAR(255);
 	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
-	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL;`
+	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL;
+	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS deletion_reason VARCHAR(255) DEFAULT NULL;`
 
 	// Alter settings table to add allow_registration
 	alterSettingsTable := `
@@ -1010,7 +1012,7 @@ func main() {
 		rows, err := db.Query(`
 			SELECT id, upload_id, files, total_size, email, download_url, created_at, expires_at,
 			       COALESCE(is_available, TRUE), COALESCE(is_reverse, FALSE), COALESCE(reverse_token, ''),
-			       COALESCE(is_deleted, FALSE), deleted_at
+			       COALESCE(is_deleted, FALSE), deleted_at, deletion_reason
 			FROM uploads
 			WHERE user_id = $1
 			ORDER BY created_at DESC
@@ -1028,7 +1030,7 @@ func main() {
 				&upload.ID, &upload.UploadID, &upload.Files, &upload.TotalSize,
 				&upload.Email, &upload.DownloadURL, &upload.CreatedAt, &upload.ExpiresAt,
 				&upload.IsAvailable, &upload.IsReverse, &upload.ReverseToken,
-				&upload.IsDeleted, &upload.DeletedAt,
+				&upload.IsDeleted, &upload.DeletedAt, &upload.DeletionReason,
 			)
 			if err != nil {
 				continue
@@ -1096,7 +1098,7 @@ func main() {
 		// Soft delete the upload in database
 		_, err = tx.Exec(`
 			UPDATE uploads
-			SET is_deleted = TRUE, deleted_at = CURRENT_TIMESTAMP
+			SET is_deleted = TRUE, deleted_at = CURRENT_TIMESTAMP, deletion_reason = 'User deleted'
 			WHERE user_id = $1 AND upload_id = $2
 		`, userID, uploadID)
 
@@ -2196,7 +2198,7 @@ func main() {
 					}
 
 					// Mark as deleted in database
-					_, err = db.Exec("UPDATE uploads SET is_deleted = TRUE, deleted_at = NOW() WHERE upload_id = $1", upload.UploadID)
+					_, err = db.Exec("UPDATE uploads SET is_deleted = TRUE, deleted_at = NOW(), deletion_reason = 'Expired' WHERE upload_id = $1", upload.UploadID)
 					if err != nil {
 						fmt.Printf("Failed to mark upload as deleted: %v\n", err)
 					} else {
