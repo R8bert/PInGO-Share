@@ -636,22 +636,28 @@ const fetchReverseTokens = async () => {
   }
 }
 
-const createReverseToken = async () => {
+interface ReverseTokenData {
+  name: string;
+  max_uses: number;
+  expires_in: string;
+}
+
+const createReverseToken = async (tokenData: ReverseTokenData) => {
   try {
     // Add validation before sending
-    if (!newToken.value.name || newToken.value.name.trim() === '') {
+    if (!tokenData.name || tokenData.name.trim() === '') {
       alert('Please enter a token name')
       return
     }
 
     // Ensure max_uses is sent as a number
-    const tokenData = {
-      name: newToken.value.name.trim(),
-      max_uses: parseInt(newToken.value.max_uses.toString()),
-      expires_in: newToken.value.expires_in
+    const payload = {
+      name: tokenData.name.trim(),
+      max_uses: parseInt(tokenData.max_uses?.toString() ?? '-1'),
+      expires_in: tokenData.expires_in
     }
 
-    console.log('Creating token with data:', tokenData)
+    console.log('Creating token with data:', payload)
     
     const response = await fetch('http://localhost:8080/reverse-tokens', {
       method: 'POST',
@@ -660,7 +666,7 @@ const createReverseToken = async () => {
         'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
       },
       credentials: 'include',
-      body: JSON.stringify(tokenData)
+      body: JSON.stringify(payload)
     })
 
     const responseData = await response.json()
