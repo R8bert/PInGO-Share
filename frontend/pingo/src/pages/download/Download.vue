@@ -1,767 +1,484 @@
 <template>
-  <div class="min-h-screen transition-colors duration-300 relative overflow-hidden" 
-       :style="{ backgroundColor: isDark ? '#000000' : '#fbfbfd' }">
+  <div class="min-h-screen transition-colors duration-300" 
+       :style="{ backgroundColor: isDark ? '#000000' : '#ffffff' }">
     
-    <!-- Arc Carousel Background -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-      <!-- Arc Carousel Container -->
-      <div class="arc-carousel-container">
-        <div v-for="(item, index) in arcCarouselItems" :key="`arc-${index}`"
-             class="arc-carousel-item arc-slide"
-             :class="[item.size]"
-             :style="{
-               '--delay': item.delay + 's',
-               '--duration': item.duration + 's',
-               opacity: item.opacity
-             }">
-          <div class="arc-carousel-icon">
-            <img :src="item.icon" :alt="item.type" class="w-full h-full object-contain filter drop-shadow-lg" />
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Starfield Background (Dark Mode Only) -->
-    <div v-if="isDark" class="fixed inset-0 z-0">
-      <!-- Twinkling Stars -->
-      <div v-for="star in stars" :key="`star-${star.id}`"
-           class="absolute rounded-full bg-white animate-twinkle"
-           :style="{
-             left: star.x + '%',
-             top: star.y + '%',
-             width: star.size + 'px',
-             height: star.size + 'px',
-             animationDelay: star.delay + 's',
-             animationDuration: star.duration + 's'
-           }">
-      </div>
-      
-      <!-- Constellations -->
-      <div v-for="constellation in constellations" :key="`constellation-${constellation.id}`"
-           class="absolute opacity-30"
-           :style="{
-             left: constellation.x + '%',
-             top: constellation.y + '%'
-           }">
-        <svg width="60" height="60" viewBox="0 0 60 60">
-          <circle cx="10" cy="10" r="1" fill="white" />
-          <circle cx="30" cy="20" r="1.5" fill="white" />
-          <circle cx="45" cy="15" r="1" fill="white" />
-          <circle cx="20" cy="40" r="1" fill="white" />
-          <circle cx="50" cy="45" r="1.5" fill="white" />
-          <line x1="10" y1="10" x2="30" y2="20" stroke="white" stroke-width="0.3" opacity="0.5" />
-          <line x1="30" y1="20" x2="45" y2="15" stroke="white" stroke-width="0.3" opacity="0.5" />
-          <line x1="30" y1="20" x2="20" y2="40" stroke="white" stroke-width="0.3" opacity="0.5" />
-          <line x1="20" y1="40" x2="50" y2="45" stroke="white" stroke-width="0.3" opacity="0.5" />
-        </svg>
-      </div>
-      
-      <!-- Nebula Effect -->
-      <div class="absolute top-20 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-10 animate-float-slow bg-blue-500"></div>
-      <div class="absolute bottom-20 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-10 animate-float-slower bg-purple-500"></div>
+    <!-- WebGL Background -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      <WebGLBackground 
+        :hue-shift="isDark ? 200 : 160"
+        :noise-intensity="isDark ? 0.02 : 0.008"
+        :scanline-intensity="isDark ? 0.08 : 0.03"
+        :speed="0.2"
+        :scanline-frequency="isDark ? 0.3 : 0.15"
+        :warp-amount="0.08"
+        :resolution-scale="0.8"
+        class="opacity-30"
+      />
     </div>
 
     <!-- Main Content -->
-    <main class="relative z-10 pt-8">
-      <!-- Hero Section with Apple-style Typography -->
-      <section class="relative overflow-hidden">
-
-        
-        <div class="relative max-w-4xl mx-auto px-6 lg:px-8 pt-20 pb-16 text-center">
+    <main class="relative z-10 min-h-screen flex flex-col">
+      
+      <!-- Hero Section -->
+      <section class="relative flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-20">
+        <div class="max-w-4xl mx-auto w-full">
           
-          <!-- Apple-style large headline -->
-          <h1 class="text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-fade-in"
-              :style="{ 
-                color: isDark ? '#ffffff' : '#1d1d1f',
-                fontFamily: 'system-ui, -apple-system, sans-serif'
-              }">
-            Your <span class="text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text animate-rainbow">files</span> are ready
-          </h1>
-          
-          <!-- Apple-style subtitle -->
-          <p class="text-xl lg:text-2xl font-light max-w-2xl mx-auto leading-relaxed animate-fade-in-delay transition-colors duration-300"
-             :style="{ 
-               color: isDark ? '#a1a1aa' : '#6e6e73',
-               fontFamily: 'system-ui, -apple-system, sans-serif'
-             }">
-            {{ loading ? 'Preparing your download experience...' : `${files.length} file${files.length !== 1 ? 's' : ''} shared with you` }}
-          </p>
-        </div>
-      </section>
-
-      <!-- Content Section -->
-      <section class="relative max-w-4xl mx-auto px-6 lg:px-8 pb-20">
-        
-        <!-- Loading State - Apple Style -->
-        <div v-if="loading" 
-             class="mx-auto max-w-md animate-pulse">
-          <div class="rounded-3xl p-12 text-center backdrop-blur-xl border transition-all duration-300"
-               :style="{ 
-                 backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)',
-                 borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-               }">
-            <div class="w-16 h-16 mx-auto mb-6 rounded-full animate-spin border-4 border-blue-500 border-t-transparent"></div>
-            <p class="text-lg font-medium transition-colors duration-300"
-               :style="{ color: isDark ? '#ffffff' : '#1d1d1f' }">Loading files...</p>
-          </div>
-        </div>
-
-        <!-- Error State - Apple Style -->
-        <div v-else-if="error" 
-             class="mx-auto max-w-md animate-scale-in">
-          <div class="rounded-3xl p-12 text-center backdrop-blur-xl border transition-all duration-300"
-               :style="{ 
-                 backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(254, 226, 226, 0.8)',
-                 borderColor: isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.2)'
-               }">
-            <div class="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center"
-                 :style="{ backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(254, 226, 226, 1)' }">
-              <XMarkIcon class="w-8 h-8 text-red-500" />
-            </div>
-            <h2 class="text-2xl font-semibold mb-4 text-red-500">Oops!</h2>
-            <p class="text-lg mb-8 transition-colors duration-300"
-               :style="{ color: isDark ? '#d1d5db' : '#374151' }">{{ error }}</p>
-            <router-link 
-              to="/" 
-              class="inline-flex items-center px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-200 hover:scale-105"
-            >
-              ← Go Home
-            </router-link>
-          </div>
-        </div>
-
-        <!-- Success State - Apple Style -->
-        <div v-else class="space-y-8">
-          
-          <!-- Uploader Card - Apple Style -->
-          <div v-if="uploader" 
-               class="rounded-3xl p-8 backdrop-blur-xl border transition-all duration-300 animate-slide-up"
-               :style="{ 
-                 backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)',
-                 borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-               }">
-            
-            <div class="flex items-center space-x-6">
-              <!-- Apple-style Avatar -->
-              <div class="relative flex-shrink-0">
-                <div class="w-20 h-20 rounded-2xl overflow-hidden shadow-xl"
-                     :style="{ backgroundColor: isDark ? '#1e1e1e' : '#f5f5f7' }">
-                  <img v-if="uploader.avatar" 
-                       :src="`http://localhost:8080${uploader.avatar}`" 
-                       alt="Avatar" 
-                       class="w-full h-full object-cover" 
-                       @error="handleAvatarError" />
-                  <div v-else class="w-full h-full flex items-center justify-center">
-                    <UserIcon class="w-10 h-10 transition-colors duration-300"
-                             :style="{ color: isDark ? '#60a5fa' : '#2563eb' }" />
-                  </div>
-                </div>
-                <!-- Online indicator -->
-                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 transition-colors duration-300"
-                     :style="{ borderColor: isDark ? '#000000' : '#fbfbfd' }"></div>
-              </div>
-              
-              <!-- User Info -->
-              <div class="flex-1 min-w-0">
-                <h3 class="text-2xl font-semibold mb-1 transition-colors duration-300"
-                    :style="{ 
-                      color: isDark ? '#ffffff' : '#1d1d1f',
-                      fontFamily: 'system-ui, -apple-system, sans-serif'
-                    }">{{ uploader.username }}</h3>
-                <p class="text-lg transition-colors duration-300 mb-3"
-                   :style="{ color: isDark ? '#a1a1aa' : '#6e6e73' }">{{ uploader.email }}</p>
-                
-                <!-- Stats with Apple-style pills -->
-                <div class="flex flex-wrap gap-3">
-                  <div class="px-4 py-2 rounded-full transition-colors duration-300"
-                       :style="{ 
-                         backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)',
-                         color: isDark ? '#60a5fa' : '#2563eb'
-                       }">
-                    {{ files.length }} file{{ files.length > 1 ? 's' : '' }}
-                  </div>
-                  <div class="px-4 py-2 rounded-full transition-colors duration-300"
-                       :style="{ 
-                         backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)',
-                         color: isDark ? '#a78bfa' : '#7c3aed'
-                       }">
-                    {{ formatTotalSize() }}
-                  </div>
-                  <div v-if="uploader.expirationDate" 
-                       class="px-4 py-2 rounded-full transition-colors duration-300"
-                       :style="{ 
-                         backgroundColor: formatExpirationDate(uploader.expirationDate).isExpired 
-                           ? (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)')
-                           : (isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)'),
-                         color: formatExpirationDate(uploader.expirationDate).isExpired 
-                           ? '#ef4444' 
-                           : '#22c55e'
-                       }">
-                    {{ formatExpirationDate(uploader.expirationDate).text }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Files Header with Apple-style Action Button -->
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h2 class="text-3xl font-semibold transition-colors duration-300"
-                  :style="{ 
-                    color: isDark ? '#ffffff' : '#1d1d1f',
-                    fontFamily: 'system-ui, -apple-system, sans-serif'
-                  }">Download</h2>
-              <p class="text-lg transition-colors duration-300 mt-1"
-                 :style="{ color: isDark ? '#a1a1aa' : '#6e6e73' }">{{ formatTotalSize() }} total</p>
-            </div>
-            
-            <!-- Apple-style Download All Button -->
-            <button 
-              @click="downloadAll"
-              :disabled="downloadingAll"
-              class="group relative px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-200 hover:scale-105 disabled:opacity-50 shadow-lg"
-            >
-              <span v-if="downloadingAll" class="flex items-center">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center space-y-8 animate-fade-in">
+            <div class="relative mx-auto w-32 h-32">
+              <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
+              <div class="relative bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl p-8 flex items-center justify-center">
+                <svg class="w-16 h-16 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
-                Downloading...
-              </span>
-              <span v-else class="flex items-center">
-                <ArrowDownTrayIcon class="w-5 h-5 mr-2" />
-                Download All
-              </span>
-            </button>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <h1 class="text-4xl sm:text-5xl font-bold"
+                  :style="{ color: isDark ? '#ffffff' : '#000000' }">
+                Preparing your files...
+              </h1>
+              <p class="text-xl"
+                 :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
+                Setting up your download experience
+              </p>
+            </div>
           </div>
 
-          <!-- Files Grid - Apple Style -->
-          <div class="grid grid-cols-1 gap-6">
-            <div 
-              v-for="(file, index) in files" 
-              :key="index" 
-              class="group rounded-3xl p-6 backdrop-blur-xl border transition-all duration-300 hover:scale-[1.02] animate-slide-up"
-              :style="{ 
-                animationDelay: `${index * 0.1}s`,
-                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)',
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-              }"
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4 flex-1 min-w-0">
-                  <!-- File Icon -->
-                  <img :src="getFileIcon(file)" alt="File type" class="w-10 h-10 flex-shrink-0" />
+          <!-- Content State -->
+          <div v-else-if="files.length > 0" class="space-y-12 animate-fade-in">
+            
+            <!-- Header -->
+            <div class="text-center space-y-6">
+              <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full border backdrop-blur-sm"
+                   :style="{
+                     backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                     borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                     color: isDark ? '#a1a1aa' : '#71717a'
+                   }">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-sm font-medium">{{ files.length }} file{{ files.length > 1 ? 's' : '' }} ready</span>
+              </div>
+
+              <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
+                <span :style="{ color: isDark ? '#ffffff' : '#000000' }">Your files</span>
+                <br />
+                <span class="text-transparent bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text">
+                  are ready
+                </span>
+              </h1>
+              
+              <p class="text-xl sm:text-2xl max-w-2xl mx-auto leading-relaxed"
+                 :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
+                Download your files securely and instantly
+              </p>
+            </div>
+
+            <!-- Uploader Info Card -->
+            <div v-if="uploader" class="max-w-2xl mx-auto">
+              <div class="relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-3xl blur-3xl"></div>
+                <div class="relative backdrop-blur-xl border rounded-3xl p-8"
+                     :style="{
+                       backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+                       borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                     }">
                   
-                  <!-- File Details -->
-                  <div class="flex-1 min-w-0">
-                    <h3 class="text-xl font-semibold mb-1 truncate transition-colors duration-300"
-                        :style="{ 
-                          color: isDark ? '#ffffff' : '#1d1d1f',
-                          fontFamily: 'system-ui, -apple-system, sans-serif'
-                        }">{{ file.name }}</h3>
-                    <div class="flex items-center space-x-4 text-sm">
-                      <span class="transition-colors duration-300"
-                            :style="{ color: isDark ? '#a1a1aa' : '#6e6e73' }">{{ formatFileSize(file.size) }}</span>
-                      <span class="px-3 py-1 rounded-full text-xs font-medium transition-colors duration-300"
-                            :style="{ 
-                              backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)',
-                              color: isDark ? '#a78bfa' : '#7c3aed'
-                            }">
-                        {{ getFileExtension(file).toUpperCase() }}
-                      </span>
+                  <!-- "Uploaded by" header -->
+                  <div class="text-center mb-6">
+                    <p class="text-sm font-medium uppercase tracking-wider mb-2"
+                       :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
+                      Uploaded by
+                    </p>
+                  </div>
+                  
+                  <div class="flex items-center space-x-6">
+                    <!-- Avatar with enhanced styling -->
+                    <div class="relative group">
+                      <div class="absolute inset-0 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div class="relative w-24 h-24 rounded-2xl overflow-hidden border-2 bg-white/10 backdrop-blur-sm"
+                           :style="{ borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }">
+                        <img v-if="uploader.avatar" 
+                             :src="`http://localhost:8080${uploader.avatar}`" 
+                             :alt="uploader.username"
+                             class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                             @error="handleAvatarError" />
+                        <div v-else class="w-full h-full bg-gradient-to-br from-green-500 via-blue-500 to-purple-500 flex items-center justify-center">
+                          <span class="text-white text-3xl font-bold">{{ uploader.username.charAt(0).toUpperCase() }}</span>
+                        </div>
+                      </div>
+                      <!-- Online indicator -->
+                      <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 rounded-full border-4 shadow-lg"
+                           :style="{ borderColor: isDark ? '#000000' : '#ffffff' }">
+                        <div class="w-full h-full bg-green-400 rounded-full animate-pulse"></div>
+                      </div>
+                    </div>
+                    
+                    <!-- User Info -->
+                    <div class="flex-1 min-w-0">
+                      <h3 class="text-3xl font-bold mb-2 truncate"
+                          :style="{ color: isDark ? '#ffffff' : '#000000' }">
+                        {{ uploader.username }}
+                      </h3>
+                      <p class="text-lg mb-4 truncate opacity-80"
+                         :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
+                        {{ uploader.email }}
+                      </p>
+                      
+                      <!-- Enhanced Stats -->
+                      <div class="flex flex-wrap gap-3">
+                        <div class="px-4 py-2 rounded-xl backdrop-blur-sm border"
+                             :style="{
+                               backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)',
+                               borderColor: 'rgba(34, 197, 94, 0.3)',
+                               color: '#22c55e'
+                             }">
+                          <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="text-sm font-medium">{{ formatTotalSize() }}</span>
+                          </div>
+                        </div>
+                        
+                        <div class="px-4 py-2 rounded-xl backdrop-blur-sm border"
+                             :style="{
+                               backgroundColor: isDark ? 'rgba(147, 51, 234, 0.2)' : 'rgba(147, 51, 234, 0.1)',
+                               borderColor: 'rgba(147, 51, 234, 0.3)',
+                               color: '#9333ea'
+                             }">
+                          <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            <span class="text-sm font-medium">{{ files.length }} file{{ files.length > 1 ? 's' : '' }}</span>
+                          </div>
+                        </div>
+                        
+                        <div v-if="uploader.expirationDate" 
+                             class="px-4 py-2 rounded-xl backdrop-blur-sm border"
+                             :style="{
+                               backgroundColor: formatExpirationDate(uploader.expirationDate).isExpired 
+                                 ? (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)')
+                                 : (isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)'),
+                               borderColor: formatExpirationDate(uploader.expirationDate).isExpired 
+                                 ? 'rgba(239, 68, 68, 0.3)' 
+                                 : 'rgba(59, 130, 246, 0.3)',
+                               color: formatExpirationDate(uploader.expirationDate).isExpired ? '#ef4444' : '#3b82f6'
+                             }">
+                          <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm font-medium">{{ formatExpirationDate(uploader.expirationDate).text }}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-                
-                <!-- Action Buttons -->
-                <div class="flex items-center space-x-3 flex-shrink-0">
-                  <!-- Preview Button -->
-                  <button 
-                    v-if="canPreview(file)" 
-                    @click="togglePreview(index)"
-                    class="p-3 rounded-xl transition-all duration-200 hover:scale-110"
-                    :style="{
-                      backgroundColor: previewingFiles.has(index) 
-                        ? (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)')
-                        : (isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)'),
-                      color: previewingFiles.has(index) ? '#ef4444' : '#22c55e'
-                    }"
-                    :title="previewingFiles.has(index) ? 'Hide Preview' : 'Show Preview'"
-                  >
-                    <EyeIcon v-if="!previewingFiles.has(index)" class="w-5 h-5" />
-                    <EyeSlashIcon v-else class="w-5 h-5" />
-                  </button>
-                  
-                  <!-- Download Button -->
-                  <button 
-                    @click="downloadFile(index)"
-                    :disabled="downloadingFiles.has(index)"
-                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50"
-                  >
-                    <span v-if="downloadingFiles.has(index)" class="flex items-center">
-                      <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Loading
-                    </span>
-                    <span v-else class="flex items-center">
-                      <ArrowDownTrayIcon class="w-4 h-4 mr-2" />
-                      Download
-                    </span>
-                  </button>
-                </div>
               </div>
+            </div>
 
-              <!-- Preview Section - Apple Style -->
-              <div v-if="previewingFiles.has(index)" class="mt-8 animate-slide-down">
-                <div class="border-t pt-6 transition-colors duration-300"
-                     :style="{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }">
+            <!-- Download All Button -->
+            <div class="text-center">
+              <button 
+                @click="downloadAll"
+                :disabled="downloadingAll"
+                class="group relative px-12 py-6 bg-gradient-to-r from-green-600 to-blue-600 text-white font-bold text-xl rounded-3xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25 disabled:opacity-50 disabled:hover:scale-100"
+              >
+                <span v-if="downloadingAll" class="flex items-center">
+                  <svg class="animate-spin -ml-1 mr-4 h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Downloading...
+                </span>
+                <span v-else class="flex items-center">
+                  <svg class="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                  </svg>
+                  Download All Files
+                </span>
+                <div class="absolute inset-0 bg-gradient-to-r from-green-700 to-blue-700 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </button>
+            </div>
+
+            <!-- Files List -->
+            <div class="max-w-4xl mx-auto">
+              <div class="relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-3xl blur-3xl"></div>
+                <div class="relative backdrop-blur-xl border rounded-3xl p-8"
+                     :style="{
+                       backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+                       borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                     }">
                   
-                  <!-- Image Preview -->
-                  <div v-if="isImage(file)" class="text-center">
-                    <img 
-                      :src="getFileUrl(file)" 
-                      :alt="file.name"
-                      class="max-w-full max-h-96 mx-auto rounded-2xl shadow-2xl"
-                      @error="handlePreviewError"
-                    />
-                  </div>
+                  <h2 class="text-2xl font-bold mb-6"
+                      :style="{ color: isDark ? '#ffffff' : '#000000' }">
+                    Files ({{ files.length }})
+                  </h2>
 
-                  <!-- Video Preview -->
-                  <div v-else-if="isVideo(file)" class="text-center">
-                    <video 
-                      controls 
-                      class="max-w-full max-h-96 mx-auto rounded-2xl shadow-2xl"
-                      :src="getFileUrl(file)"
-                      @error="handlePreviewError"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  </div>
+                  <div class="grid gap-4">
+                    <div v-for="(file, index) in files" :key="index" 
+                         class="group rounded-2xl border p-6 transition-all duration-300 hover:scale-[1.02]"
+                         :style="{
+                           backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+                           borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                         }">
+                      
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4 flex-1 min-w-0">
+                          <!-- File Icon -->
+                          <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-white text-sm font-bold">{{ getFileExtension(file.name).toUpperCase() }}</span>
+                          </div>
+                          
+                          <!-- File Info -->
+                          <div class="flex-1 min-w-0">
+                            <h3 class="text-lg font-semibold truncate"
+                                :style="{ color: isDark ? '#ffffff' : '#000000' }">
+                              {{ file.name }}
+                            </h3>
+                            <div class="flex items-center space-x-4 mt-1">
+                              <span class="text-sm"
+                                    :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
+                                {{ formatFileSize(file.size) }}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
 
-                  <!-- PDF Preview -->
-                  <div v-else-if="isPdf(file)" class="text-center">
-                    <object 
-                      :data="getFileUrl(file)" 
-                      type="application/pdf" 
-                      class="w-full h-96 rounded-2xl shadow-2xl border transition-colors duration-300"
-                      :style="{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }"
-                    >
-                      <div class="flex items-center justify-center h-96 rounded-2xl transition-colors duration-300"
-                           :style="{ backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }">
-                        <div class="text-center">
-                          <DocumentIcon class="w-16 h-16 mx-auto mb-4 transition-colors duration-300"
-                                       :style="{ color: isDark ? '#6b7280' : '#9ca3af' }" />
-                          <p class="mb-4 transition-colors duration-300"
-                             :style="{ color: isDark ? '#d1d5db' : '#6b7280' }">PDF preview not supported</p>
-                          <button 
-                            @click="downloadFile(index)"
-                            class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-all duration-200"
-                          >
-                            Download to view
+                        <!-- Actions -->
+                        <div class="flex items-center space-x-3 flex-shrink-0">
+                          <!-- Preview Button -->
+                          <button v-if="canPreview(file)" 
+                                  @click="togglePreview(index)"
+                                  class="p-3 rounded-xl transition-all duration-200 hover:scale-110"
+                                  :style="{
+                                    backgroundColor: previewingFiles.has(index) 
+                                      ? (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)')
+                                      : (isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)'),
+                                    color: previewingFiles.has(index) ? '#ef4444' : '#22c55e'
+                                  }">
+                            <svg v-if="!previewingFiles.has(index)" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                            </svg>
+                          </button>
+
+                          <!-- Download Button -->
+                          <button @click="downloadFile(file, index)"
+                                  :disabled="downloadingStates[index]"
+                                  class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-110 disabled:opacity-50">
+                            <span v-if="downloadingStates[index]" class="flex items-center">
+                              <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Downloading
+                            </span>
+                            <span v-else class="flex items-center">
+                              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                              </svg>
+                              Download
+                            </span>
                           </button>
                         </div>
                       </div>
-                    </object>
-                  </div>
 
-                  <!-- Text Preview -->
-                  <div v-else-if="isText(file)" class="rounded-2xl p-6 transition-colors duration-300"
-                       :style="{ backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }">
-                    <pre class="text-sm whitespace-pre-wrap overflow-auto max-h-64 transition-colors duration-300 font-mono"
-                         :style="{ color: isDark ? '#e5e7eb' : '#374151' }">{{ textContent.get(index) || 'Loading...' }}</pre>
-                  </div>
+                      <!-- Preview Section -->
+                      <div v-if="previewingFiles.has(index)" class="mt-6 pt-6 border-t"
+                           :style="{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }">
+                        
+                        <!-- Image preview -->
+                        <div v-if="['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(getFileExtension(file.name))">
+                          <img 
+                            :src="`http://localhost:8080/download/${$route.params.id}/${file.name}?preview=true`"
+                            :alt="file.name"
+                            class="w-full max-w-2xl mx-auto rounded-xl shadow-lg"
+                            @error="handlePreviewError">
+                        </div>
 
-                  <!-- Audio Preview -->
-                  <div v-else-if="isAudio(file)" class="text-center">
-                    <div class="inline-block p-6 rounded-2xl transition-colors duration-300"
-                         :style="{ backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }">
-                      <audio 
-                        controls 
-                        class="max-w-md"
-                        :src="getFileUrl(file)"
-                      >
-                        Your browser does not support the audio tag.
-                      </audio>
+                        <!-- Video preview -->
+                        <div v-else-if="getFileExtension(file.name) === 'mp4'">
+                          <video 
+                            :src="`http://localhost:8080/download/${$route.params.id}/${file.name}?preview=true`"
+                            controls 
+                            class="w-full max-w-2xl mx-auto rounded-xl shadow-lg">
+                          </video>
+                        </div>
+
+                        <!-- Audio preview -->
+                        <div v-else-if="['mp3', 'wav', 'flac'].includes(getFileExtension(file.name))">
+                          <audio 
+                            :src="`http://localhost:8080/download/${$route.params.id}/${file.name}?preview=true`"
+                            controls 
+                            class="w-full max-w-2xl mx-auto">
+                          </audio>
+                        </div>
+
+                        <!-- PDF preview -->
+                        <div v-else-if="getFileExtension(file.name) === 'pdf'">
+                          <iframe 
+                            :src="`http://localhost:8080/download/${$route.params.id}/${file.name}?preview=true`"
+                            class="w-full h-96 rounded-xl border"
+                            :style="{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }">
+                          </iframe>
+                        </div>
+
+                        <!-- Other file types -->
+                        <div v-else class="text-center p-8">
+                          <div class="w-16 h-16 bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                          </div>
+                          <p class="text-lg" :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
+                            Preview not available for this file type
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-
-                  <!-- Unsupported Preview -->
-                  <div v-else class="text-center py-12">
-                    <DocumentIcon class="w-16 h-16 mx-auto mb-4 transition-colors duration-300"
-                                 :style="{ color: isDark ? '#6b7280' : '#9ca3af' }" />
-                    <p class="mb-6 text-lg transition-colors duration-300"
-                       :style="{ color: isDark ? '#d1d5db' : '#6b7280' }">Preview not available</p>
-                    <button 
-                      @click="downloadFile(index)"
-                      class="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-200 hover:scale-105"
-                    >
-                      Download to view
-                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- Error State -->
+          <div v-else class="text-center space-y-8 animate-fade-in">
+            <div class="relative mx-auto w-32 h-32">
+              <div class="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-3xl blur-2xl opacity-30"></div>
+              <div class="relative bg-gradient-to-r from-red-500 to-orange-500 rounded-3xl p-8 flex items-center justify-center">
+                <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <h1 class="text-4xl sm:text-5xl font-bold"
+                  :style="{ color: isDark ? '#ffffff' : '#000000' }">
+                Share not found
+              </h1>
+              <p class="text-xl"
+                 :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
+                This share may have expired or been removed
+              </p>
+              <div class="pt-6">
+                <button 
+                  @click="$router.push('/')"
+                  class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-105"
+                >
+                  Go Back Home
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
+
+      <!-- Footer -->
+      <footer class="relative py-8 px-4 sm:px-6 lg:px-8 border-t"
+              :style="{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }">
+        <div class="max-w-7xl mx-auto text-center">
+          <p :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
+            © 2025 PInGO Share. Secure file sharing made simple.
+          </p>
+        </div>
+      </footer>
     </main>
+
+    <!-- Success Message -->
+    <div v-if="message" 
+         class="fixed bottom-6 right-6 p-4 rounded-2xl shadow-2xl z-50 backdrop-blur-xl border"
+         :style="{
+           backgroundColor: message.type === 'success' 
+             ? (isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)')
+             : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+           borderColor: message.type === 'success' ? '#22c55e' : '#ef4444',
+           color: message.type === 'success' ? '#22c55e' : '#ef4444'
+         }">
+      {{ message.text }}
+    </div>
+
+    <!-- GitHub Icon - Bottom Left -->
+    <a 
+      href="https://github.com/R8bert/PInGO-Share" 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      class="fixed bottom-4 left-4 z-40"
+      :style="{ color: isDark ? '#9ca3af' : '#6b7280' }"
+      title="View GitHub Repository"
+    >
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+      </svg>
+    </a>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from '../../composables/useTheme'
-import { XMarkIcon, ArrowDownTrayIcon, DocumentIcon, EyeIcon, EyeSlashIcon, UserIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
+import WebGLBackground from '../../components/WebGLBackground.vue'
 
-// Types
-interface FileInfo {
-  name: string
-  size: number
-  url: string
-}
-
-interface UploaderInfo {
-  username: string
-  email: string
-  avatar?: string
-  expirationDate?: string
-}
-
-// Dark mode
 const { isDark } = useTheme()
-
-// Router
 const route = useRoute()
 
 // State
 const loading = ref(true)
-const error = ref('')
-const files = ref<FileInfo[]>([])
-const uploader = ref<UploaderInfo | null>(null)
-const previewingFiles = ref(new Set<number>())
-const downloadingFiles = ref(new Set<number>())
+const files = ref<any[]>([])
+const uploader = ref<any>(null)
 const downloadingAll = ref(false)
-const textContent = ref(new Map<number, string>())
+const downloadingStates = ref<Record<number, boolean>>({})
+const message = ref<{ text: string; type: 'success' | 'error' } | null>(null)
+const previewingFiles = ref<Set<number>>(new Set())
 
-// Star animation data
-const stars = ref<Array<{
-  id: number
-  x: number
-  y: number
-  size: number
-  delay: number
-  duration: number
-}>>([])
-
-const constellations = ref<Array<{
-  id: number
-  x: number
-  y: number
-}>>([])
-
-// Arc Carousel data for background animation
-const arcCarouselItems = ref<Array<{
-  icon: string
-  type: string
-  rotation: number
-  radius: number
-  delay: number
-  duration: number
-  size: string
-  opacity: number
-  animation: string
-}>>([])
-
-const floatingIcons = ref<Array<{
-  icon: string
-  type: string
-  x: number
-  y: number
-  delay: number
-  duration: number
-  opacity: number
-  animation: string
-}>>([])
-
-// Available file type icons for carousel
-const availableIcons = [
-  { path: '/src/images/icons/files_pdf.svg', type: 'pdf' },
-  { path: '/src/images/icons/word_docx_doc.svg', type: 'document' },
-  { path: '/src/images/icons/ppt_pptx_file.svg', type: 'presentation' },
-  { path: '/src/images/icons/unknown_file_formats.svg', type: 'file' },
-  { path: '/src/images/icons/files_uploaded.svg', type: 'upload' },
-  { path: '/src/images/icons/total_files_icon.svg', type: 'folder' },
-  { path: '/src/images/icons/multimedia-photo-viewer.svg', type: 'image' },
-  { path: '/src/assets/images/train/icons/file-pdf.svg', type: 'pdf-alt' }
-]
-
-const initializeStars = () => {
-  if (!isDark.value) return
-  
-  // Generate twinkling stars
-  for (let i = 0; i < 200; i++) {
-    stars.value.push({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2 + 1,
-      delay: Math.random() * 5,
-      duration: Math.random() * 3 + 2
-    })
-  }
-  
-  // Generate constellations
-  for (let i = 0; i < 8; i++) {
-    constellations.value.push({
-      id: i,
-      x: Math.random() * 90,
-      y: Math.random() * 90
-    })
-  }
-}
-
-// Initialize arc carousel background animation
-const initializeArcCarousel = () => {
-  // Create arc carousel items that slide along an arc path
-  const numArcItems = 8
-  
-  arcCarouselItems.value = []
-  
-  for (let i = 0; i < numArcItems; i++) {
-    const icon = availableIcons[i % availableIcons.length]
-    
-    arcCarouselItems.value.push({
-      icon: icon.path,
-      type: icon.type,
-      rotation: 0,
-      radius: 300,
-      delay: (i * 2.5), // 2.5 second intervals for smoother flow
-      duration: 15, // Faster 15 seconds to complete the arc
-      size: i % 3 === 0 ? 'w-14 h-14' : i % 2 === 0 ? 'w-12 h-12' : 'w-10 h-10',
-      opacity: 0.18 + (i * 0.02),
-      animation: 'arc-slide'
-    })
-  }
-  
-  // Create fewer floating icons
-  const numFloatingIcons = 6
-  
-  floatingIcons.value = []
-  
-  for (let i = 0; i < numFloatingIcons; i++) {
-    const icon = availableIcons[(i + 4) % availableIcons.length]
-    
-    floatingIcons.value.push({
-      icon: icon.path,
-      type: icon.type,
-      x: 10 + Math.random() * 80,
-      y: 15 + Math.random() * 70,
-      delay: Math.random() * 12,
-      duration: 20 + Math.random() * 8, // Faster floating animations too
-      opacity: 0.06 + Math.random() * 0.08,
-      animation: 'float-gentle'
-    })
-  }
-}
-
-// Computed properties
-const shareId = computed(() => route.params.id as string)
-
-// Utility functions
-const formatFileSize = (bytes: number) => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-const formatTotalSize = () => {
-  const total = files.value.reduce((sum, file) => sum + file.size, 0)
-  return formatFileSize(total)
-}
-
-const getFileIcon = (file: FileInfo) => {
-  const extension = getFileExtension(file).toLowerCase()
-  const iconMap: Record<string, string> = {
-    pdf: '/src/images/icons/files_pdf.svg',
-    jpg: '/src/images/icons/multimedia-photo-viewer.svg',
-    jpeg: '/src/images/icons/multimedia-photo-viewer.svg',
-    png: '/src/images/icons/multimedia-photo-viewer.svg',
-    gif: '/src/images/icons/multimedia-photo-viewer.svg',
-    webp: '/src/images/icons/multimedia-photo-viewer.svg',
-    svg: '/src/images/icons/multimedia-photo-viewer.svg',
-    mp4: '/src/images/icons/multimedia-photo-viewer.svg',
-    avi: '/src/images/icons/multimedia-photo-viewer.svg',
-    mov: '/src/images/icons/multimedia-photo-viewer.svg',
-    webm: '/src/images/icons/multimedia-photo-viewer.svg',
-    ogg: '/src/images/icons/multimedia-photo-viewer.svg',
-    mp3: '/src/images/icons/multimedia-photo-viewer.svg',
-    wav: '/src/images/icons/multimedia-photo-viewer.svg',
-    flac: '/src/images/icons/multimedia-photo-viewer.svg',
-    aac: '/src/images/icons/multimedia-photo-viewer.svg',
-    docx: '/src/images/icons/word_docx_doc.svg',
-    doc: '/src/images/icons/word_docx_doc.svg',
-    ppt: '/src/images/icons/ppt_pptx_file.svg',
-    pptx: '/src/images/icons/ppt_pptx_file.svg',
-    txt: '/src/images/icons/files_uploaded.svg',
-    md: '/src/images/icons/files_uploaded.svg',
-    js: '/src/images/icons/files_uploaded.svg',
-    ts: '/src/images/icons/files_uploaded.svg',
-    html: '/src/images/icons/files_uploaded.svg',
-    css: '/src/images/icons/files_uploaded.svg',
-    json: '/src/images/icons/files_uploaded.svg',
-    xml: '/src/images/icons/files_uploaded.svg',
-    csv: '/src/images/icons/files_uploaded.svg',
-    folder: '/src/images/icons/total_files_icon.svg'
-  }
-  return iconMap[extension] || '/src/images/icons/unknown_file_formats.svg'
-}
-
-const getFileExtension = (file: FileInfo) => {
-  return file.name.split('.').pop() || ''
-}
-
-const canPreview = (file: FileInfo) => {
-  const extension = getFileExtension(file).toLowerCase()
-  const previewableTypes = [
-    'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg',
-    'mp4', 'webm', 'ogg', 'avi', 'mov',
-    'pdf',
-    'txt', 'md', 'js', 'ts', 'html', 'css', 'json', 'xml', 'csv',
-    'mp3', 'wav', 'flac', 'aac', 'ogg'
-  ]
-  return previewableTypes.includes(extension)
-}
-
-const isImage = (file: FileInfo) => {
-  const extension = getFileExtension(file).toLowerCase()
-  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)
-}
-
-const isVideo = (file: FileInfo) => {
-  const extension = getFileExtension(file).toLowerCase()
-  return ['mp4', 'webm', 'ogg', 'avi', 'mov'].includes(extension)
-}
-
-const isPdf = (file: FileInfo) => {
-  return getFileExtension(file).toLowerCase() === 'pdf'
-}
-
-const isText = (file: FileInfo) => {
-  const extension = getFileExtension(file).toLowerCase()
-  return ['txt', 'md', 'js', 'ts', 'html', 'css', 'json', 'xml', 'csv'].includes(extension)
-}
-
-const isAudio = (file: FileInfo) => {
-  const extension = getFileExtension(file).toLowerCase()
-  return ['mp3', 'wav', 'flac', 'aac', 'ogg'].includes(extension)
-}
-
-const getFileUrl = (file: FileInfo) => {
-  return `http://localhost:8080${file.url}`
-}
-
-const formatExpirationDate = (dateString: string) => {
-  const now = new Date()
-  const expiration = new Date(dateString)
-  const timeDiff = expiration.getTime() - now.getTime()
-  
-  if (timeDiff <= 0) {
-    return {
-      text: 'Expired',
-      isExpired: true,
-      color: 'text-red-500'
-    }
-  }
-  
-  const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
-  
-  let text = ''
-  if (days > 0) {
-    text = `${days} day${days > 1 ? 's' : ''}`
-  } else if (hours > 0) {
-    text = `${hours} hour${hours > 1 ? 's' : ''}`
-  } else {
-    text = `${minutes} minute${minutes > 1 ? 's' : ''}`
-  }
-  
-  return {
-    text,
-    isExpired: false,
-    color: 'text-green-500'
-  }
-}
-
-// API functions
-const fetchShareData = async () => {
+// Methods
+const fetchFiles = async () => {
   try {
-    loading.value = true
-    const response = await axios.get(`http://localhost:8080/files/${shareId.value}`)
-    
-    // Backend returns { files: [...], uploader: {...} } directly
+    const response = await axios.get(`/files/${route.params.id}`)
     files.value = response.data.files || []
-    uploader.value = response.data.uploader || null
-  } catch (err: any) {
-    console.error('Error fetching share data:', err)
-    if (err.response?.status === 404) {
-      error.value = 'Files not found or have expired'
-    } else {
-      error.value = err.response?.data?.error || 'Failed to load files'
-    }
-  } finally {
+    uploader.value = response.data.uploaderInfo || null
+    loading.value = false
+  } catch (error) {
+    console.error('Error fetching files:', error)
+    message.value = { text: 'Share not found', type: 'error' }
     loading.value = false
   }
 }
 
-const togglePreview = async (index: number) => {
-  if (previewingFiles.value.has(index)) {
-    previewingFiles.value.delete(index)
-    return
-  }
-  
-  previewingFiles.value.add(index)
-  
-  const file = files.value[index]
-  if (isText(file) && !textContent.value.has(index)) {
-    try {
-      const response = await axios.get(getFileUrl(file), { responseType: 'text' })
-      textContent.value.set(index, response.data)
-    } catch (err) {
-      console.error('Error loading text content:', err)
-      textContent.value.set(index, 'Error loading file content')
-    }
-  }
-}
-
-const downloadFile = async (index: number) => {
-  const file = files.value[index]
-  downloadingFiles.value.add(index)
+const downloadFile = async (file: any, index: number) => {
+  downloadingStates.value[index] = true
   
   try {
-    const response = await axios.get(getFileUrl(file), {
-      responseType: 'blob'
-    })
+    const response = await axios.get(
+      `http://localhost:8080/download/${route.params.id}/${file.name}`,
+      { responseType: 'blob' }
+    )
     
-    const blob = new Blob([response.data])
-    const url = window.URL.createObjectURL(blob)
+    const url = window.URL.createObjectURL(new Blob([response.data]))
     const link = document.createElement('a')
     link.href = url
-    link.download = file.name
+    link.setAttribute('download', file.name)
+    document.body.appendChild(link)
     link.click()
+    link.remove()
     window.URL.revokeObjectURL(url)
-  } catch (err) {
-    console.error('Error downloading file:', err)
+    
+    showMessage('File downloaded successfully!', 'success')
+  } catch (error) {
+    console.error('Download error:', error)
+    showMessage('Download failed. Please try again.', 'error')
   } finally {
-    downloadingFiles.value.delete(index)
+    downloadingStates.value[index] = false
   }
 }
 
@@ -769,43 +486,80 @@ const downloadAll = async () => {
   downloadingAll.value = true
   
   try {
-    const response = await axios.get(`http://localhost:8080/download/${shareId.value}`, {
-      responseType: 'blob'
-    })
+    const response = await axios.get(
+      `http://localhost:8080/download/${route.params.id}`,
+      { responseType: 'blob' }
+    )
     
-    const blob = new Blob([response.data])
-    const url = window.URL.createObjectURL(blob)
+    const url = window.URL.createObjectURL(new Blob([response.data]))
     const link = document.createElement('a')
     link.href = url
-    
-    // If multiple files, backend returns ZIP; if single file, returns the file directly
-    if (files.value.length > 1) {
-      link.download = `shared-files-${shareId.value}.zip`
-    } else if (files.value.length === 1) {
-      link.download = files.value[0].name
-    } else {
-      link.download = `files-${shareId.value}.zip`
-    }
-    
+    link.setAttribute('download', `share-${route.params.id}.zip`)
+    document.body.appendChild(link)
     link.click()
+    link.remove()
     window.URL.revokeObjectURL(url)
-  } catch (err) {
-    console.error('Error downloading all files:', err)
     
-    // Fallback: download files individually
-    for (let i = 0; i < files.value.length; i++) {
-      await downloadFile(i)
-      // Add small delay between downloads
-      await new Promise(resolve => setTimeout(resolve, 500))
-    }
+    showMessage('All files downloaded successfully!', 'success')
+  } catch (error) {
+    console.error('Download all error:', error)
+    showMessage('Download failed. Please try again.', 'error')
   } finally {
     downloadingAll.value = false
   }
 }
 
+const togglePreview = (index: number) => {
+  if (previewingFiles.value.has(index)) {
+    previewingFiles.value.delete(index)
+  } else {
+    previewingFiles.value.add(index)
+  }
+}
+
+const canPreview = (file: any): boolean => {
+  const ext = getFileExtension(file.name)
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mp3', 'wav', 'flac', 'pdf'].includes(ext)
+}
+
+const getFileExtension = (filename: string): string => {
+  return filename.split('.').pop()?.toLowerCase() || ''
+}
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+const formatTotalSize = (): string => {
+  const total = files.value.reduce((sum, file) => sum + file.size, 0)
+  return formatFileSize(total)
+}
+
+const formatExpirationDate = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const isExpired = date < now
+  
+  if (isExpired) {
+    return { text: 'Expired', isExpired: true }
+  }
+  
+  const diffTime = date.getTime() - now.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 1) return { text: 'Expires today', isExpired: false }
+  if (diffDays <= 7) return { text: `Expires in ${diffDays} days`, isExpired: false }
+  
+  return { text: `Expires ${date.toLocaleDateString()}`, isExpired: false }
+}
+
 const handleAvatarError = () => {
   if (uploader.value) {
-    uploader.value.avatar = undefined
+    uploader.value.avatar = null
   }
 }
 
@@ -813,272 +567,25 @@ const handlePreviewError = () => {
   console.log('Preview error occurred')
 }
 
-// Lifecycle
+const showMessage = (text: string, type: 'success' | 'error') => {
+  message.value = { text, type }
+  setTimeout(() => {
+    message.value = null
+  }, 3000)
+}
+
 onMounted(() => {
-  initializeStars()
-  initializeArcCarousel()
-  fetchShareData()
+  fetchFiles()
 })
 </script>
 
 <style scoped>
-/* Star animations */
-@keyframes twinkle {
-  0%, 100% { 
-    opacity: 0.3; 
-    transform: scale(1); 
-  }
-  50% { 
-    opacity: 1; 
-    transform: scale(1.2); 
-  }
-}
-
-/* Apple-style animations */
 @keyframes fade-in {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes fade-in-delay {
-  0%, 30% { 
-    opacity: 0; 
-    transform: translateY(20px); 
-  }
-  100% { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes slide-up {
-  from { 
-    opacity: 0; 
-    transform: translateY(30px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes slide-down {
-  from { 
-    opacity: 0; 
-    transform: translateY(-20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes scale-in {
-  from { 
-    opacity: 0; 
-    transform: scale(0.95); 
-  }
-  to { 
-    opacity: 1; 
-    transform: scale(1); 
-  }
-}
-
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(2deg); }
-}
-
-@keyframes float-slower {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-30px) rotate(-2deg); }
-}
-
-@keyframes rainbow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.animate-twinkle {
-  animation: twinkle var(--duration, 3s) ease-in-out infinite;
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fade-in 0.8s ease-out forwards;
-}
-
-.animate-fade-in-delay {
-  animation: fade-in-delay 1.2s ease-out forwards;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.6s ease-out forwards;
-}
-
-.animate-slide-down {
-  animation: slide-down 0.4s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.5s ease-out forwards;
-}
-
-.animate-float-slow {
-  animation: float-slow 6s ease-in-out infinite;
-}
-
-.animate-float-slower {
-  animation: float-slower 8s ease-in-out infinite;
-}
-
-.animate-rainbow {
-  background-size: 400% 400%;
-  animation: rainbow 3s ease infinite;
-}
-
-/* Apple-style backdrop blur */
-.backdrop-blur-xl {
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
-/* Apple-style shadows */
-.shadow-xl {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.shadow-2xl {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-/* Apple-style smooth scrolling */
-* {
-  scroll-behavior: smooth;
-}
-
-/* Apple-style reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Arc Carousel Animations */
-.arc-carousel-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.arc-carousel-item {
-  position: absolute;
-  animation-delay: var(--delay);
-  animation-duration: var(--duration);
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-
-.arc-slide {
-  animation-name: arc-slide-animation;
-}
-
-@keyframes arc-slide-animation {
-  0% {
-    /* Start from left side */
-    left: -8%;
-    top: 75%;
-    transform: translateX(-50%) translateY(-50%) rotate(-10deg) scale(0.9);
-    opacity: var(--base-opacity, 0.2);
-  }
-  
-  25% {
-    /* Quarter way - moving up the arc */
-    left: 25%;
-    top: 50%;
-    transform: translateX(-50%) translateY(-50%) rotate(-3deg) scale(1);
-    opacity: calc(var(--base-opacity, 0.2) * 1.2);
-  }
-  
-  50% {
-    /* Middle of screen - top of the arc */
-    left: 50%;
-    top: 35%;
-    transform: translateX(-50%) translateY(-50%) rotate(0deg) scale(1.1);
-    opacity: calc(var(--base-opacity, 0.2) * 1.4);
-  }
-  
-  75% {
-    /* Three-quarters - descending the arc */
-    left: 75%;
-    top: 50%;
-    transform: translateX(-50%) translateY(-50%) rotate(3deg) scale(1);
-    opacity: calc(var(--base-opacity, 0.2) * 1.2);
-  }
-  
-  100% {
-    /* End at right side */
-    left: 108%;
-    top: 75%;
-    transform: translateX(-50%) translateY(-50%) rotate(10deg) scale(0.9);
-    opacity: var(--base-opacity, 0.2);
-  }
-}
-
-.arc-carousel-icon {
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
-  animation: icon-float 4s ease-in-out infinite;
-}
-
-@keyframes icon-float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
-/* Floating File Icons */
-.floating-file-icon {
-  position: absolute;
-  animation-delay: var(--delay);
-  animation-duration: var(--duration);
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
-.float-gentle {
-  animation-name: float-gentle-animation;
-}
-
-@keyframes float-gentle-animation {
-  0%, 100% {
-    transform: translateY(0) translateX(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-6px) translateX(2px) rotate(1deg);
-  }
-  50% {
-    transform: translateY(-10px) translateX(0) rotate(0deg);
-  }
-  75% {
-    transform: translateY(-6px) translateX(-2px) rotate(-1deg);
-  }
+  animation: fade-in 0.8s ease-out;
 }
 </style>
