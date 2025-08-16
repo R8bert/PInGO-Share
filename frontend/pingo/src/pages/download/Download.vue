@@ -446,7 +446,7 @@ const fetchFiles = async () => {
   try {
     const response = await axios.get(`/files/${route.params.id}`)
     files.value = response.data.files || []
-    uploader.value = response.data.uploaderInfo || null
+    uploader.value = response.data.uploader || null
     loading.value = false
   } catch (error) {
     console.error('Error fetching files:', error)
