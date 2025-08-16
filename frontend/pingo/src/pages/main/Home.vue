@@ -40,9 +40,23 @@
               <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
                 <span :style="{ color: isDark ? '#ffffff' : '#000000' }">Share files</span>
                 <br />
-                <span class="text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text">
-                  effortlessly
-                </span>
+                <div class="rotating-text-container relative inline-block">
+                  <span 
+                    v-for="(word, index) in rotatingWords" 
+                    :key="word"
+                    :class="[
+                      'absolute inset-0 rotating-word transition-all duration-700 ease-in-out',
+                      index === currentWordIndex 
+                        ? 'opacity-100 scale-100 blur-0' 
+                        : 'opacity-0 scale-95 blur-sm'
+                    ]"
+                    :style="getWordStyle(index)"
+                  >
+                    {{ word }}
+                  </span>
+                  <!-- Placeholder for layout -->
+                  <span class="invisible">{{ rotatingWords[0] }}</span>
+                </div>
               </h1>
               
               <p class="text-xl sm:text-2xl max-w-3xl mx-auto leading-relaxed"
@@ -499,7 +513,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useTheme } from '../../composables/useTheme'
 import axios from 'axios'
@@ -508,6 +522,48 @@ import WebGLBackground from '../../components/WebGLBackground.vue'
 
 const { isAuthenticated } = useAuth()
 const { isDark } = useTheme()
+
+// Rotating text logic
+const rotatingWords = ref([
+  'effortlessly',
+  'securely',
+  'instantly',
+  'freely',
+  'seamlessly'
+])
+const currentWordIndex = ref(0)
+let rotationInterval: number | null = null
+
+const getWordStyle = (index: number) => {
+  const colors = [
+    '#ef4444', // effortlessly - red
+    '#10b981', // securely - emerald
+    '#8b5cf6', // instantly - purple
+    '#3b82f6', // freely - blue
+    '#ec4899'  // seamlessly - pink
+  ]
+  
+  const isActive = index === currentWordIndex.value
+  
+  return {
+    color: colors[index] || '#ef4444',
+    textShadow: isActive ? `0 0 20px ${colors[index]}40, 0 0 40px ${colors[index]}20` : 'none',
+    filter: isActive ? `drop-shadow(0 0 10px ${colors[index]}60)` : 'none'
+  }
+}
+
+const startRotation = () => {
+  rotationInterval = window.setInterval(() => {
+    currentWordIndex.value = (currentWordIndex.value + 1) % rotatingWords.value.length
+  }, 2500)
+}
+
+const stopRotation = () => {
+  if (rotationInterval) {
+    clearInterval(rotationInterval)
+    rotationInterval = null
+  }
+}
 
 // Refs
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -740,7 +796,13 @@ const scrollToFeatures = () => {
 }
 
 onMounted(() => {
-  // Any initialization code
+  // Start the rotating text animation
+  startRotation()
+})
+
+onUnmounted(() => {
+  // Clean up the rotation interval
+  stopRotation()
 })
 </script>
 
@@ -770,5 +832,31 @@ onMounted(() => {
 
 .animate-fade-in-delay-2 {
   animation: fade-in-delay-2 0.8s ease-out 0.4s both;
+}
+
+/* Rotating text animations */
+.rotating-text-container {
+  min-height: 1em;
+}
+
+.rotating-word {
+  font-weight: bold;
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter, color;
+}
+
+/* Enhanced glow effect for active text */
+.rotating-word:first-of-type {
+  animation: liquid-glow 3s ease-in-out infinite;
+}
+
+@keyframes liquid-glow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 10px #ef444460) drop-shadow(0 0 20px #ef444440);
+  }
+  50% { 
+    filter: drop-shadow(0 0 15px #ef444480) drop-shadow(0 0 30px #ef444460);
+  }
 }
 </style>

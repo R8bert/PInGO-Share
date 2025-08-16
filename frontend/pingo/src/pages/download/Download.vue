@@ -185,16 +185,17 @@
               <button 
                 @click="downloadAll"
                 :disabled="downloadingAll"
+                :title="files.length > 1 ? `Download all ${files.length} files as ZIP` : 'Download file'"
                 class="group relative px-12 py-6 bg-gradient-to-r from-green-600 to-blue-600 text-white font-bold text-xl rounded-3xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25 disabled:opacity-50 disabled:hover:scale-100"
               >
-                <span v-if="downloadingAll" class="flex items-center">
+                <span v-if="downloadingAll" class="relative z-10 flex items-center">
                   <svg class="animate-spin -ml-1 mr-4 h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   Downloading...
                 </span>
-                <span v-else class="flex items-center">
+                <span v-else class="relative z-10 flex items-center">
                   <svg class="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                   </svg>
@@ -220,12 +221,13 @@
                   </h2>
 
                   <div class="grid gap-4">
-                    <div v-for="(file, index) in files" :key="index" 
-                         class="group rounded-2xl border p-6 transition-all duration-300 hover:scale-[1.02]"
-                         :style="{
-                           backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
-                           borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-                         }">
+                    <transition-group name="file-list" tag="div" class="grid gap-4">
+                      <div v-for="(file, index) in files" :key="`file-${index}-${file.name}`" 
+                           class="group rounded-2xl border p-6 transition-all duration-300 hover:scale-[1.02]"
+                           :style="{
+                             backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+                             borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                           }">
                       
                       <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-4 flex-1 min-w-0">
@@ -254,6 +256,7 @@
                           <!-- Preview Button -->
                           <button v-if="canPreview(file)" 
                                   @click="togglePreview(index)"
+                                  :title="previewingFiles.has(index) ? 'Hide preview' : 'Show preview'"
                                   class="p-3 rounded-xl transition-all duration-200 hover:scale-110"
                                   :style="{
                                     backgroundColor: previewingFiles.has(index) 
@@ -273,6 +276,7 @@
                           <!-- Download Button -->
                           <button @click="downloadFile(file, index)"
                                   :disabled="downloadingStates[index]"
+                                  :title="`Download ${file.name}`"
                                   class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-110 disabled:opacity-50">
                             <span v-if="downloadingStates[index]" class="flex items-center">
                               <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -298,7 +302,7 @@
                         <!-- Image preview -->
                         <div v-if="['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(getFileExtension(file.name))">
                           <img 
-                            :src="`http://localhost:8080/download/${$route.params.id}/${file.name}?preview=true`"
+                            :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
                             :alt="file.name"
                             class="w-full max-w-2xl mx-auto rounded-xl shadow-lg"
                             @error="handlePreviewError">
@@ -307,7 +311,7 @@
                         <!-- Video preview -->
                         <div v-else-if="getFileExtension(file.name) === 'mp4'">
                           <video 
-                            :src="`http://localhost:8080/download/${$route.params.id}/${file.name}?preview=true`"
+                            :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
                             controls 
                             class="w-full max-w-2xl mx-auto rounded-xl shadow-lg">
                           </video>
@@ -316,7 +320,7 @@
                         <!-- Audio preview -->
                         <div v-else-if="['mp3', 'wav', 'flac'].includes(getFileExtension(file.name))">
                           <audio 
-                            :src="`http://localhost:8080/download/${$route.params.id}/${file.name}?preview=true`"
+                            :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
                             controls 
                             class="w-full max-w-2xl mx-auto">
                           </audio>
@@ -325,7 +329,7 @@
                         <!-- PDF preview -->
                         <div v-else-if="getFileExtension(file.name) === 'pdf'">
                           <iframe 
-                            :src="`http://localhost:8080/download/${$route.params.id}/${file.name}?preview=true`"
+                            :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
                             class="w-full h-96 rounded-xl border"
                             :style="{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }">
                           </iframe>
@@ -344,6 +348,7 @@
                         </div>
                       </div>
                     </div>
+                    </transition-group>
                   </div>
                 </div>
               </div>
@@ -460,7 +465,7 @@ const downloadFile = async (file: any, index: number) => {
   
   try {
     const response = await axios.get(
-      `http://localhost:8080/download/${route.params.id}/${file.name}`,
+      `http://localhost:8080/file/${route.params.id}/${file.name}`,
       { responseType: 'blob' }
     )
     
@@ -587,5 +592,21 @@ onMounted(() => {
 
 .animate-fade-in {
   animation: fade-in 0.8s ease-out;
+}
+
+/* File list animations */
+.file-list-enter-active,
+.file-list-leave-active {
+  transition: all 0.3s ease;
+}
+
+.file-list-enter-from,
+.file-list-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.file-list-move {
+  transition: transform 0.3s ease;
 }
 </style>
