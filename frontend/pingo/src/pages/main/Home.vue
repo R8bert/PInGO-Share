@@ -5,7 +5,7 @@
     <!-- WebGL Background -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
       <WebGLBackground 
-        :hue-shift="isDark ? 240 : 120"
+        :use-settings-color="true"
         :noise-intensity="isDark ? 0.03 : 0.01"
         :scanline-intensity="isDark ? 0.1 : 0.05"
         :speed="0.3"
@@ -70,10 +70,14 @@
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delay-2">
               <button 
                 @click="scrollToUpload"
-                class="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/25"
+                class="group relative px-8 py-4 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                :style="{ background: buttonGradient }"
               >
                 <span class="relative z-10">Start Uploading</span>
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div 
+                  class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  :style="{ background: hoverGradient }"
+                ></div>
               </button>
               
               <button 
@@ -187,8 +191,14 @@
                 <div class="text-center space-y-6">
                   <!-- Upload Icon -->
                   <div class="relative mx-auto w-24 h-24">
-                    <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-xl opacity-30"></div>
-                    <div class="relative bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-6 flex items-center justify-center">
+                    <div 
+                      class="absolute inset-0 rounded-2xl blur-xl opacity-30"
+                      :style="{ background: primaryGradient }"
+                    ></div>
+                    <div 
+                      class="relative rounded-2xl p-6 flex items-center justify-center"
+                      :style="{ background: primaryGradient }"
+                    >
                       <CloudArrowUpIcon class="w-12 h-12 text-white" />
                     </div>
                   </div>
@@ -238,7 +248,7 @@
               </div>
 
               <!-- Selected Files -->
-              <div v-if="selectedFiles.length > 0" class="mt-8 space-y-4">
+              <div v-if="selectedFiles.length > 0 && !uploadComplete" class="mt-8 space-y-4">
                 <h4 class="text-lg font-semibold" :style="{ color: isDark ? '#ffffff' : '#000000' }">
                   Selected Files
                 </h4>
@@ -251,8 +261,10 @@
                        }">
                     <div class="flex items-center justify-between p-4">
                       <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                          <span class="text-white text-xs font-bold">{{ getFileExtension(file).toUpperCase() }}</span>
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center overflow-hidden">
+                          <span class="text-white text-xs font-bold leading-none text-center px-1 truncate max-w-full">
+                            {{ getFileExtension(file).toUpperCase().length > 4 ? getFileExtension(file).toUpperCase().substring(0, 3) + '.' : getFileExtension(file).toUpperCase() }}
+                          </span>
                         </div>
                         <div>
                           <p class="font-medium" :style="{ color: isDark ? '#ffffff' : '#000000' }">{{ file.name }}</p>
@@ -311,12 +323,21 @@
                         </div>
 
                         <!-- Text file preview -->
-                        <div v-else-if="['txt', 'md', 'json', 'csv', 'xml'].includes(getFileExtension(file))">
-                          <pre class="text-sm p-4 rounded-lg whitespace-pre-wrap overflow-auto max-h-40"
+                        <div v-else-if="['txt', 'md', 'json', 'csv', 'xml', 'torrent'].includes(getFileExtension(file))" 
+                             class="w-full">
+                          <div class="w-full max-w-full overflow-hidden rounded-lg"
                                :style="{
-                                 backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.7)',
-                                 color: isDark ? '#d1d5db' : '#374151'
-                               }">{{ textPreviews.get(index) }}</pre>
+                                 backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.7)'
+                               }">
+                            <pre class="text-xs p-4 whitespace-pre-wrap overflow-auto max-h-32 w-full block"
+                                 :style="{
+                                   color: isDark ? '#d1d5db' : '#374151',
+                                   wordBreak: 'break-word',
+                                   overflowWrap: 'break-word',
+                                   maxWidth: '100%',
+                                   display: 'block'
+                                 }">{{ textPreviews.get(index) }}</pre>
+                          </div>
                         </div>
 
                         <!-- PDF preview -->
@@ -343,17 +364,18 @@
                   </div>
                   <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                     <div 
-                      class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-300"
-                      :style="{ width: progress + '%' }"
+                      class="h-3 rounded-full transition-all duration-300"
+                      :style="{ background: buttonGradient, width: progress + '%' }"
                     ></div>
                   </div>
                 </div>
 
                 <!-- Upload Button -->
-                <div class="pt-6">
+                <div v-if="!uploadComplete" class="pt-6">
                   <button @click="uploadFiles" 
                           :disabled="isUploading"
-                          class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl disabled:opacity-50 disabled:hover:scale-100">
+                          class="w-full py-4 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl disabled:opacity-50 disabled:hover:scale-100"
+                          :style="{ background: buttonGradient }">
                     <span v-if="isUploading" class="flex items-center justify-center">
                       <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -516,12 +538,14 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useTheme } from '../../composables/useTheme'
+import { useUIColors } from '../../composables/useUIColors'
 import axios from 'axios'
 import { CloudArrowUpIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 import WebGLBackground from '../../components/WebGLBackground.vue'
 
 const { isAuthenticated } = useAuth()
 const { isDark } = useTheme()
+const { primaryGradient, buttonGradient, hoverGradient, primaryColor, secondaryColor, accentColor } = useUIColors()
 
 // Rotating text logic
 const rotatingWords = ref([
@@ -655,7 +679,7 @@ const togglePreview = (index: number) => {
     const file = selectedFiles.value[index]
     const fileExtension = getFileExtension(file)
     
-    if (['txt', 'md', 'json', 'csv', 'xml'].includes(fileExtension)) {
+    if (['txt', 'md', 'json', 'csv', 'xml', 'torrent'].includes(fileExtension)) {
       // Handle text file preview
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -680,7 +704,7 @@ const createPreviewUrl = (file: File, index: number) => {
 
 const canPreview = (file: File): boolean => {
   const ext = getFileExtension(file)
-  return ['mp4', 'pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'txt', 'md', 'json', 'csv', 'xml', 'mp3', 'wav', 'flac'].includes(ext)
+  return ['mp4', 'pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'txt', 'md', 'json', 'csv', 'xml', 'torrent', 'mp3', 'wav', 'flac'].includes(ext)
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -731,6 +755,14 @@ const uploadFiles = async () => {
       uploadedUrl.value = `${window.location.origin}/download/${uploadId}`
       
       message.value = { text: 'Files uploaded successfully!', type: 'success' }
+      
+      // Scroll to center the upload success section
+      setTimeout(() => {
+        uploadSection.value?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        })
+      }, 100)
       
       // Clean up preview URLs
       previewUrls.value.forEach(url => URL.revokeObjectURL(url))
@@ -796,6 +828,9 @@ const scrollToFeatures = () => {
 }
 
 onMounted(() => {
+  // Scroll to top smoothly when page loads
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  
   // Start the rotating text animation
   startRotation()
 })
@@ -807,6 +842,11 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Smooth scrolling for the entire page */
+html {
+  scroll-behavior: smooth;
+}
+
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }

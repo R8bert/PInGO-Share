@@ -321,6 +321,93 @@
         </div>
       </div>
 
+      <!-- Color Customization Settings -->
+      <div class="relative group">
+        <div class="absolute inset-0 bg-gradient-to-r from-pink-600/20 to-red-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+        <div class="relative backdrop-blur-xl border rounded-2xl p-6 transition-all duration-300"
+             :style="{
+               backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+               borderColor: isDark ? 'rgba(236, 72, 153, 0.3)' : 'rgba(236, 72, 153, 0.2)'
+             }">
+          <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
+              :style="{ color: isDark ? '#fdf2f8' : '#111827' }">
+            <SwatchIcon class="w-5 h-5 mr-2"
+                        :style="{ color: isDark ? '#ec4899' : '#be185d' }" />
+            Color Customization
+          </h3>
+          
+          <div class="space-y-6">
+            <!-- Website Color -->
+            <div>
+              <ColorPicker
+                v-model="settings.websiteColor"
+                label="Website Color (WebGL Background)"
+                input-id="website-color"
+              />
+              <p class="text-sm mt-2 transition-colors duration-300 opacity-80"
+                 :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
+                Primary color used for the WebGL background animation on home and download pages.
+              </p>
+            </div>
+
+            <!-- UI Gradient Colors -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-medium transition-colors duration-300"
+                      :style="{ color: isDark ? '#fdf2f8' : '#111827' }">
+                    UI Gradient Colors
+                  </h4>
+                  <p class="text-sm transition-colors duration-300 opacity-80"
+                     :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
+                    Colors used for buttons and UI elements gradients.
+                  </p>
+                </div>
+                <button
+                  @click="showGradientDialog = true"
+                  type="button"
+                  class="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-xl transition-all duration-200 hover:scale-105"
+                >
+                  Configure Gradient
+                </button>
+              </div>
+
+              <!-- Gradient Preview -->
+              <div class="h-16 rounded-xl border-2 border-white shadow-lg relative overflow-hidden"
+                   :style="{ background: currentGradient }">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <span class="text-white font-semibold drop-shadow-lg">
+                    Current UI Gradient
+                  </span>
+                </div>
+              </div>
+
+              <!-- Individual Color Pickers (for fine-tuning) -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ColorPicker
+                  v-model="settings.gradientColor1"
+                  label="Color 1"
+                  input-id="gradient-color-1"
+                  :show-presets="false"
+                />
+                <ColorPicker
+                  v-model="settings.gradientColor2"
+                  label="Color 2"
+                  input-id="gradient-color-2"
+                  :show-presets="false"
+                />
+                <ColorPicker
+                  v-model="settings.gradientColor3"
+                  label="Color 3"
+                  input-id="gradient-color-3"
+                  :show-presets="false"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Save Button -->
       <div class="flex justify-end">
         <button
@@ -358,11 +445,24 @@
         </div>
       </div>
     </div>
+
+    <!-- Gradient Configuration Dialog -->
+    <GradientDialog
+      :is-open="showGradientDialog"
+      title="Configure UI Gradient Colors"
+      :initial-colors="{
+        color1: settings.gradientColor1,
+        color2: settings.gradientColor2,
+        color3: settings.gradientColor3
+      }"
+      @close="showGradientDialog = false"
+      @apply="applyGradientColors"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useTheme } from '../../../composables/useTheme'
 import {
@@ -371,8 +471,11 @@ import {
   PhotoIcon,
   ScaleIcon,
   CheckCircleIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  SwatchIcon
 } from '@heroicons/vue/24/outline'
+import ColorPicker from '../../../components/ColorPicker.vue'
+import GradientDialog from '../../../components/GradientDialog.vue'
 
 const { isDark } = useTheme()
 
@@ -386,12 +489,22 @@ const settings = ref({
   blurIntensity: 0,
   maxValidity: '7days',
   allowRegistration: true,
-  expirationAction: 'unavailable'
+  expirationAction: 'unavailable',
+  websiteColor: '#3b82f6',
+  gradientColor1: '#3b82f6',
+  gradientColor2: '#8b5cf6',
+  gradientColor3: '#ec4899'
 })
 
 const logoFile = ref<File | null>(null)
 const backgroundFile = ref<File | null>(null)
 const showSuccess = ref(false)
+const showGradientDialog = ref(false)
+
+// Computed property for current gradient preview
+const currentGradient = computed(() => {
+  return `linear-gradient(135deg, ${settings.value.gradientColor1} 0%, ${settings.value.gradientColor2} 50%, ${settings.value.gradientColor3} 100%)`
+})
 
 const validityOptions = [
   { value: '7days', label: '7 Days', description: 'One week' },
@@ -425,6 +538,12 @@ const saveSettings = async () => {
     formData.append('maxValidity', settings.value.maxValidity)
     formData.append('allowRegistration', settings.value.allowRegistration.toString())
     formData.append('expirationAction', settings.value.expirationAction)
+    
+    // Append color settings
+    formData.append('websiteColor', settings.value.websiteColor)
+    formData.append('gradientColor1', settings.value.gradientColor1)
+    formData.append('gradientColor2', settings.value.gradientColor2)
+    formData.append('gradientColor3', settings.value.gradientColor3)
     
     if (logoFile.value) {
       formData.append('logo', logoFile.value)
@@ -469,11 +588,22 @@ const loadSettings = async () => {
       blurIntensity: currentSettings.blurIntensity || 0,
       maxValidity: currentSettings.maxValidity || '7days',
       allowRegistration: currentSettings.allowRegistration !== undefined ? currentSettings.allowRegistration : true,
-      expirationAction: currentSettings.expirationAction || 'unavailable'
+      expirationAction: currentSettings.expirationAction || 'unavailable',
+      websiteColor: currentSettings.websiteColor || '#3b82f6',
+      gradientColor1: currentSettings.gradientColor1 || '#3b82f6',
+      gradientColor2: currentSettings.gradientColor2 || '#8b5cf6',
+      gradientColor3: currentSettings.gradientColor3 || '#ec4899'
     }
   } catch (error) {
     console.error('Failed to load settings:', error)
   }
+}
+
+// Apply gradient colors from dialog
+const applyGradientColors = (colors: { color1: string; color2: string; color3: string }) => {
+  settings.value.gradientColor1 = colors.color1
+  settings.value.gradientColor2 = colors.color2
+  settings.value.gradientColor3 = colors.color3
 }
 
 onMounted(() => {

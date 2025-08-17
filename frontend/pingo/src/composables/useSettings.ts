@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 
 interface Settings {
@@ -12,6 +12,10 @@ interface Settings {
   blurIntensity: number
   maxValidity: string
   allowRegistration: boolean
+  websiteColor: string
+  gradientColor1: string
+  gradientColor2: string
+  gradientColor3: string
 }
 
 export function useSettings() {
@@ -34,8 +38,18 @@ export function useSettings() {
     }
   }
 
+  // Listen for settings updates
+  const handleSettingsUpdate = () => {
+    fetchSettings()
+  }
+
   onMounted(() => {
     fetchSettings()
+    window.addEventListener('settings-updated', handleSettingsUpdate)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('settings-updated', handleSettingsUpdate)
   })
 
   return {

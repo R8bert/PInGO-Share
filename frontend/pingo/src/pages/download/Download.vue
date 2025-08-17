@@ -5,7 +5,7 @@
     <!-- WebGL Background -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
       <WebGLBackground 
-        :hue-shift="isDark ? 200 : 160"
+        :use-settings-color="true"
         :noise-intensity="isDark ? 0.02 : 0.008"
         :scanline-intensity="isDark ? 0.08 : 0.03"
         :speed="0.2"
@@ -26,8 +26,14 @@
           <!-- Loading State -->
           <div v-if="loading" class="text-center space-y-8 animate-fade-in">
             <div class="relative mx-auto w-32 h-32">
-              <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
-              <div class="relative bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl p-8 flex items-center justify-center">
+              <div 
+                class="absolute inset-0 rounded-3xl blur-2xl opacity-30 animate-pulse"
+                :style="{ background: primaryGradient }"
+              ></div>
+              <div 
+                class="relative rounded-3xl p-8 flex items-center justify-center"
+                :style="{ background: primaryGradient }"
+              >
                 <svg class="w-16 h-16 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
@@ -232,8 +238,10 @@
                       <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-4 flex-1 min-w-0">
                           <!-- File Icon -->
-                          <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <span class="text-white text-sm font-bold">{{ getFileExtension(file.name).toUpperCase() }}</span>
+                          <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            <span class="text-white text-sm font-bold leading-none text-center px-2 truncate max-w-full">
+                              {{ getFileExtension(file.name).toUpperCase().length > 6 ? getFileExtension(file.name).toUpperCase().substring(0, 5) + '.' : getFileExtension(file.name).toUpperCase() }}
+                            </span>
                           </div>
                           
                           <!-- File Info -->
@@ -304,7 +312,7 @@
                           <img 
                             :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
                             :alt="file.name"
-                            class="w-full max-w-2xl mx-auto rounded-xl shadow-lg"
+                            class="w-full max-w-md mx-auto rounded-xl shadow-lg"
                             @error="handlePreviewError">
                         </div>
 
@@ -313,7 +321,7 @@
                           <video 
                             :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
                             controls 
-                            class="w-full max-w-2xl mx-auto rounded-xl shadow-lg">
+                            class="w-full max-w-md mx-auto rounded-xl shadow-lg">
                           </video>
                         </div>
 
@@ -322,7 +330,7 @@
                           <audio 
                             :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
                             controls 
-                            class="w-full max-w-2xl mx-auto">
+                            class="w-full max-w-md mx-auto">
                           </audio>
                         </div>
 
@@ -330,7 +338,7 @@
                         <div v-else-if="getFileExtension(file.name) === 'pdf'">
                           <iframe 
                             :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
-                            class="w-full h-96 rounded-xl border"
+                            class="w-full max-w-md mx-auto h-64 rounded-xl border"
                             :style="{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }">
                           </iframe>
                         </div>
@@ -431,10 +439,12 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from '../../composables/useTheme'
+import { useUIColors } from '../../composables/useUIColors'
 import axios from 'axios'
 import WebGLBackground from '../../components/WebGLBackground.vue'
 
 const { isDark } = useTheme()
+const { primaryGradient, buttonGradient, hoverGradient } = useUIColors()
 const route = useRoute()
 
 // State

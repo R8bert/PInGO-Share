@@ -103,6 +103,11 @@ type Settings struct {
 	MaxValidity           string `json:"maxValidity" db:"max_validity"`                      // "7days", "1month", "6months", "1year", "never"
 	AllowRegistration     bool   `json:"allowRegistration" db:"allow_registration"`          // Allow user registration
 	ExpirationAction      string `json:"expirationAction" db:"expiration_action"`            // "delete" or "unavailable"
+	// Color customization fields
+	WebsiteColor   string `json:"websiteColor" db:"website_color"`      // Primary website color for WebGL background
+	GradientColor1 string `json:"gradientColor1" db:"gradient_color_1"` // First gradient color for UI elements
+	GradientColor2 string `json:"gradientColor2" db:"gradient_color_2"` // Second gradient color for UI elements
+	GradientColor3 string `json:"gradientColor3" db:"gradient_color_3"` // Third gradient color for UI elements
 }
 
 type UploadRequest struct {
@@ -218,28 +223,23 @@ func getEnvOrDefault(key, defaultValue string) string {
 
 // File type validation
 func isAllowedFileType(filename, contentType string) bool {
-	// Get allowed file types from environment variable
-	allowedTypes := getEnvOrDefault("ALLOWED_FILE_TYPES", "image/jpeg,image/png,image/gif,image/webp,application/pdf,text/plain,application/zip,application/x-zip-compressed,video/mp4,video/avi,audio/mpeg,audio/wav")
-	allowedTypesSlice := strings.Split(allowedTypes, ",")
-
-	// Check MIME type
-	for _, allowedType := range allowedTypesSlice {
-		if strings.TrimSpace(allowedType) == contentType {
-			return true
-		}
-	}
-
-	// Also check file extension as backup
+	// Get file extension
 	ext := strings.ToLower(filepath.Ext(filename))
-	allowedExtensions := map[string]bool{
-		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,
-		".pdf": true, ".txt": true, ".zip": true,
-		".mp4": true, ".avi": true, ".mov": true,
-		".mp3": true, ".wav": true, ".ogg": true,
-		".doc": true, ".docx": true, ".xls": true, ".xlsx": true, ".ppt": true, ".pptx": true,
+
+	// Block only dangerous executable files for security
+	blockedExtensions := map[string]bool{
+		".exe": true, ".bat": true, ".cmd": true, ".com": true, ".scr": true,
+		".pif": true, ".msi": true, ".vbs": true, ".js": true, ".jar": true,
+		".sh": true, ".bash": true, ".ps1": true, ".psm1": true,
 	}
 
-	return allowedExtensions[ext]
+	// If it's a blocked extension, reject it
+	if blockedExtensions[ext] {
+		return false
+	}
+
+	// Allow all other file types
+	return true
 }
 
 // Sanitize filename to prevent directory traversal
@@ -384,11 +384,15 @@ func createTables() {
 	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL;
 	ALTER TABLE uploads ADD COLUMN IF NOT EXISTS deletion_reason VARCHAR(255) DEFAULT NULL;`
 
-	// Alter settings table to add allow_registration
+	// Alter settings table to add allow_registration and color customization
 	alterSettingsTable := `
 	ALTER TABLE settings ADD COLUMN IF NOT EXISTS allow_registration BOOLEAN DEFAULT TRUE;
 	ALTER TABLE settings ADD COLUMN IF NOT EXISTS navbar_title VARCHAR(255) DEFAULT 'PInGO Share';
-	ALTER TABLE settings ADD COLUMN IF NOT EXISTS expiration_action VARCHAR(20) DEFAULT 'unavailable';`
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS expiration_action VARCHAR(20) DEFAULT 'unavailable';
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS website_color VARCHAR(7) DEFAULT '#3b82f6';
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS gradient_color_1 VARCHAR(7) DEFAULT '#3b82f6';
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS gradient_color_2 VARCHAR(7) DEFAULT '#8b5cf6';
+	ALTER TABLE settings ADD COLUMN IF NOT EXISTS gradient_color_3 VARCHAR(7) DEFAULT '#ec4899';`
 
 	// Create indexes
 	indexes := `
@@ -402,8 +406,8 @@ func createTables() {
 
 	// Insert default settings if none exist
 	defaultSettings := `
-	INSERT INTO settings (theme, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration, expiration_action)
-	SELECT 'light', 104857600, 0, 0, '7days', TRUE, 'unavailable'
+	INSERT INTO settings (theme, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration, expiration_action, website_color, gradient_color_1, gradient_color_2, gradient_color_3)
+	SELECT 'light', 104857600, 0, 0, '7days', TRUE, 'unavailable', '#3b82f6', '#3b82f6', '#8b5cf6', '#ec4899'
 	WHERE NOT EXISTS (SELECT 1 FROM settings);`
 
 	tables := []string{usersTable, settingsTable, uploadsTable, reverseTokensTable, deletionLogsTable, alterUsersTable, alterUploadsTable, alterSettingsTable, indexes, defaultSettings}
@@ -574,10 +578,14 @@ func getSettings() (Settings, error) {
 	var settings Settings
 	err := db.QueryRow(`
 		SELECT id, theme, COALESCE(logo_path, ''), COALESCE(background_path, ''),
-		       COALESCE(navbar_title, 'PInGO Share'), max_upload_size, upload_box_transparency, blur_intensity, max_validity, COALESCE(allow_registration, TRUE), COALESCE(expiration_action, 'unavailable')
+		       COALESCE(navbar_title, 'PInGO Share'), max_upload_size, upload_box_transparency, blur_intensity, max_validity, 
+		       COALESCE(allow_registration, TRUE), COALESCE(expiration_action, 'unavailable'),
+		       COALESCE(website_color, '#3b82f6'), COALESCE(gradient_color_1, '#3b82f6'), 
+		       COALESCE(gradient_color_2, '#8b5cf6'), COALESCE(gradient_color_3, '#ec4899')
 		FROM settings ORDER BY id LIMIT 1
 	`).Scan(&settings.ID, &settings.Theme, &settings.LogoPath, &settings.BackgroundPath,
-		&settings.NavbarTitle, &settings.MaxUploadSize, &settings.UploadBoxTransparency, &settings.BlurIntensity, &settings.MaxValidity, &settings.AllowRegistration, &settings.ExpirationAction)
+		&settings.NavbarTitle, &settings.MaxUploadSize, &settings.UploadBoxTransparency, &settings.BlurIntensity, &settings.MaxValidity,
+		&settings.AllowRegistration, &settings.ExpirationAction, &settings.WebsiteColor, &settings.GradientColor1, &settings.GradientColor2, &settings.GradientColor3)
 
 	return settings, err
 }
@@ -1692,6 +1700,10 @@ func main() {
 				MaxValidity:           "7days",
 				AllowRegistration:     true,
 				ExpirationAction:      "unavailable",
+				WebsiteColor:          "#3b82f6",
+				GradientColor1:        "#3b82f6",
+				GradientColor2:        "#8b5cf6",
+				GradientColor3:        "#ec4899",
 			}
 		}
 
@@ -1885,22 +1897,49 @@ func main() {
 			settings.ExpirationAction = expirationAction
 		}
 
-		// Save settings to database
+		// Handle color customization fields
+		if websiteColor := c.PostForm("websiteColor"); websiteColor != "" {
+			// Validate hex color format
+			if len(websiteColor) == 7 && websiteColor[0] == '#' {
+				settings.WebsiteColor = websiteColor
+			}
+		}
+
+		if gradientColor1 := c.PostForm("gradientColor1"); gradientColor1 != "" {
+			if len(gradientColor1) == 7 && gradientColor1[0] == '#' {
+				settings.GradientColor1 = gradientColor1
+			}
+		}
+
+		if gradientColor2 := c.PostForm("gradientColor2"); gradientColor2 != "" {
+			if len(gradientColor2) == 7 && gradientColor2[0] == '#' {
+				settings.GradientColor2 = gradientColor2
+			}
+		}
+
+		if gradientColor3 := c.PostForm("gradientColor3"); gradientColor3 != "" {
+			if len(gradientColor3) == 7 && gradientColor3[0] == '#' {
+				settings.GradientColor3 = gradientColor3
+			}
+		} // Save settings to database
 		if settings.ID == 0 {
 			// Insert new settings
 			err = db.QueryRow(`
-				INSERT INTO settings (theme, logo_path, background_path, navbar_title, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration, expiration_action)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
+				INSERT INTO settings (theme, logo_path, background_path, navbar_title, max_upload_size, upload_box_transparency, blur_intensity, max_validity, allow_registration, expiration_action, website_color, gradient_color_1, gradient_color_2, gradient_color_3)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id
 			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.NavbarTitle, settings.MaxUploadSize,
-				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ExpirationAction).Scan(&settings.ID)
+				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ExpirationAction,
+				settings.WebsiteColor, settings.GradientColor1, settings.GradientColor2, settings.GradientColor3).Scan(&settings.ID)
 		} else {
 			// Update existing settings
 			_, err = db.Exec(`
 				UPDATE settings SET theme = $1, logo_path = $2, background_path = $3, navbar_title = $4, max_upload_size = $5,
-				upload_box_transparency = $6, blur_intensity = $7, max_validity = $8, allow_registration = $9, expiration_action = $10, updated_at = CURRENT_TIMESTAMP
-				WHERE id = $11
+				upload_box_transparency = $6, blur_intensity = $7, max_validity = $8, allow_registration = $9, expiration_action = $10,
+				website_color = $11, gradient_color_1 = $12, gradient_color_2 = $13, gradient_color_3 = $14, updated_at = CURRENT_TIMESTAMP
+				WHERE id = $15
 			`, settings.Theme, settings.LogoPath, settings.BackgroundPath, settings.NavbarTitle, settings.MaxUploadSize,
-				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ExpirationAction, settings.ID)
+				settings.UploadBoxTransparency, settings.BlurIntensity, settings.MaxValidity, settings.AllowRegistration, settings.ExpirationAction,
+				settings.WebsiteColor, settings.GradientColor1, settings.GradientColor2, settings.GradientColor3, settings.ID)
 		}
 
 		if err != nil {

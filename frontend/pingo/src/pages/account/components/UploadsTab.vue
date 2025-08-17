@@ -109,12 +109,12 @@
       <div v-else class="space-y-4">
         <transition-group name="list" tag="div" class="space-y-4">
           <div
-            v-for="(upload, index) in displayedUploads"
+            v-for="upload in displayedUploads"
             :key="upload.upload_id"
             class="group relative overflow-hidden rounded-2xl transition-all duration-300 hover:shadow-xl cursor-pointer"
-            :style="{ background: getListGradient(index) }"
+            :style="{ background: getStatusGradient(upload) }"
             @click="selectUpload(upload)"
-            :class="selectedUpload?.id === upload.id ? 'ring-4 ring-purple-500 ring-opacity-50' : ''"
+            :class="selectedUpload?.id === upload.id ? 'ring-4 ring-blue-500 ring-opacity-50' : ''"
           >
           <!-- Main Content Row -->
           <div class="relative p-6">
@@ -137,22 +137,30 @@
                       <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <div class="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                  <div class="absolute -top-2 -right-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
                     {{ JSON.parse(upload.files).length }}
                   </div>
                 </div>
               </div>
 
               <!-- File Details -->
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between">
-                  <div class="flex-1 min-w-0 pr-4">
-                    <h3 class="text-xl font-bold text-white mb-2">
-                      {{ JSON.parse(upload.files).length }} file{{ JSON.parse(upload.files).length > 1 ? 's' : '' }} 
-                      <span class="text-white/70 font-normal">• {{ formatFileSize(upload.total_size) }}</span>
+            <!-- File Details -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between">
+                <div class="flex-1 min-w-0 pr-4">
+                  <div class="flex items-center gap-3 mb-2">
+                    <h3 class="text-xl font-bold text-white">
+                      Upload {{ upload.upload_id }}
                     </h3>
-                    
-                    <!-- File Names Strip -->
+                    <!-- Expiration Warning Badge - moved here -->
+                    <div v-if="!upload.is_deleted && upload.expires_at && isExpiringSoon(upload.expires_at)" 
+                         class="bg-yellow-600 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                      <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Expiring Soon
+                    </div>
+                  </div>                    <!-- File Names Strip -->
                     <div class="flex flex-wrap gap-2 mb-3">
                       <span v-for="(filename, fileIndex) in JSON.parse(upload.files).slice(0, 4)" :key="fileIndex"
                             class="inline-flex items-center space-x-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-lg text-white/90 text-sm font-medium border border-white/20">
@@ -168,7 +176,7 @@
                         <span class="truncate max-w-32">{{ filename }}</span>
                       </span>
                       <span v-if="JSON.parse(upload.files).length > 4"
-                            class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-purple-500/50 to-pink-500/50 backdrop-blur-sm rounded-lg text-white text-sm font-medium border border-white/20">
+                            class="inline-flex items-center px-3 py-1 bg-gray-600/70 backdrop-blur-sm rounded-lg text-white text-sm font-medium border border-white/20">
                         +{{ JSON.parse(upload.files).length - 4 }} more files
                       </span>
                     </div>
@@ -215,7 +223,7 @@
                   <div class="flex-shrink-0 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
                     <button v-if="!upload.is_deleted"
                             @click.stop="openFile(upload)"
-                            class="action-btn-list bg-green-600 hover:bg-green-700"
+                            class="action-btn-list bg-gray-700 hover:bg-gray-800"
                             title="Open file">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -264,15 +272,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Expiration Warning -->
-            <div v-if="!upload.is_deleted && upload.expires_at && isExpiringSoon(upload.expires_at)" 
-                 class="absolute top-4 right-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
-              <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Expiring Soon
             </div>
           </div>
         </div>
@@ -398,20 +397,14 @@ const totalPages = computed(() => {
 })
 
 // Visual helper methods
-const getListGradient = (index: number) => {
-  const gradients = [
-    'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
-    'linear-gradient(90deg, #f093fb 0%, #f5576c 100%)',
-    'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)',
-    'linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)',
-    'linear-gradient(90deg, #fa709a 0%, #fee140 100%)',
-    'linear-gradient(90deg, #a8edea 0%, #fed6e3 100%)',
-    'linear-gradient(90deg, #ff9a9e 0%, #fecfef 100%)',
-    'linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%)',
-    'linear-gradient(90deg, #fad0c4 0%, #ffd1ff 100%)',
-    'linear-gradient(90deg, #ffecd2 0%, #fcb69f 100%)'
-  ]
-  return gradients[index % gradients.length]
+const getStatusGradient = (upload: any) => {
+  // Red gradient for deleted or expired uploads
+  if (upload.is_deleted || !upload.is_available) {
+    return 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)'
+  }
+  
+  // Green gradient for all active uploads (including expiring soon)
+  return 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)'
 }
 
 const getFileTypeSvg = (upload: any) => {
