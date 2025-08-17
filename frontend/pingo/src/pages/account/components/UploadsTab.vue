@@ -12,11 +12,7 @@
       <div class="text-center mb-12 relative">
         <div class="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 rounded-3xl blur-3xl"></div>
         <div class="relative backdrop-blur-sm bg-white/5 dark:bg-black/20 rounded-3xl p-8 border border-white/10">
-          <h1 class="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
-            🚀 My Digital Vault
-          </h1>
-          <p class="text-xl text-gray-600 dark:text-gray-300 mb-6">Manage your cosmic file collection</p>
-          
+
           <!-- Quick Stats Bubbles -->
           <div class="flex flex-wrap justify-center gap-4 mb-8">
             <div class="stats-bubble">
@@ -351,19 +347,16 @@ const filterOptions = computed(() => [
   { 
     value: 'all', 
     label: 'All Files', 
-    icon: '🌌', 
     count: props.uploads.length 
   },
   { 
     value: 'active', 
     label: 'Active', 
-    icon: '🚀', 
     count: props.uploads.filter(u => !u.is_deleted).length 
   },
   { 
     value: 'deleted', 
     label: 'Deleted', 
-    icon: '🗑️', 
     count: props.uploads.filter(u => u.is_deleted).length 
   }
 ])
