@@ -58,7 +58,7 @@
                   <span class="invisible">{{ rotatingWords[0] }}</span>
                 </div>
               </h1>
-              
+
               <p class="text-xl sm:text-2xl max-w-3xl mx-auto leading-relaxed"
                  :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
                 Transfer files of any size securely and instantly. No registration required, 
