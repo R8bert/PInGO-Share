@@ -124,7 +124,18 @@
                     <div class="flex-1 min-w-0">
                       <h3 class="text-3xl font-bold mb-2 truncate"
                           :style="{ color: isDark ? '#ffffff' : '#000000' }">
-                        {{ uploader.username }}
+                        <!-- {{ uploader.username }} -->
+                          <DecryptedText
+                            :text="uploader.username"
+                            :speed="50"
+                            :max-iterations="10"
+                            :sequential="false"
+                            reveal-direction="start"
+                            :use-original-chars-only="false"
+                            animate-on="view"
+                            class-name="text-green-500"
+                            encrypted-class-name="text-red-500"
+                        />
                       </h3>
                       <p class="text-lg mb-4 truncate opacity-80"
                          :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
@@ -442,6 +453,8 @@ import { useTheme } from '../../composables/useTheme'
 import { useUIColors } from '../../composables/useUIColors'
 import axios from 'axios'
 import WebGLBackground from '../../components/WebGLBackground.vue'
+import DecryptedText from "../../blocks/TextAnimations/DecryptedText/DecryptedText.vue";
+
 
 const { isDark } = useTheme()
 const { primaryGradient, buttonGradient, hoverGradient } = useUIColors()
