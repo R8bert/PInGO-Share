@@ -65,11 +65,11 @@
                                         'Free',
                                         'Easy!',
                                     ]"
-                                    mainClassName="inline-flex w-fit whitespace-pre-wrap relative animate-fade-in-delay px-1 sm:px-2 md:px-3 bg-gradient-to-b from-red-800 to-red-500 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
+                                    mainClassName="inline-block px-2 sm:px-2 md:px-3 bg-green-300 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
                                     :initial="{ y: '100%' }"
                                     :animate="{ y: 0 }"
                                     :exit="{ y: '-120%' }"
-                                    :staggerDuration="0.055"
+                                    :staggerDuration="0.025"
                                     splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
                                     :transition="{
                                         type: 'spring',
@@ -1623,6 +1623,13 @@ html {
     }
 }
 
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-move 3s linear infinite;
+}
+
+
 .animate-fade-in {
     animation: fade-in 0.8s ease-out;
 }
@@ -1635,22 +1642,6 @@ html {
     animation: fade-in-delay-2 0.8s ease-out 0.4s both;
 }
 
-/* Rotating text animations */
-.rotating-text-container {
-    min-height: 1em;
-}
-
-.rotating-word {
-    font-weight: bold;
-    transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-    backface-visibility: hidden;
-    will-change: transform, opacity, filter, color;
-}
-
-/* Enhanced glow effect for active text */
-.rotating-word:first-of-type {
-    animation: liquid-glow 3s ease-in-out infinite;
-}
 
 @keyframes liquid-glow {
     0%,
@@ -1661,4 +1652,12 @@ html {
         filter: drop-shadow(0 0 15px #ef444480) drop-shadow(0 0 30px #ef444460);
     }
 }
+
+
+@keyframes gradient-move {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+
 </style>
