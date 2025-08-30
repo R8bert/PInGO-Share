@@ -58,6 +58,7 @@
                                     >Share files</span
                                 >
                                 <br />
+
                                 <RotatingText
                                     :texts="[
                                         'Secure',
@@ -65,11 +66,11 @@
                                         'Free',
                                         'Easy!',
                                     ]"
-                                    mainClassName="inline-block px-2 sm:px-2 md:px-3 bg-green-300 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
+                                    mainClassName="shake inline-block whitespace-pre-wrap relative px-2 bg-gradient-to-b from-red-800 to-red-500 rounded-lg "
                                     :initial="{ y: '100%' }"
                                     :animate="{ y: 0 }"
                                     :exit="{ y: '-120%' }"
-                                    :staggerDuration="0.025"
+                                    :staggerDuration="0.055"
                                     splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
                                     :transition="{
                                         type: 'spring',
@@ -1200,7 +1201,6 @@ import {
 } from "@heroicons/vue/24/outline";
 import WebGLBackground from "../../components/WebGLBackground.vue";
 import RotatingText from "../../blocks/TextAnimations/RotatingText/RotatingText.vue";
-import GlitchText from "../../blocks/TextAnimations/GlitchText/GlitchText.vue";
 import ShinyText from "../../blocks/TextAnimations/ShinyText/ShinyText.vue";
 
 const { isAuthenticated } = useAuth();
@@ -1622,7 +1622,33 @@ html {
         transform: translateY(0);
     }
 }
+.shake {
+  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  transform: translate3d(0, 0, 0);
+}
 
+@keyframes shake {
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
 
 .animate-gradient {
   background-size: 200% 200%;
