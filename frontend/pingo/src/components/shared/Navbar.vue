@@ -4,7 +4,7 @@
     <div class="fixed top-4 left-4 z-50">
       <router-link 
         to="/" 
-        class="flex items-center space-x-3 px-4 py-2.5 rounded-2xl backdrop-blur-xl transition-all duration-300 hover:scale-105 group"
+        class="flex items-center space-x-2 px-4 py-2.5 rounded-2xl backdrop-blur-xl transition-all duration-300 group"
         :style="{ 
           backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.9)',
           borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
@@ -14,14 +14,14 @@
             : '0 8px 32px rgba(0, 0, 0, 0.1)'
         }"
       >
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300"
-             :style="{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }">
+        <div class="rounded-xl flex items-center justify-center transition-colors duration-300">
           <img 
             v-if="logoPath" 
             :src="logoPath ? `http://localhost:8080${logoPath}` : ''" 
-            class="w-7 h-7" 
+            class="w-8 h-8" 
             alt="Logo" 
             @error="handleImageError" 
+            style="border-radius: 0.475rem;"
           />
           <CloudArrowUpIcon 
             v-else 
@@ -30,7 +30,7 @@
           />
         </div>
         <span 
-          class="text-xl font-bold tracking-tight transition-colors duration-300 group-hover:scale-105"
+          class="text-xl font-bold tracking-tight transition-colors duration-300 "
           :style="{ color: isDark ? '#ffffff' : '#1f2937' }"
         >
           {{ navbarTitle }}
@@ -44,7 +44,7 @@
         href="https://github.com/R8bert/PInGO-Share" 
         target="_blank" 
         rel="noopener noreferrer"
-        class="flex items-center justify-center w-10 h-10 rounded-xl backdrop-blur-xl transition-all duration-300 hover:scale-110 group"
+        class="flex items-center justify-center w-10 h-10 rounded-xl backdrop-blur-xl transition-all duration-300 hover:scale-105 group"
         :style="{ 
           backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.9)',
           borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',

@@ -1212,7 +1212,7 @@ const getFileIconAltText = (filename: string) => {
 }
 
 // Apple Hello typewriter effect with highlight - exactly like shadcn example
-const words = [" secure", " instantly", " easy", " self-hosted"];
+const words = [" secure", " instantly", " with-friends", " self-hosted"];
 const currentWordIndex = ref(0);
 const displayedChars = ref(0);
 const isHighlighted = ref(false);
