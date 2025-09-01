@@ -147,19 +147,19 @@
             <!-- Upload Section -->
             <section
                 ref="uploadSection"
-                class="relative py-20 px-4 sm:px-6 lg:px-8"
+                class="relative py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8"
             >
                 <div class="max-w-4xl mx-auto">
                     <!-- Upload Card -->
                     <div class="relative">
                         <!-- Background Glow -->
                         <div
-                            class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-3xl blur-3xl"
+                            class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl sm:rounded-3xl blur-3xl"
                         ></div>
 
                         <!-- Main Card -->
                         <div
-                            class="relative backdrop-blur-xl border rounded-3xl p-8 sm:p-12"
+                            class="relative backdrop-blur-xl border rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12"
                             :style="{
                                 backgroundColor: isDark
                                     ? 'rgba(255,255,255,0.05)'
@@ -172,10 +172,10 @@
                             <!-- Upload Success Screen -->
                             <div v-if="uploadComplete" class="text-center">
                                 <div
-                                    class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center"
+                                    class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center"
                                 >
                                     <svg
-                                        class="w-10 h-10 text-white"
+                                        class="w-8 h-8 sm:w-10 sm:h-10 text-white"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -190,12 +190,12 @@
                                 </div>
 
                                 <h3
-                                    class="text-2xl font-semibold text-gray-900 dark:text-white mb-2"
+                                    class="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white mb-2"
                                 >
                                     Upload Complete!
                                 </h3>
                                 <p
-                                    class="text-gray-600 dark:text-gray-300 mb-8"
+                                    class="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-6 sm:mb-8"
                                 >
                                     Your files have been successfully uploaded
                                     and are ready to share.
@@ -206,10 +206,10 @@
                                     <!-- Upload New -->
                                     <button
                                         @click="openLink"
-                                        class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-blue-600 hover:to-purple-700 backdrop-blur-sm border border-white/30 text-gray-800 dark:text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                                        class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-blue-600 hover:to-purple-700 backdrop-blur-sm border border-white/30 text-gray-800 dark:text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
                                     >
                                         <svg
-                                            class="w-5 h-5"
+                                            class="w-4 h-4 sm:w-5 sm:h-5"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -225,10 +225,10 @@
                                     </button>
                                     <button
                                         @click="copyLink"
-                                        class="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-gray-800 dark:text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                                        class="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-gray-800 dark:text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
                                     >
                                         <svg
-                                            class="w-5 h-5"
+                                            class="w-4 h-4 sm:w-5 sm:h-5"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -244,10 +244,10 @@
                                     </button>
                                     <button
                                         @click="uploadNew"
-                                        class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2"
+                                        class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base"
                                     >
                                         <svg
-                                            class="w-5 h-5"
+                                            class="w-4 h-4 sm:w-5 sm:h-5"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -297,13 +297,13 @@
                                             }"
                                         ></div>
                                         <div
-                                            class="relative rounded-2xl p-6 flex items-center justify-center"
+                                            class="relative rounded-xl sm:rounded-2xl p-4 sm:p-6 flex items-center justify-center"
                                             :style="{
                                                 background: primaryGradient,
                                             }"
                                         >
                                             <CloudArrowUpIcon
-                                                class="w-12 h-12 text-white"
+                                                class="w-10 h-10 sm:w-12 sm:h-12 text-white"
                                             />
                                         </div>
                                     </div>
@@ -311,7 +311,7 @@
                                     <!-- Upload Text -->
                                     <div class="space-y-2">
                                         <h3
-                                            class="text-2xl font-bold"
+                                            class="text-xl sm:text-2xl font-bold"
                                             :style="{
                                                 color: isDark
                                                     ? '#ffffff'
@@ -332,6 +332,7 @@
                                             }}
                                         </h3>
                                         <p
+                                            class="text-sm sm:text-base"
                                             :style="{
                                                 color: isDark
                                                     ? '#a1a1aa'
@@ -345,10 +346,10 @@
 
                                     <!-- Features -->
                                     <div
-                                        class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6"
+                                        class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-4 sm:pt-6"
                                     >
                                         <div
-                                            class="flex items-center justify-center space-x-2 p-3 rounded-xl"
+                                            class="flex items-center justify-center space-x-2 p-2 sm:p-3 rounded-lg sm:rounded-xl"
                                             :style="{
                                                 backgroundColor: isDark
                                                     ? 'rgba(255,255,255,0.05)'
@@ -359,7 +360,7 @@
                                                 class="w-2 h-2 bg-green-500 rounded-full"
                                             ></div>
                                             <span
-                                                class="text-sm font-medium"
+                                                class="text-xs sm:text-sm font-medium"
                                                 :style="{
                                                     color: isDark
                                                         ? '#a1a1aa'
@@ -370,7 +371,7 @@
                                             </span>
                                         </div>
                                         <div
-                                            class="flex items-center justify-center space-x-2 p-3 rounded-xl"
+                                            class="flex items-center justify-center space-x-2 p-2 sm:p-3 rounded-lg sm:rounded-xl"
                                             :style="{
                                                 backgroundColor: isDark
                                                     ? 'rgba(255,255,255,0.05)'
@@ -381,7 +382,7 @@
                                                 class="w-2 h-2 bg-blue-500 rounded-full"
                                             ></div>
                                             <span
-                                                class="text-sm font-medium"
+                                                class="text-xs sm:text-sm font-medium"
                                                 :style="{
                                                     color: isDark
                                                         ? '#a1a1aa'
@@ -392,7 +393,7 @@
                                             </span>
                                         </div>
                                         <div
-                                            class="flex items-center justify-center space-x-2 p-3 rounded-xl"
+                                            class="flex items-center justify-center space-x-2 p-2 sm:p-3 rounded-lg sm:rounded-xl"
                                             :style="{
                                                 backgroundColor: isDark
                                                     ? 'rgba(255,255,255,0.05)'
@@ -403,7 +404,7 @@
                                                 class="w-2 h-2 bg-purple-500 rounded-full"
                                             ></div>
                                             <span
-                                                class="text-sm font-medium"
+                                                class="text-xs sm:text-sm font-medium"
                                                 :style="{
                                                     color: isDark
                                                         ? '#a1a1aa'
@@ -419,10 +420,10 @@
                                 <!-- Drag overlay -->
                                 <div
                                     v-if="isDragging"
-                                    class="absolute inset-0 rounded-2xl flex items-center justify-center z-20 bg-blue-500/20 backdrop-blur-sm"
+                                    class="absolute inset-0 rounded-xl sm:rounded-2xl flex items-center justify-center z-20 bg-blue-500/20 backdrop-blur-sm"
                                 >
                                     <div
-                                        class="text-2xl font-bold text-blue-600"
+                                        class="text-xl sm:text-2xl font-bold text-blue-600"
                                     >
                                         Drop files here
                                     </div>
@@ -516,11 +517,11 @@
                                 >
                                     Selected Files
                                 </h4>
-                                <div class="grid gap-4">
+                                <div class="grid gap-3 sm:gap-4">
                                     <div
                                         v-for="(file, index) in selectedFiles"
                                         :key="index"
-                                        class="rounded-xl border transition-all duration-300"
+                                        class="rounded-xl border transition-all duration-300 overflow-hidden"
                                         :style="{
                                             backgroundColor: isDark
                                                 ? 'rgba(255,255,255,0.05)'
@@ -531,49 +532,34 @@
                                         }"
                                     >
                                         <div
-                                            class="flex items-center justify-between p-4"
+                                            class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4"
                                         >
                                             <div
-                                                class="flex items-center space-x-3"
+                                                class="flex items-center space-x-3 flex-1 min-w-0"
                                             >
                                                 <div
-                                                    class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center overflow-hidden"
+                                                    class="flex items-center justify-center flex-shrink-0"
                                                 >
-                                                    <span
-                                                        class="text-white text-xs font-bold leading-none text-center px-1 truncate max-w-full"
-                                                    >
-                                                        {{
-                                                            getFileExtension(
-                                                                file
-                                                            ).toUpperCase()
-                                                                .length > 4
-                                                                ? getFileExtension(
-                                                                      file
-                                                                  )
-                                                                      .toUpperCase()
-                                                                      .substring(
-                                                                          0,
-                                                                          3
-                                                                      ) + "."
-                                                                : getFileExtension(
-                                                                      file
-                                                                  ).toUpperCase()
-                                                        }}
-                                                    </span>
+                                                    <img 
+                                                        :src="getFileIconPath(file.name)" 
+                                                        :alt="getFileIconAltText(file.name)"
+                                                        class="w-5 h-5 sm:w-6 sm:h-6 object-contain"
+                                                    />
                                                 </div>
-                                                <div>
+                                                <div class="min-w-0 flex-1">
                                                     <p
-                                                        class="font-medium"
+                                                        class="font-medium text-sm sm:text-base truncate break-all"
                                                         :style="{
                                                             color: isDark
                                                                 ? '#ffffff'
                                                                 : '#000000',
                                                         }"
+                                                        :title="file.name"
                                                     >
                                                         {{ file.name }}
                                                     </p>
                                                     <p
-                                                        class="text-sm"
+                                                        class="text-xs sm:text-sm"
                                                         :style="{
                                                             color: isDark
                                                                 ? '#a1a1aa'
@@ -589,14 +575,14 @@
                                                 </div>
                                             </div>
                                             <div
-                                                class="flex items-center space-x-2"
+                                                class="flex items-center gap-2 w-full sm:w-auto"
                                             >
                                                 <button
                                                     v-if="canPreview(file)"
                                                     @click="
                                                         togglePreview(index)
                                                     "
-                                                    class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
+                                                    class="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 flex-1 sm:flex-none"
                                                     :class="
                                                         previewingFiles.has(
                                                             index
@@ -612,11 +598,11 @@
                                                                 index
                                                             )
                                                         "
-                                                        class="w-4 h-4 mr-1 inline"
+                                                        class="w-3 h-3 sm:w-4 sm:h-4 mr-1 inline"
                                                     />
                                                     <EyeSlashIcon
                                                         v-else
-                                                        class="w-4 h-4 mr-1 inline"
+                                                        class="w-3 h-3 sm:w-4 sm:h-4 mr-1 inline"
                                                     />
                                                     {{
                                                         previewingFiles.has(
@@ -628,11 +614,11 @@
                                                 </button>
                                                 <button
                                                     @click="removeFile(index)"
-                                                    class="p-2 rounded-full hover:bg-red-500/20 text-red-500 transition-colors"
+                                                    class="p-2 rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-colors flex-shrink-0"
+                                                    :disabled="isUploading"
+                                                    :title="'Remove ' + file.name"
                                                 >
-                                                    <XMarkIcon
-                                                        class="w-5 h-5"
-                                                    />
+                                                    <XMarkIcon class="w-3 h-3 sm:w-4 sm:h-4" />
                                                 </button>
                                             </div>
 
@@ -642,10 +628,10 @@
                                         <!-- Preview Section -->
                                         <div
                                             v-if="previewingFiles.has(index)"
-                                            class="px-4 pb-4"
+                                            class="px-3 sm:px-4 pb-3 sm:pb-4"
                                         >
                                             <div
-                                                class="rounded-lg border-t pt-4"
+                                                class="rounded-lg border-t pt-3 sm:pt-4"
                                                 :style="{
                                                     borderColor: isDark
                                                         ? 'rgba(255,255,255,0.1)'
@@ -675,7 +661,7 @@
                                                             )
                                                         "
                                                         :alt="file.name"
-                                                        class="w-full max-w-md mx-auto rounded-lg shadow-lg"
+                                                        class="w-full max-w-xs sm:max-w-md mx-auto rounded-lg shadow-lg"
                                                     />
                                                 </div>
 
@@ -694,7 +680,7 @@
                                                             )
                                                         "
                                                         controls
-                                                        class="w-full max-w-md mx-auto rounded-lg shadow-lg"
+                                                        class="w-full max-w-xs sm:max-w-md mx-auto rounded-lg shadow-lg"
                                                     ></video>
                                                 </div>
 
@@ -719,7 +705,7 @@
                                                             )
                                                         "
                                                         controls
-                                                        class="w-full max-w-md mx-auto"
+                                                        class="w-full max-w-xs sm:max-w-md mx-auto"
                                                     ></audio>
                                                 </div>
 
@@ -751,7 +737,7 @@
                                                         }"
                                                     >
                                                         <pre
-                                                            class="text-xs p-4 whitespace-pre-wrap overflow-auto max-h-32 w-full block"
+                                                            class="text-xs sm:text-sm p-3 sm:p-4 whitespace-pre-wrap overflow-auto max-h-32 w-full block"
                                                             :style="{
                                                                 color: isDark
                                                                     ? '#d1d5db'
@@ -815,10 +801,10 @@
                                 <!-- Progress Bar -->
                                 <div
                                     v-if="progress > 0 && progress < 100"
-                                    class="mt-6"
+                                    class="mt-4 sm:mt-6"
                                 >
                                     <div
-                                        class="flex justify-between text-sm mb-2"
+                                        class="flex justify-between text-xs sm:text-sm mb-2"
                                         :style="{
                                             color: isDark
                                                 ? '#a1a1aa'
@@ -829,10 +815,10 @@
                                         <span>{{ progress }}%</span>
                                     </div>
                                     <div
-                                        class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden"
+                                        class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-3 overflow-hidden"
                                     >
                                         <div
-                                            class="h-3 rounded-full transition-all duration-300"
+                                            class="h-2 sm:h-3 rounded-full transition-all duration-300"
                                             :style="{
                                                 background: buttonGradient,
                                                 width: progress + '%',
@@ -842,11 +828,11 @@
                                 </div>
 
                                 <!-- Upload Button -->
-                                <div v-if="!uploadComplete" class="pt-6">
+                                <div v-if="!uploadComplete" class="pt-4 sm:pt-6">
                                     <button
                                         @click="uploadFiles"
                                         :disabled="isUploading"
-                                        class="w-full py-4 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl disabled:opacity-50 disabled:hover:scale-100"
+                                        class="w-full py-3 sm:py-4 text-sm sm:text-base text-white font-semibold rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl disabled:opacity-50 disabled:hover:scale-100"
                                         :style="{ background: buttonGradient }"
                                     >
                                         <span
@@ -891,18 +877,18 @@
             <!-- Features Section -->
             <section
                 ref="featuresSection"
-                class="relative py-20 px-4 sm:px-6 lg:px-8"
+                class="relative py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8"
             >
                 <div class="max-w-7xl mx-auto">
-                    <div class="text-center mb-16">
+                    <div class="text-center mb-12 sm:mb-16">
                         <h2
-                            class="text-4xl sm:text-5xl font-bold mb-6"
+                            class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6"
                             :style="{ color: isDark ? '#ffffff' : '#000000' }"
                         >
                             Why choose PInGO Share?
                         </h2>
                         <p
-                            class="text-xl max-w-3xl mx-auto"
+                            class="text-lg sm:text-xl max-w-3xl mx-auto"
                             :style="{ color: isDark ? '#a1a1aa' : '#71717a' }"
                         >
                             Built with modern technology and user experience in
@@ -911,7 +897,7 @@
                     </div>
 
                     <div
-                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
                     >
                         <!-- Feature 1 -->
                         <div class="relative group">
@@ -919,7 +905,7 @@
                                 class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                             ></div>
                             <div
-                                class="relative backdrop-blur-xl border rounded-2xl p-8 transition-all duration-300 group-hover:scale-105"
+                                class="relative backdrop-blur-xl border rounded-xl sm:rounded-2xl p-6 sm:p-8 transition-all duration-300 group-hover:scale-105"
                                 :style="{
                                     backgroundColor: isDark
                                         ? 'rgba(255,255,255,0.05)'
@@ -930,10 +916,10 @@
                                 }"
                             >
                                 <div
-                                    class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mb-6"
+                                    class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6"
                                 >
                                     <svg
-                                        class="w-8 h-8 text-white"
+                                        class="w-6 h-6 sm:w-8 sm:h-8 text-white"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -947,7 +933,7 @@
                                     </svg>
                                 </div>
                                 <h3
-                                    class="text-xl font-bold mb-4"
+                                    class="text-lg sm:text-xl font-bold mb-3 sm:mb-4"
                                     :style="{
                                         color: isDark ? '#ffffff' : '#000000',
                                     }"
@@ -955,6 +941,7 @@
                                     End-to-End Encryption
                                 </h3>
                                 <p
+                                    class="text-sm sm:text-base"
                                     :style="{
                                         color: isDark ? '#a1a1aa' : '#71717a',
                                     }"
@@ -971,7 +958,7 @@
                                 class="absolute inset-0 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                             ></div>
                             <div
-                                class="relative backdrop-blur-xl border rounded-2xl p-8 transition-all duration-300 group-hover:scale-105"
+                                class="relative backdrop-blur-xl border rounded-xl sm:rounded-2xl p-6 sm:p-8 transition-all duration-300 group-hover:scale-105"
                                 :style="{
                                     backgroundColor: isDark
                                         ? 'rgba(255,255,255,0.05)'
@@ -982,10 +969,10 @@
                                 }"
                             >
                                 <div
-                                    class="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl flex items-center justify-center mb-6"
+                                    class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6"
                                 >
                                     <svg
-                                        class="w-8 h-8 text-white"
+                                        class="w-6 h-6 sm:w-8 sm:h-8 text-white"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -999,7 +986,7 @@
                                     </svg>
                                 </div>
                                 <h3
-                                    class="text-xl font-bold mb-4"
+                                    class="text-lg sm:text-xl font-bold mb-3 sm:mb-4"
                                     :style="{
                                         color: isDark ? '#ffffff' : '#000000',
                                     }"
@@ -1007,6 +994,7 @@
                                     Lightning Fast
                                 </h3>
                                 <p
+                                    class="text-sm sm:text-base"
                                     :style="{
                                         color: isDark ? '#a1a1aa' : '#71717a',
                                     }"
@@ -1023,7 +1011,7 @@
                                 class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                             ></div>
                             <div
-                                class="relative backdrop-blur-xl border rounded-2xl p-8 transition-all duration-300 group-hover:scale-105"
+                                class="relative backdrop-blur-xl border rounded-xl sm:rounded-2xl p-6 sm:p-8 transition-all duration-300 group-hover:scale-105"
                                 :style="{
                                     backgroundColor: isDark
                                         ? 'rgba(255,255,255,0.05)'
@@ -1034,10 +1022,10 @@
                                 }"
                             >
                                 <div
-                                    class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-6"
+                                    class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6"
                                 >
                                     <svg
-                                        class="w-8 h-8 text-white"
+                                        class="w-6 h-6 sm:w-8 sm:h-8 text-white"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -1051,7 +1039,7 @@
                                     </svg>
                                 </div>
                                 <h3
-                                    class="text-xl font-bold mb-4"
+                                    class="text-lg sm:text-xl font-bold mb-3 sm:mb-4"
                                     :style="{
                                         color: isDark ? '#ffffff' : '#000000',
                                     }"
@@ -1059,6 +1047,7 @@
                                     No Registration
                                 </h3>
                                 <p
+                                    class="text-sm sm:text-base"
                                     :style="{
                                         color: isDark ? '#a1a1aa' : '#71717a',
                                     }"
@@ -1190,6 +1179,7 @@ import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { useTheme } from "../../composables/useTheme";
 import { useUIColors } from "../../composables/useUIColors";
+import { useIcons } from "../../composables/useIcons";
 import axios from "axios";
 import {
     CloudArrowUpIcon,
@@ -1207,9 +1197,22 @@ const {
     buttonGradient,
     hoverGradient,
 } = useUIColors();
+const { 
+  getFileIcon, 
+  getFileIconAlt 
+} = useIcons();
+
+// Helper methods for file icons - same as UploadsTab
+const getFileIconPath = (filename: string) => {
+  return getFileIcon(filename)
+}
+
+const getFileIconAltText = (filename: string) => {
+  return getFileIconAlt(filename)
+}
 
 // Apple Hello typewriter effect with highlight - exactly like shadcn example
-const words = ["securely", "instantly", "easy", "self-hosted"];
+const words = [" secure", " instantly", " easy", " self-hosted"];
 const currentWordIndex = ref(0);
 const displayedChars = ref(0);
 const isHighlighted = ref(false);

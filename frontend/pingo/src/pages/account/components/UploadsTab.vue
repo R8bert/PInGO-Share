@@ -1,61 +1,59 @@
 <template>
-  <div class="min-h-screen p-6" :class="isDark ? 'bg-gray-900' : 'bg-gray-50'">
+  <div class="min-h-screen p-4 sm:p-6" :class="isDark ? 'bg-gray-900' : 'bg-gray-50'">
     <!-- Header Section -->
     <div class="max-w-7xl mx-auto">
       <!-- Page Title and Stats -->
-      <div class="mb-8">
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h1 class="text-3xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">My Uploads</h1>
-            <p class="mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Manage and track your file uploads</p>
+      <div class="mb-6 sm:mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-6">
+          <div class="min-w-0">
+            <h1 class="text-2xl sm:text-3xl font-bold truncate" :class="isDark ? 'text-white' : 'text-gray-900'">My Uploads</h1>
+            <p class="mt-1 text-sm sm:text-base" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Manage and track your file uploads</p>
           </div>
           
           <!-- Quick Stats Cards -->
-          <div class="flex gap-4">
-            <div class="rounded-xl p-4 shadow-sm border" 
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 w-full lg:w-auto">
+            <div class="rounded-xl p-3 sm:p-4 shadow-sm border" 
                  :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+              <div class="flex items-center gap-2 sm:gap-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                      :class="isDark ? 'bg-blue-900/30' : 'bg-blue-100'">
-                  <img src="/src/assets/svg/icons/files_uploaded.svg" alt="Total uploads" 
-                       class="w-6 h-6 object-contain" 
-                       style="width: 24px !important; height: 24px !important;" />
+                  <img :src="getSystemIcon('filesUploaded')" alt="Total uploads" 
+                       class="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
                 </div>
-                <div>
-                  <div class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ uploads.length }}</div>
-                  <div class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Total Uploads</div>
+                <div class="min-w-0">
+                  <div class="text-lg sm:text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ uploads.length }}</div>
+                  <div class="text-xs sm:text-sm truncate" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Total Uploads</div>
                 </div>
               </div>
             </div>
             
-            <div class="rounded-xl p-4 shadow-sm border" 
+            <div class="rounded-xl p-3 sm:p-4 shadow-sm border" 
                  :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+              <div class="flex items-center gap-2 sm:gap-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                      :class="isDark ? 'bg-green-900/30' : 'bg-green-100'">
-                  <svg class="w-6 h-6" :class="isDark ? 'text-green-400' : 'text-green-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-5 h-5 sm:w-6 sm:h-6" :class="isDark ? 'text-green-400' : 'text-green-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div>
-                  <div class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ activeUploads.length }}</div>
-                  <div class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Active Files</div>
+                <div class="min-w-0">
+                  <div class="text-lg sm:text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ activeUploads.length }}</div>
+                  <div class="text-xs sm:text-sm truncate" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Active Files</div>
                 </div>
               </div>
             </div>
             
-            <div class="rounded-xl p-4 shadow-sm border" 
+            <div class="rounded-xl p-3 sm:p-4 shadow-sm border" 
                  :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+              <div class="flex items-center gap-2 sm:gap-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                      :class="isDark ? 'bg-purple-900/30' : 'bg-purple-100'">
-                  <img src="/src/assets/svg/icons/total_files_icon.svg" alt="Total files" 
-                       class="w-6 h-6 object-contain" 
-                       style="width: 24px !important; height: 24px !important;" />
+                  <img :src="getSystemIcon('totalFiles')" alt="Total files" 
+                       class="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
                 </div>
-                <div>
-                  <div class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ totalFilesCount }}</div>
-                  <div class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Total Files</div>
+                <div class="min-w-0">
+                  <div class="text-lg sm:text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ totalFilesCount }}</div>
+                  <div class="text-xs sm:text-sm truncate" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Total Files</div>
                 </div>
               </div>
             </div>
@@ -63,13 +61,13 @@
         </div>
 
         <!-- Filter Tabs -->
-        <div v-if="!isLoading && uploads.length > 0" class="flex gap-2">
+        <div v-if="!isLoading && uploads.length > 0" class="flex flex-wrap gap-2">
           <button 
             v-for="filter in filterOptions" 
             :key="filter.value"
             @click="deletionFilter = filter.value; onFilterChange()"
             :class="[
-              'px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2',
+              'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-sm sm:text-base',
               deletionFilter === filter.value 
                 ? 'bg-blue-600 text-white shadow-md' 
                 : isDark 
@@ -77,10 +75,10 @@
                   : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
             ]"
           >
-            {{ filter.label }}
+            <span class="truncate">{{ filter.label }}</span>
             <span v-if="filter.count !== undefined" 
                   :class="[
-                    'px-2 py-0.5 text-xs rounded-full',
+                    'px-2 py-0.5 text-xs rounded-full flex-shrink-0',
                     deletionFilter === filter.value 
                       ? 'bg-white/20 text-white' 
                       : isDark
@@ -105,7 +103,7 @@
       <div v-else-if="filteredUploads.length === 0" class="text-center py-20">
         <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6"
              :class="isDark ? 'bg-gray-800' : 'bg-gray-100'">
-          <img src="/src/assets/svg/icons/files_uploaded2.svg" alt="No uploads" 
+          <img :src="getSystemIcon('filesUploaded2')" alt="No uploads" 
                class="w-12 h-12 opacity-50 object-contain" 
                style="width: 48px !important; height: 48px !important;" />
         </div>
@@ -128,28 +126,27 @@
             ]"
           >
             <!-- Main Upload Row -->
-            <div class="p-6">
-              <div class="flex items-center justify-between">
+            <div class="p-4 sm:p-6">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                 <!-- Left side: Icon, Title, and Meta -->
-                <div class="flex items-center gap-4 flex-1 min-w-0">
+                <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 overflow-hidden">
                   <!-- File Type Icon -->
                   <div class="flex items-center justify-center flex-shrink-0">
                     <img 
                       :src="getUploadIconPath(upload)" 
-                      :alt="getUploadIconAlt(upload)" 
-                      class="w-10 h-10 object-contain"
-                      style="width: 45px !important; height: 45px !important;"
+                      :alt="getUploadIconAltText(upload)" 
+                      class="w-8 h-8 sm:w-10 sm:h-10 object-contain"
                     />
                   </div>
                   
                   <!-- Upload Info -->
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-3 mb-1">
-                      <h3 class="font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">Upload {{ upload.upload_id }}</h3>
+                  <div class="flex-1 min-w-0 overflow-hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+                      <h3 class="font-semibold text-sm sm:text-base truncate" :class="isDark ? 'text-white' : 'text-gray-900'">Upload {{ upload.upload_id }}</h3>
                       <!-- Status Badge -->
                       <span 
                         :class="[
-                          'px-2 py-1 text-xs font-medium rounded-full',
+                          'px-2 py-1 text-xs font-medium rounded-full inline-block w-fit flex-shrink-0',
                           upload.is_deleted 
                             ? isDark 
                               ? 'bg-red-900/30 text-red-400'
@@ -172,46 +169,46 @@
                     </div>
                     
                     <!-- Upload Metadata -->
-                    <div class="flex items-center gap-6 text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                      <span>{{ JSON.parse(upload.files).length }} files</span>
-                      <span>{{ formatFileSize(upload.size || 0) }}</span>
-                      <span>Created {{ formatDate(upload.created_at) }}</span>
-                      <span v-if="upload.expires_at">Expires {{ formatDate(upload.expires_at) }}</span>
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-4 lg:gap-6 text-xs sm:text-sm overflow-hidden" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                      <span class="whitespace-nowrap">{{ JSON.parse(upload.files).length }} files</span>
+                      <span class="whitespace-nowrap">{{ formatFileSize(upload.size || 0) }}</span>
+                      <span class="whitespace-nowrap">Created {{ formatDate(upload.created_at) }}</span>
+                      <span v-if="upload.expires_at" class="whitespace-nowrap">Expires {{ formatDate(upload.expires_at) }}</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Right side: Action Buttons -->
-                <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto min-w-0">
                   <button
                     @click="openFile(upload)"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center gap-2 flex-1 sm:flex-none justify-center min-w-0"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                    Open
+                    <span class="hidden sm:inline">Open</span>
                   </button>
                   
                   <button
                     @click="$emit('copyToClipboard', `${getBaseUrl()}/download/${upload.upload_id}`)"
-                    class="px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
+                    class="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center justify-center flex-shrink-0"
                     :class="isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'"
                     title="Copy Link"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                   </button>
                   
                   <button
                     @click="selectUpload(upload)"
-                    class="px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
+                    class="px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center flex-shrink-0"
                     :class="isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'"
                     title="More Options"
                   >
                     <svg 
-                      class="w-4 h-4 transition-transform duration-200" 
+                      class="w-4 h-4 transition-transform duration-200 flex-shrink-0" 
                       :class="selectedUpload?.id === upload.id ? 'rotate-180' : ''"
                       fill="none" 
                       stroke="currentColor" 
@@ -231,21 +228,24 @@
                  ]">
               <div class="grid md:grid-cols-2 gap-6">
                 <!-- Files List -->
-                <div>
+                <div class="min-w-0 overflow-hidden">
                   <h4 class="font-medium mb-3" :class="isDark ? 'text-white' : 'text-gray-900'">Files in this upload:</h4>
                   <div class="space-y-2 max-h-60 overflow-y-auto">
                     <div v-for="(file, fileIndex) in JSON.parse(upload.files)" :key="fileIndex" 
-                         class="flex items-center gap-3 p-3 rounded-lg"
-                         :class="isDark ? 'bg-gray-800' : 'bg-white'">
+                         class="flex items-center gap-3 p-3 rounded-lg min-w-0 overflow-hidden"
+                         :class="isDark ? 'bg-gray-800' : 'bg-white'"
+                         :title="file">
                       <div class="flex items-center justify-center flex-shrink-0">
                         <img 
                           :src="getFileIconPath(file)" 
-                          :alt="getFileIconAlt(file)" 
+                          :alt="getFileIconAltText(file)" 
                           class="w-6 h-6 object-contain"
                           style="width: 24px !important; height: 24px !important;"
                         />
                       </div>
-                      <span class="text-sm truncate" :class="isDark ? 'text-white' : 'text-gray-900'">{{ file }}</span>
+                      <div class="flex-1 min-w-0 overflow-hidden">
+                        <span class="text-sm block truncate break-all overflow-hidden" :class="isDark ? 'text-white' : 'text-gray-900'" style="word-break: break-all; overflow-wrap: break-word;">{{ file }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -326,9 +326,17 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useTheme } from '../../../composables/useTheme'
+import { useIcons } from '../../../composables/useIcons'
 
-// Use theme composable
+// Use composables
 const { isDark } = useTheme()
+const { 
+  getUploadIcon, 
+  getUploadIconAlt, 
+  getFileIcon, 
+  getFileIconAlt, 
+  getSystemIcon 
+} = useIcons()
 
 // Props
 interface Props {
@@ -401,96 +409,20 @@ const totalPages = computed(() => {
 // Helper methods
 const getUploadIconPath = (upload: any) => {
   const files = JSON.parse(upload.files)
-  
-  // If multiple files, use default multiple files icon
-  if (files.length > 1) {
-    return '/src/assets/svg/icons/default_multiple_files.svg'
-  }
-  
-  // For single file, determine the file type
-  const filename = files[0]
-  const ext = getFileExtension(filename).toLowerCase()
-  
-  // Map file extensions to specific SVG icons
-  if (['pdf'].includes(ext)) {
-    return '/src/assets/svg/icons/files_pdf.svg'
-  }
-  if (['doc', 'docx'].includes(ext)) {
-    return '/src/assets/svg/icons/word_docx_doc.svg'
-  }
-  if (['ppt', 'pptx'].includes(ext)) {
-    return '/src/assets/svg/icons/ppt_pptx_file.svg'
-  }
-//   video files
-  if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) {
-    return '/src/assets/svg/icons/files_video.svg'
-  }
-//   zip rar targz
-  if (['zip', 'rar', 'tar.gz'].includes(ext)) {
-    return '/src/assets/svg/icons/files_archive.svg'
-  }
-
-  // For file types without specific icons, use the no icon fallback
-  return '/src/assets/svg/icons/files_no_icon.svg'
+  return getUploadIcon(files)
 }
 
-const getUploadIconAlt = (upload: any) => {
+const getUploadIconAltText = (upload: any) => {
   const files = JSON.parse(upload.files)
-  
-  if (files.length > 1) {
-    return 'Multiple files'
-  }
-  
-  const filename = files[0]
-  const ext = getFileExtension(filename).toLowerCase()
-  
-  if (['pdf'].includes(ext)) return 'PDF file'
-  if (['doc', 'docx'].includes(ext)) return 'Word document'
-  if (['ppt', 'pptx'].includes(ext)) return 'PowerPoint presentation'
-  if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) return 'Video file'
-  if (['zip', 'rar', 'tar.gz'].includes(ext)) return 'Compressed file'
-
-  return 'File'
+  return getUploadIconAlt(files)
 }
 
 const getFileIconPath = (filename: string) => {
-  const ext = getFileExtension(filename).toLowerCase()
-  
-  // Map file extensions to specific SVG icons
-  if (['pdf'].includes(ext)) {
-    return '/src/assets/svg/icons/files_pdf.svg'
-  }
-  if (['doc', 'docx'].includes(ext)) {
-    return '/src/assets/svg/icons/word_docx_doc.svg'
-  }
-  if (['ppt', 'pptx'].includes(ext)) {
-    return '/src/assets/svg/icons/ppt_pptx_file.svg'
-  }
-  if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) {
-    return '/src/assets/svg/icons/files_video.svg'
-  }
-  if (['zip', 'rar', 'tar.gz'].includes(ext)) {
-      return '/src/assets/svg/icons/files_archive.svg'
-  }
-
-  // For file types without specific icons, use the no icon fallback
-  return '/src/assets/svg/icons/files_no_icon.svg'
-
+  return getFileIcon(filename)
 }
 
-
-const getFileIconAlt = (filename: string) => {
-  const ext = getFileExtension(filename).toLowerCase()
-  
-  if (['pdf'].includes(ext)) return 'PDF file'
-  if (['doc', 'docx'].includes(ext)) return 'Word document'
-  if (['ppt', 'pptx'].includes(ext)) return 'PowerPoint presentation'
-  
-  return 'File'
-}
-
-const getFileExtension = (filename: string) => {
-  return filename.split('.').pop() || ''
+const getFileIconAltText = (filename: string) => {
+  return getFileIconAlt(filename)
 }
 
 const getStatusText = (upload: any) => {

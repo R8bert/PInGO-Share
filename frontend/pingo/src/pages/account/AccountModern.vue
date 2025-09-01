@@ -120,10 +120,10 @@
         <!-- Tab Navigation -->
         <div class="border-b transition-colors duration-300"
              :style="{ borderColor: isDark ? '#374151' : '#e5e7eb' }">
-          <nav class="flex space-x-8 px-6">
+          <nav class="flex space-x-4 sm:space-x-8 px-4 sm:px-6 overflow-x-auto scrollbar-hide">
             <button
               @click="activeTab = 'uploads'"
-              class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-300"
+              class="py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-300 whitespace-nowrap flex-shrink-0"
               :style="{
                 borderBottomColor: activeTab === 'uploads' ? '#3b82f6' : 'transparent',
                 color: activeTab === 'uploads' 
@@ -131,14 +131,14 @@
                   : (isDark ? '#9ca3af' : '#6b7280')
               }"
             >
-              <div class="flex items-center space-x-2">
-                <FolderIcon class="w-4 h-4" />
+              <div class="flex items-center space-x-1 sm:space-x-2">
+                <FolderIcon class="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>My Uploads</span>
               </div>
             </button>
             <button
               @click="activeTab = 'reverse'"
-              class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-300"
+              class="py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-300 whitespace-nowrap flex-shrink-0"
               :style="{
                 borderBottomColor: activeTab === 'reverse' ? '#10b981' : 'transparent',
                 color: activeTab === 'reverse' 
@@ -146,15 +146,15 @@
                   : (isDark ? '#9ca3af' : '#6b7280')
               }"
             >
-              <div class="flex items-center space-x-2">
-                <ShareIcon class="w-4 h-4" />
+              <div class="flex items-center space-x-1 sm:space-x-2">
+                <ShareIcon class="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Reverse Share</span>
               </div>
             </button>
             <button
               v-if="isAdmin"
               @click="activeTab = 'statistics'"
-              class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-300"
+              class="py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-300 whitespace-nowrap flex-shrink-0"
               :style="{
                 borderBottomColor: activeTab === 'statistics' ? '#8b5cf6' : 'transparent',
                 color: activeTab === 'statistics' 
@@ -162,15 +162,15 @@
                   : (isDark ? '#9ca3af' : '#6b7280')
               }"
             >
-              <div class="flex items-center space-x-2">
-                <ChartBarIcon class="w-4 h-4" />
+              <div class="flex items-center space-x-1 sm:space-x-2">
+                <ChartBarIcon class="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Statistics</span>
               </div>
             </button>
             <button
               v-if="isAdmin"
               @click="activeTab = 'users'"
-              class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-300"
+              class="py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-300 whitespace-nowrap flex-shrink-0"
               :style="{
                 borderBottomColor: activeTab === 'users' ? '#f59e0b' : 'transparent',
                 color: activeTab === 'users' 
@@ -1074,5 +1074,15 @@ const handleAvatarUpload = async (event: Event) => {
 .backdrop-blur-sm {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+}
+
+/* Hide scrollbar for tab navigation */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 </style>

@@ -230,30 +230,33 @@
                   </h2>
 
                   <div class="grid gap-4">
-                    <transition-group name="file-list" tag="div" class="grid gap-4">
+                    <transition-group name="file-list" tag="div" class="grid gap-3 sm:gap-4">
                       <div v-for="(file, index) in files" :key="`file-${index}-${file.name}`" 
-                           class="group rounded-2xl border p-6 transition-all duration-300 hover:scale-[1.02]"
+                           class="group rounded-xl sm:rounded-2xl border p-4 sm:p-6 transition-all duration-300 hover:scale-[1.02] overflow-hidden"
                            :style="{
                              backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
                              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
                            }">
                       
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-4 flex-1 min-w-0">
+                      <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                           <!-- File Icon -->
-                          <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                            <span class="text-white text-sm font-bold leading-none text-center px-2 truncate max-w-full">
-                              {{ getFileExtension(file.name).toUpperCase().length > 6 ? getFileExtension(file.name).toUpperCase().substring(0, 5) + '.' : getFileExtension(file.name).toUpperCase() }}
-                            </span>
+                          <div class="flex items-center justify-center flex-shrink-0">
+                            <img 
+                              :src="getFileIconPath(file.name)" 
+                              :alt="getFileIconAltText(file.name)"
+                              class="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                            />
                           </div>
                           
                           <!-- File Info -->
                           <div class="flex-1 min-w-0">
-                            <h3 class="text-lg font-semibold truncate"
-                                :style="{ color: isDark ? '#ffffff' : '#000000' }">
+                            <h3 class="text-base sm:text-lg font-semibold truncate break-all"
+                                :style="{ color: isDark ? '#ffffff' : '#000000' }"
+                                :title="file.name">
                               {{ file.name }}
                             </h3>
-                            <div class="flex items-center space-x-4 mt-1">
+                            <div class="flex items-center mt-1">
                               <span class="text-sm"
                                     :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
                                 {{ formatFileSize(file.size) }}
@@ -263,23 +266,23 @@
                         </div>
 
                         <!-- Actions -->
-                        <div class="flex items-center space-x-3 flex-shrink-0">
+                        <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0 w-full sm:w-auto">
                           <!-- Preview Button -->
                           <button v-if="canPreview(file)" 
                                   @click="togglePreview(index)"
                                   :title="previewingFiles.has(index) ? 'Hide preview' : 'Show preview'"
-                                  class="p-3 rounded-xl transition-all duration-200 hover:scale-110"
+                                  class="p-2 sm:p-3 rounded-lg sm:rounded-xl transition-all duration-200 hover:scale-110 flex-1 sm:flex-none"
                                   :style="{
                                     backgroundColor: previewingFiles.has(index) 
                                       ? (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)')
                                       : (isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)'),
                                     color: previewingFiles.has(index) ? '#ef4444' : '#22c55e'
                                   }">
-                            <svg v-if="!previewingFiles.has(index)" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg v-if="!previewingFiles.has(index)" class="w-4 h-4 sm:w-5 sm:h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
-                            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg v-else class="w-4 h-4 sm:w-5 sm:h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
                             </svg>
                           </button>
@@ -288,13 +291,14 @@
                           <button @click="downloadFile(file, index)"
                                   :disabled="downloadingStates[index]"
                                   :title="`Download ${file.name}`"
-                                  class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-110 disabled:opacity-50">
-                            <span v-if="downloadingStates[index]" class="flex items-center">
-                              <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  class="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg sm:rounded-xl transition-all duration-200 hover:scale-110 disabled:opacity-50 flex-1 sm:flex-none text-sm sm:text-base">
+                            <span v-if="downloadingStates[index]" class="flex items-center justify-center">
+                              <svg class="animate-spin -ml-1 mr-2 h-3 w-3 sm:h-4 sm:w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                               </svg>
-                              Downloading
+                              <span class="hidden sm:inline">Downloading</span>
+                              <span class="sm:hidden">...</span>
                             </span>
                             <span v-else class="flex items-center">
                               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -443,14 +447,29 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from '../../composables/useTheme'
 import { useUIColors } from '../../composables/useUIColors'
+import { useIcons } from '../../composables/useIcons'
 import axios from 'axios'
 import WebGLBackground from '../../components/WebGLBackground.vue'
 import DecryptedText from "../../blocks/TextAnimations/DecryptedText/DecryptedText.vue";
 
 
 const { isDark } = useTheme()
-const { primaryGradient, buttonGradient, hoverGradient } = useUIColors()
+const { primaryGradient } = useUIColors()
+const { 
+  getFileIcon, 
+  getFileIconAlt, 
+  getFileExtension 
+} = useIcons()
 const route = useRoute()
+
+// Helper methods for file icons - same as UploadsTab
+const getFileIconPath = (filename: string) => {
+  return getFileIcon(filename)
+}
+
+const getFileIconAltText = (filename: string) => {
+  return getFileIconAlt(filename)
+}
 
 // State
 const loading = ref(true)
@@ -540,10 +559,6 @@ const togglePreview = (index: number) => {
 const canPreview = (file: any): boolean => {
   const ext = getFileExtension(file.name)
   return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mp3', 'wav', 'flac', 'pdf'].includes(ext)
-}
-
-const getFileExtension = (filename: string): string => {
-  return filename.split('.').pop()?.toLowerCase() || ''
 }
 
 const formatFileSize = (bytes: number): string => {

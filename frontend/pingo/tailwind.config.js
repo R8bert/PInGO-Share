@@ -7,9 +7,6 @@ export default {
   darkMode: 'class', // Enable class-based dark mode
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'sans-serif'],
-      },
       colors: {
         // Custom color scheme for better dark mode support - much blacker
         background: {
