@@ -25,26 +25,6 @@
             >
                 <div class="max-w-7xl mx-auto w-full">
                     <div class="text-center space-y-8">
-                        <!-- Badge -->
-                        <div
-                            class="inline-flex items-center space-x-2 px-4 py-2 rounded-full border backdrop-blur-sm animate-fade-in"
-                            :style="{
-                                backgroundColor: isDark
-                                    ? 'rgba(255,255,255,0.05)'
-                                    : 'rgba(0,0,0,0.05)',
-                                borderColor: isDark
-                                    ? 'rgba(255,255,255,0.1)'
-                                    : 'rgba(0,0,0,0.1)',
-                                color: isDark ? '#a1a1aa' : '#71717a',
-                            }"
-                        >
-                            <div
-                                class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
-                            ></div>
-                            <span class="text-sm font-medium"
-                                >Secure & Fast File Transfer</span
-                            >
-                        </div>
 
                         <!-- Main Headline -->
                         <div class="space-y-6 animate-fade-in-delay">
@@ -59,7 +39,7 @@
                                     <!-- Share files on first row -->
                                     <div class="text-center">Share files</div>
                                     <!-- Apple Hello effect on second row -->
-                                    <div class="relative inline-block font-bold text-center w-full">
+                                    <div class="relative inline-block text-center w-full animated-text-container" style="font-weight: bold;">
                                         <span 
                                             v-for="(word, wordIndex) in words" 
                                             :key="word"
@@ -1741,6 +1721,32 @@ html {
     transform: scaleX(1);
     opacity: 0.9;
   }
+}
+
+/* Component-specific HaloHandletter font */
+@font-face {
+  font-family: 'HaloHandletter-Local';
+  src: url('/HaloHandletter.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Component-specific Crima font */
+
+
+.halo-handletter-local {
+  font-family: 'HaloHandletter-Local', 'Brush Script MT', 'Segoe Print', cursive !important;
+}
+
+/* Force font for animated text */
+.animated-text-container {
+  font-family: 'Crima-Local', 'HaloHandletter-Local', 'HaloHandletter', 'Comic Sans MS', cursive !important;
+  letter-spacing: 0.065em;
+}
+
+.animated-text-container * {
+  font-family: inherit !important;
 }
 
 

@@ -15,7 +15,9 @@
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                  <img src="/src/assets/svg/icons/files_uploaded.svg" alt="Total uploads" class="w-6 h-6" />
+                  <img src="/src/assets/svg/icons/files_uploaded.svg" alt="Total uploads" 
+                       class="w-6 h-6 object-contain" 
+                       style="width: 24px !important; height: 24px !important;" />
                 </div>
                 <div>
                   <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ uploads.length }}</div>
@@ -41,7 +43,9 @@
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                  <img src="/src/assets/svg/icons/total_files_icon.svg" alt="Total files" class="w-6 h-6" />
+                  <img src="/src/assets/svg/icons/total_files_icon.svg" alt="Total files" 
+                       class="w-6 h-6 object-contain" 
+                       style="width: 24px !important; height: 24px !important;" />
                 </div>
                 <div>
                   <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ totalFilesCount }}</div>
@@ -90,7 +94,9 @@
       <!-- Empty State -->
       <div v-else-if="filteredUploads.length === 0" class="text-center py-20">
         <div class="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
-          <img src="/src/assets/svg/icons/files_uploaded2.svg" alt="No uploads" class="w-12 h-12 opacity-50" />
+          <img src="/src/assets/svg/icons/files_uploaded2.svg" alt="No uploads" 
+               class="w-12 h-12 opacity-50 object-contain" 
+               style="width: 48px !important; height: 48px !important;" />
         </div>
         <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No uploads found</h3>
         <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
@@ -113,28 +119,13 @@
                 <!-- Left side: Icon, Title, and Meta -->
                 <div class="flex items-center gap-4 flex-1 min-w-0">
                   <!-- File Type Icon -->
-                  <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                  <div class="flex items-center justify-center flex-shrink-0">
                     <img 
-                      v-if="getFileTypeSvg(upload) === 'pdf'" 
-                      src="/src/assets/svg/icons/files_pdf.svg" 
-                      alt="PDF" 
-                      class="w-8 h-8"
+                      :src="getUploadIconPath(upload)" 
+                      :alt="getUploadIconAlt(upload)" 
+                      class="w-10 h-10 object-contain"
+                      style="width: 45px !important; height: 45px !important;"
                     />
-                    <img 
-                      v-else-if="getFileTypeSvg(upload) === 'text'" 
-                      src="/src/assets/svg/icons/word_docx_doc.svg" 
-                      alt="Document" 
-                      class="w-8 h-8"
-                    />
-                    <svg v-else-if="getFileTypeSvg(upload) === 'image'" class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <svg v-else-if="getFileTypeSvg(upload) === 'video'" class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                    <svg v-else class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
                   </div>
                   
                   <!-- Upload Info -->
@@ -218,22 +209,13 @@
                   <div class="space-y-2 max-h-60 overflow-y-auto">
                     <div v-for="(file, fileIndex) in JSON.parse(upload.files)" :key="fileIndex" 
                          class="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg">
-                      <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
+                      <div class="flex items-center justify-center flex-shrink-0">
                         <img 
-                          v-if="getFileSvg(file) === 'pdf'" 
-                          src="/src/assets/svg/icons/files_pdf.svg" 
-                          alt="PDF" 
-                          class="w-5 h-5"
+                          :src="getFileIconPath(file)" 
+                          :alt="getFileIconAlt(file)" 
+                          class="w-6 h-6 object-contain"
+                          style="width: 24px !important; height: 24px !important;"
                         />
-                        <img 
-                          v-else-if="getFileSvg(file) === 'text'" 
-                          src="/src/assets/svg/icons/word_docx_doc.svg" 
-                          alt="Document" 
-                          class="w-5 h-5"
-                        />
-                        <svg v-else class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
                       </div>
                       <span class="text-sm text-gray-900 dark:text-white truncate">{{ file }}</span>
                     </div>
@@ -383,31 +365,80 @@ const totalPages = computed(() => {
 })
 
 // Helper methods
-const getFileTypeSvg = (upload: any) => {
+const getUploadIconPath = (upload: any) => {
   const files = JSON.parse(upload.files)
-  const extensions = files.map((file: string) => getFileExtension(file).toLowerCase())
   
-  if (extensions.some((ext: string) => ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext))) return 'image'
-  if (extensions.some((ext: string) => ['mp4', 'mov', 'avi', 'mkv'].includes(ext))) return 'video'
-  if (extensions.some((ext: string) => ['mp3', 'wav', 'flac', 'ogg'].includes(ext))) return 'audio'
-  if (extensions.some((ext: string) => ['pdf'].includes(ext))) return 'pdf'
-  if (extensions.some((ext: string) => ['zip', 'rar', '7z'].includes(ext))) return 'archive'
-  if (extensions.some((ext: string) => ['txt', 'md', 'doc', 'docx'].includes(ext))) return 'text'
-  if (extensions.some((ext: string) => ['js', 'ts', 'html', 'css', 'vue', 'jsx', 'tsx'].includes(ext))) return 'code'
-  return 'file'
-}
-
-const getFileSvg = (filename: string) => {
+  // If multiple files, use default multiple files icon
+  if (files.length > 1) {
+    return '/src/assets/svg/icons/default_multiple_files.svg'
+  }
+  
+  // For single file, determine the file type
+  const filename = files[0]
   const ext = getFileExtension(filename).toLowerCase()
   
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image'
-  if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) return 'video'
-  if (['mp3', 'wav', 'flac', 'ogg'].includes(ext)) return 'audio'
-  if (['pdf'].includes(ext)) return 'pdf'
-  if (['zip', 'rar', '7z'].includes(ext)) return 'archive'
-  if (['txt', 'md', 'doc', 'docx'].includes(ext)) return 'text'
-  if (['js', 'ts', 'html', 'css', 'vue', 'jsx', 'tsx'].includes(ext)) return 'code'
-  return 'file'
+  // Map file extensions to specific SVG icons
+  if (['pdf'].includes(ext)) {
+    return '/src/assets/svg/icons/files_pdf.svg'
+  }
+  if (['doc', 'docx'].includes(ext)) {
+    return '/src/assets/svg/icons/word_docx_doc.svg'
+  }
+  if (['ppt', 'pptx'].includes(ext)) {
+    return '/src/assets/svg/icons/ppt_pptx_file.svg'
+  }
+//   video files
+  if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) {
+    return '/src/assets/svg/icons/files_video.svg'
+  }
+
+  // For file types without specific icons, use the no icon fallback
+  return '/src/assets/svg/icons/files_no_icon.svg'
+}
+
+const getUploadIconAlt = (upload: any) => {
+  const files = JSON.parse(upload.files)
+  
+  if (files.length > 1) {
+    return 'Multiple files'
+  }
+  
+  const filename = files[0]
+  const ext = getFileExtension(filename).toLowerCase()
+  
+  if (['pdf'].includes(ext)) return 'PDF file'
+  if (['doc', 'docx'].includes(ext)) return 'Word document'
+  if (['ppt', 'pptx'].includes(ext)) return 'PowerPoint presentation'
+  
+  return 'File'
+}
+
+const getFileIconPath = (filename: string) => {
+  const ext = getFileExtension(filename).toLowerCase()
+  
+  // Map file extensions to specific SVG icons
+  if (['pdf'].includes(ext)) {
+    return '/src/assets/svg/icons/files_pdf.svg'
+  }
+  if (['doc', 'docx'].includes(ext)) {
+    return '/src/assets/svg/icons/word_docx_doc.svg'
+  }
+  if (['ppt', 'pptx'].includes(ext)) {
+    return '/src/assets/svg/icons/ppt_pptx_file.svg'
+  }
+  
+  // For file types without specific icons, use the no icon fallback
+  return '/src/assets/svg/icons/files_no_icon.svg'
+}
+
+const getFileIconAlt = (filename: string) => {
+  const ext = getFileExtension(filename).toLowerCase()
+  
+  if (['pdf'].includes(ext)) return 'PDF file'
+  if (['doc', 'docx'].includes(ext)) return 'Word document'
+  if (['ppt', 'pptx'].includes(ext)) return 'PowerPoint presentation'
+  
+  return 'File'
 }
 
 const getFileExtension = (filename: string) => {

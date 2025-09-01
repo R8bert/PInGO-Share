@@ -65,16 +65,8 @@
                 <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                 <span class="text-sm font-medium">{{ files.length }} file{{ files.length > 1 ? 's' : '' }} ready</span>
               </div>
-
-              <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
-                <span :style="{ color: isDark ? '#ffffff' : '#000000' }">Your files</span>
-                <br />
-                <span class="text-transparent bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text">
-                  are ready
-                </span>
-              </h1>
               
-              <p class="text-xl sm:text-2xl max-w-2xl mx-auto leading-relaxed"
+              <p class="text-sm sm:text-6xl max-w-1xl mx-auto leading-relaxed animated-text-container"
                  :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
                 Download your files securely and instantly
               </p>
@@ -631,5 +623,59 @@ onMounted(() => {
 
 .file-list-move {
   transition: transform 0.3s ease;
+}
+
+
+
+@font-face {
+  font-family: 'HaloHandletter-Local';
+  src: url('/HaloHandletter.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.animated-text-container {
+  font-family: 'Crima-Local', 'HaloHandletter-Local', 'HaloHandletter', 'Comic Sans MS', cursive !important;
+  letter-spacing: 0.065em;
+  background: linear-gradient(
+    90deg,
+    #ff6b6b 0%,
+    #4ecdc4 12.5%,
+    #45b7d1 25%,
+    #96ceb4 37.5%,
+    #feca57 50%,
+    #ff9ff3 62.5%,
+    #54a0ff 75%,
+    #5f27cd 87.5%,
+    #ff6b6b 100%
+  );
+  background-size: 800% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: liquid-rainbow 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes liquid-rainbow {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 100% 50%;
+  }
+  50% {
+    background-position: 200% 50%;
+  }
+  75% {
+    background-position: 300% 50%;
+  }
+  100% {
+    background-position: 400% 50%;
+  }
+}
+
+.animated-text-container * {
+  font-family: inherit !important;
 }
 </style>
