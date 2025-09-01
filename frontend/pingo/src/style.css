@@ -189,3 +189,78 @@ html.dark body {
 .theme-transition {
   animation: theme-transition 0.3s ease-in-out;
 }
+
+/* Download page animations */
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px) translateX(0px) scale(1);
+  }
+  33% { 
+    transform: translateY(-30px) translateX(20px) scale(1.1);
+  }
+  66% { 
+    transform: translateY(20px) translateX(-15px) scale(0.9);
+  }
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInWord {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradientX {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 10px currentColor);
+  }
+  50% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 20px currentColor);
+  }
+}
+
+/* Transition groups */
+.file-slide-enter-active,
+.file-slide-leave-active {
+  transition: all 0.5s ease;
+}
+
+.file-slide-enter-from {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.file-slide-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.preview-slide-enter-active,
+.preview-slide-leave-active {
+  transition: all 0.4s ease;
+}
+
+.preview-slide-enter-from,
+.preview-slide-leave-to {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-10px);
+}

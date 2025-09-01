@@ -127,7 +127,7 @@
           >
             <!-- Main Upload Row -->
             <div class="p-4 sm:p-6">
-              <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-4 overflow-hidden">
                 <!-- Left side: Icon, Title, and Meta -->
                 <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 overflow-hidden">
                   <!-- File Type Icon -->
@@ -141,8 +141,8 @@
                   
                   <!-- Upload Info -->
                   <div class="flex-1 min-w-0 overflow-hidden">
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
-                      <h3 class="font-semibold text-sm sm:text-base truncate" :class="isDark ? 'text-white' : 'text-gray-900'">Upload {{ upload.upload_id }}</h3>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1 min-w-0">
+                      <h3 class="font-semibold text-sm sm:text-base truncate min-w-0" :class="isDark ? 'text-white' : 'text-gray-900'">Upload {{ upload.upload_id }}</h3>
                       <!-- Status Badge -->
                       <span 
                         :class="[
@@ -170,21 +170,21 @@
                     
                     <!-- Upload Metadata -->
                     <div class="flex flex-wrap items-center gap-2 sm:gap-4 lg:gap-6 text-xs sm:text-sm overflow-hidden" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                      <span class="whitespace-nowrap">{{ JSON.parse(upload.files).length }} files</span>
-                      <span class="whitespace-nowrap">{{ formatFileSize(upload.size || 0) }}</span>
-                      <span class="whitespace-nowrap">Created {{ formatDate(upload.created_at) }}</span>
-                      <span v-if="upload.expires_at" class="whitespace-nowrap">Expires {{ formatDate(upload.expires_at) }}</span>
+                      <span class="whitespace-nowrap flex-shrink-0">{{ JSON.parse(upload.files).length }} files</span>
+                      <span class="whitespace-nowrap flex-shrink-0">{{ formatFileSize(upload.size || 0) }}</span>
+                      <span class="whitespace-nowrap flex-shrink-0">Created {{ formatDate(upload.created_at) }}</span>
+                      <span v-if="upload.expires_at" class="whitespace-nowrap flex-shrink-0">Expires {{ formatDate(upload.expires_at) }}</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Right side: Action Buttons -->
-                <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto min-w-0">
+                <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
                   <button
                     @click="openFile(upload)"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center gap-2 flex-1 sm:flex-none justify-center min-w-0"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center gap-2 flex-1 sm:flex-none justify-center"
                   >
-                    <svg class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                     <span class="hidden sm:inline">Open</span>
@@ -192,23 +192,23 @@
                   
                   <button
                     @click="$emit('copyToClipboard', `${getBaseUrl()}/download/${upload.upload_id}`)"
-                    class="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center justify-center flex-shrink-0"
+                    class="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center justify-center"
                     :class="isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'"
                     title="Copy Link"
                   >
-                    <svg class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                   </button>
                   
                   <button
                     @click="selectUpload(upload)"
-                    class="px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center flex-shrink-0"
+                    class="px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
                     :class="isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'"
                     title="More Options"
                   >
                     <svg 
-                      class="w-4 h-4 transition-transform duration-200 flex-shrink-0" 
+                      class="w-4 h-4 transition-transform duration-200" 
                       :class="selectedUpload?.id === upload.id ? 'rotate-180' : ''"
                       fill="none" 
                       stroke="currentColor" 
@@ -228,12 +228,12 @@
                  ]">
               <div class="grid md:grid-cols-2 gap-6">
                 <!-- Files List -->
-                <div class="min-w-0 overflow-hidden">
+                <div>
                   <h4 class="font-medium mb-3" :class="isDark ? 'text-white' : 'text-gray-900'">Files in this upload:</h4>
                   <div class="space-y-2 max-h-60 overflow-y-auto">
                     <div v-for="(file, fileIndex) in JSON.parse(upload.files)" :key="fileIndex" 
                          class="flex items-center gap-3 p-3 rounded-lg min-w-0 overflow-hidden"
-                         :class="isDark ? 'bg-gray-800' : 'bg-white'"
+                         :class="isDark ? 'bg-gray-800' : 'bg-white' "
                          :title="file">
                       <div class="flex items-center justify-center flex-shrink-0">
                         <img 
@@ -244,7 +244,7 @@
                         />
                       </div>
                       <div class="flex-1 min-w-0 overflow-hidden">
-                        <span class="text-sm block truncate break-all overflow-hidden" :class="isDark ? 'text-white' : 'text-gray-900'" style="word-break: break-all; overflow-wrap: break-word;">{{ file }}</span>
+                        <span class="text-sm block truncate break-all" :class="isDark ? 'text-white' : 'text-gray-900'" style="word-break: break-all; overflow-wrap: break-word;">{{ file }}</span>
                       </div>
                     </div>
                   </div>

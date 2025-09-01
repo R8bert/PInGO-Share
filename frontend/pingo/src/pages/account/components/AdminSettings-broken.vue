@@ -1,20 +1,24 @@
 <template>
   <div class="space-y-8">
     <div class="text-center">
+      <h2 class="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">Admin Settings</h2>
+      <p class="text-gray-600 dark:text-gray-400">Configure global application settings</p>
+    </div>  <div class="space-y-8">
+    <div class="text-center">
       <h2 class="text-2xl font-bold mb-2 transition-colors duration-300"
           :style="{ color: isDark ? '#f9fafb' : '#111827' }">Admin Settings</h2>
       <p class="transition-colors duration-300"
-         :style="{ color: isDark ? '#9ca3af' : '#4b5563' }">Configure global application settings</p>
+         :style="{ color: isDark ? '#9            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>f' : '#4b5563' }">Configure global application settings</p>
     </div>
 
     <form @submit.prevent="saveSettings" class="space-y-6">
       <!-- Maximum Validity Setting -->
-      <div class="border rounded-xl p-6 transition-all duration-200"
-           :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
-        <h3 class="text-lg font-semibold mb-4 flex items-center"
-            :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <ClockIcon class="w-5 h-5 mr-2"
-                     :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300">
+        <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
+          <ClockIcon class="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
           Maximum File Validity
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
@@ -22,14 +26,10 @@
             v-for="option in validityOptions"
             :key="option.value"
             :class="[
-              'relative flex items-center justify-center px-4 py-3 rounded-lg border cursor-pointer transition-all duration-200',
+              'relative flex items-center justify-center px-4 py-3 rounded-lg border cursor-pointer transition-all',
               settings.maxValidity === option.value
-                ? (isDark 
-                    ? 'border-blue-500 bg-blue-600/20 text-blue-300' 
-                    : 'border-blue-500 bg-blue-50 text-blue-700')
-                : (isDark 
-                    ? 'border-gray-600 bg-gray-700/30 text-gray-200 hover:border-gray-500' 
-                    : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300')
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
+                : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500'
             ]"
           >
             <input
@@ -44,27 +44,21 @@
             </div>
           </label>
         </div>
-        <p class="text-sm mt-3 opacity-70"
-           :class="isDark ? 'text-gray-300' : 'text-gray-600'">
+        <p class="text-sm mt-3 text-gray-600 dark:text-gray-400">
           Users will not be able to set file expiration longer than this maximum period.
         </p>
       </div>
 
       <!-- User Registration Setting -->
-      <div class="border rounded-xl p-6 transition-all duration-200"
-           :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
-        <h3 class="text-lg font-semibold mb-4 flex items-center"
-            :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <UserGroupIcon class="w-5 h-5 mr-2"
-                         :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300">
+        <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
+          <UserGroupIcon class="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
           User Registration
         </h3>
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium"
-               :class="isDark ? 'text-gray-200' : 'text-gray-900'">Allow New User Registration</p>
-            <p class="text-sm opacity-70"
-               :class="isDark ? 'text-gray-400' : 'text-gray-600'">When disabled, only existing users and admins can log in</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Allow New User Registration</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">When disabled, only existing users and admins can log in</p>
           </div>
           <label class="relative inline-flex items-center cursor-pointer">
             <input
@@ -73,39 +67,28 @@
               class="sr-only peer"
             />
             <div 
-              :class="[
-                'w-11 h-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[\'\'] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600',
-                isDark ? 'bg-gray-600 after:border-gray-300' : 'bg-gray-300 after:border-gray-200'
-              ]"
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
             ></div>
           </label>
         </div>
       </div>
 
       <!-- File Expiration Behavior Setting -->
-      <div class="border rounded-xl p-6 transition-all duration-200"
-           :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
-        <h3 class="text-lg font-semibold mb-4 flex items-center"
-            :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <ClockIcon class="w-5 h-5 mr-2"
-                     :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300">
+        <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
+          <ClockIcon class="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
           File Expiration Behavior
         </h3>
-        <p class="text-sm mb-4 opacity-70"
-           :class="isDark ? 'text-gray-400' : 'text-gray-600'">
+        <p class="text-sm mb-4 text-gray-600 dark:text-gray-400">
           Choose what happens to files when they expire
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label
             :class="[
-              'relative flex flex-col p-4 rounded-lg border cursor-pointer transition-all duration-200',
+              'relative flex flex-col p-4 rounded-lg border cursor-pointer transition-all',
               settings.expirationAction === 'unavailable'
-                ? (isDark 
-                    ? 'border-blue-500 bg-blue-600/20 text-blue-300'
-                    : 'border-blue-500 bg-blue-50 text-blue-700')
-                : (isDark 
-                    ? 'border-gray-600 bg-gray-700/30 text-gray-200 hover:border-gray-500' 
-                    : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300')
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
+                : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500'
             ]"
           >
             <input
@@ -120,19 +103,15 @@
               </svg>
               <span class="font-medium">Make Unavailable</span>
             </div>
-            <p class="text-sm opacity-70">Files become inaccessible but remain on the server</p>
+            <p class="text-sm opacity-75">Files become inaccessible but remain on the server</p>
           </label>
           
           <label
             :class="[
-              'relative flex flex-col p-4 rounded-lg border cursor-pointer transition-all duration-200',
+              'relative flex flex-col p-4 rounded-lg border cursor-pointer transition-all',
               settings.expirationAction === 'delete'
-                ? (isDark 
-                    ? 'border-blue-500 bg-blue-600/20 text-blue-300'
-                    : 'border-blue-500 bg-blue-50 text-blue-700')
-                : (isDark 
-                    ? 'border-gray-600 bg-gray-700/30 text-gray-200 hover:border-gray-500' 
-                    : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300')
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
+                : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500'
             ]"
           >
             <input
@@ -147,12 +126,11 @@
               </svg>
               <span class="font-medium">Delete Files</span>
             </div>
-            <p class="text-sm opacity-70">Files are permanently removed from the server</p>
+            <p class="text-sm opacity-75">Files are permanently removed from the server</p>
           </label>
         </div>
-        <div class="mt-4 p-3 rounded-lg border"
-             :class="isDark ? 'bg-yellow-900/20 border-yellow-700/30 text-yellow-200' : 'bg-yellow-50 border-yellow-200 text-yellow-800'">
-          <p class="text-sm">
+        <div class="mt-4 p-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
+          <p class="text-sm text-amber-800 dark:text-amber-200">
             <strong>Note:</strong> This setting affects how the system handles files after they expire.
             The cleanup process runs every hour.
           </p>
@@ -160,84 +138,60 @@
       </div>
 
       <!-- Upload Settings -->
-      <div class="relative group">
-        <div class="absolute inset-0 bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-        <div class="relative backdrop-blur-xl border rounded-2xl p-6 transition-all duration-300"
-             :style="{
-               backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
-               borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)'
-             }">
-          <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
-              :style="{ color: isDark ? '#d1fae5' : '#111827' }">
-            <CloudArrowUpIcon class="w-5 h-5 mr-2"
-                              :style="{ color: isDark ? '#34d399' : '#059669' }" />
-            Upload Settings
-          </h3>
-          <div class="max-w-md">
-            <div>
-              <label class="block text-sm font-medium mb-2 transition-colors duration-300"
-                     :style="{ color: isDark ? '#d1fae5' : '#374151' }">
-                Maximum Upload Size
-              </label>
-              <select
-                v-model="settings.maxUploadSize"
-                class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 backdrop-blur-sm"
-                :style="{
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.8)',
-                  borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)',
-                  color: isDark ? '#f9fafb' : '#111827'
-                }"
-              >
-                <option value="1048576">1 MB</option>
-                <option value="5242880">5 MB</option>
-                <option value="10485760">10 MB</option>
-                <option value="26214400">25 MB</option>
-                <option value="52428800">50 MB</option>
-                <option value="104857600">100 MB</option>
-                <option value="262144000">250 MB</option>
-                <option value="524288000">500 MB</option>
-                <option value="1073741824">1 GB</option>
-                <option value="2147483648">2 GB</option>
-                <option value="5368709120">5 GB</option>
-                <option value="10737418240">10 GB</option>
-                <option value="-1">Unlimited</option>
-              </select>
-              <p class="text-sm mt-1 transition-colors duration-300 opacity-80"
-                 :style="{ color: isDark ? '#d1d5db' : '#4b5563' }">
-                Set the maximum file size users can upload. Choose "Unlimited" to allow any size.
-              </p>
-            </div>
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300">
+        <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
+          <CloudArrowUpIcon class="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
+          Upload Settings
+        </h3>
+        <div class="max-w-md">
+          <div>
+            <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+              Maximum Upload Size
+            </label>
+            <select
+              v-model="settings.maxUploadSize"
+              class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+            >
+              <option value="1048576">1 MB</option>
+              <option value="5242880">5 MB</option>
+              <option value="10485760">10 MB</option>
+              <option value="26214400">25 MB</option>
+              <option value="52428800">50 MB</option>
+              <option value="104857600">100 MB</option>
+              <option value="262144000">250 MB</option>
+              <option value="524288000">500 MB</option>
+              <option value="1073741824">1 GB</option>
+              <option value="2147483648">2 GB</option>
+              <option value="5368709120">5 GB</option>
+              <option value="10737418240">10 GB</option>
+              <option value="-1">Unlimited</option>
+            </select>
+            <p class="text-sm mt-1 text-gray-600 dark:text-gray-400">
+              Set the maximum file size users can upload. Choose "Unlimited" to allow any size.
+            </p>
           </div>
         </div>
       </div>
 
       <!-- Branding Settings -->
-      <div class="border rounded-xl p-6 transition-all duration-200"
-           :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
-        <h3 class="text-lg font-semibold mb-4 flex items-center"
-            :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <PhotoIcon class="w-5 h-5 mr-2"
-                     :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300">
+        <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
+          <PhotoIcon class="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
           Branding
         </h3>
         <div class="space-y-6">
           <!-- Application Title -->
           <div>
-            <label class="block text-sm font-medium mb-2"
-                   :class="isDark ? 'text-gray-200' : 'text-gray-700'">
+            <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
               Application Title
             </label>
             <input
               type="text"
               v-model="settings.navbarTitle"
               placeholder="PinGO"
-              class="w-full px-4 py-2 border rounded-lg transition-all duration-200 focus:ring-2 focus:ring-blue-500/50"
-              :class="isDark 
-                ? 'bg-gray-700/50 border-gray-600 text-gray-100 focus:border-blue-500' 
-                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'"
+              class="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
             />
-            <p class="text-sm mt-1 opacity-70"
-               :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+            <p class="text-sm mt-1 text-gray-600 dark:text-gray-400">
               This title will appear next to the logo in the navigation bar.
             </p>
           </div>
@@ -245,8 +199,7 @@
           <!-- Logo and Background Images -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium mb-2"
-                     :class="isDark ? 'text-gray-200' : 'text-gray-700'">
+              <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 Logo
               </label>
               <div class="flex items-center space-x-4">
@@ -254,22 +207,19 @@
                   v-if="settings.logo"
                   :src="`http://localhost:8080${settings.logo}`"
                   alt="Current logo"
-                  class="w-12 h-12 object-contain rounded-lg border"
-                  :class="isDark ? 'border-gray-600' : 'border-gray-300'"
+                  class="w-12 h-12 object-contain rounded-lg border border-gray-200 dark:border-gray-600"
                 />
                 <input
                   type="file"
                   ref="logoInput"
                   @change="handleLogoUpload"
                   accept="image/*"
-                  class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all duration-200"
-                  :class="isDark ? 'text-gray-300' : 'text-gray-600'"
+                  class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all duration-300 text-gray-600 dark:text-gray-400"
                 />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium mb-2"
-                     :class="isDark ? 'text-gray-200' : 'text-gray-700'">
+              <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 Background Image
               </label>
               <div class="flex items-center space-x-4">
@@ -277,16 +227,14 @@
                   v-if="settings.backgroundImage"
                   :src="`http://localhost:8080${settings.backgroundImage}`"
                   alt="Current background"
-                  class="w-12 h-12 object-cover rounded-lg border"
-                  :class="isDark ? 'border-gray-600' : 'border-gray-300'"
+                  class="w-12 h-12 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
                 />
                 <input
                   type="file"
                   ref="backgroundInput"
                   @change="handleBackgroundUpload"
                   accept="image/*"
-                  class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all duration-200"
-                  :class="isDark ? 'text-gray-300' : 'text-gray-600'"
+                  class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all duration-300 text-gray-600 dark:text-gray-400"
                 />
               </div>
             </div>
@@ -295,12 +243,9 @@
       </div>
 
       <!-- Color Customization Settings -->
-      <div class="border rounded-xl p-6 transition-all duration-200"
-           :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
-        <h3 class="text-lg font-semibold mb-4 flex items-center"
-            :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <SwatchIcon class="w-5 h-5 mr-2"
-                      :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300">
+        <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
+          <SwatchIcon class="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
           Color Customization
         </h3>
         
@@ -312,8 +257,7 @@
               label="Website Color (WebGL Background)"
               input-id="website-color"
             />
-            <p class="text-sm mt-2 opacity-70"
-               :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+            <p class="text-sm mt-2 text-gray-600 dark:text-gray-400">
               Primary color used for the WebGL background animation on home and download pages.
             </p>
           </div>
@@ -322,72 +266,72 @@
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <div>
-                <h4 class="font-medium"
-                    :class="isDark ? 'text-gray-100' : 'text-gray-900'">
+                <h4 class="font-medium text-gray-900 dark:text-gray-100">
                   UI Gradient Colors
                 </h4>
-                <p class="text-sm opacity-70"
-                   :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                   Colors used for buttons and UI elements gradients.
                 </p>
               </div>
               <button
                 @click="showGradientDialog = true"
                 type="button"
-                class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg transition-all duration-200 hover:bg-blue-700"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300"
               >
-                Configure Gradient
+                Configure Colors
               </button>
             </div>
-
-            <!-- Gradient Preview -->
-            <div class="h-16 rounded-lg border shadow-sm relative overflow-hidden"
-                 :class="isDark ? 'border-gray-600' : 'border-gray-300'"
-                 :style="{ background: currentGradient }">
-              <div class="absolute inset-0 flex items-center justify-center">
-                <span class="text-white font-semibold drop-shadow-lg">
-                  Current UI Gradient
-                </span>
-              </div>
-            </div>
-
-            <!-- Individual Color Pickers (for fine-tuning) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <ColorPicker
-                v-model="settings.gradientColor1"
-                label="Color 1"
-                input-id="gradient-color-1"
-                :show-presets="false"
-              />
-              <ColorPicker
-                v-model="settings.gradientColor2"
-                label="Color 2"
-                input-id="gradient-color-2"
-                :show-presets="false"
-              />
-              <ColorPicker
-                v-model="settings.gradientColor3"
-                label="Color 3"
-                input-id="gradient-color-3"
-                :show-presets="false"
-              />
+            
+            <!-- Color Preview -->
+            <div class="flex items-center space-x-2 flex-wrap gap-2">
+              <div
+                class="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-600"
+                :style="{ backgroundColor: settings.gradientColor1 }"
+                :title="settings.gradientColor1"
+              ></div>
+              <div
+                class="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-600"
+                :style="{ backgroundColor: settings.gradientColor2 }"
+                :title="settings.gradientColor2"
+              ></div>
+              <div
+                class="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-600"
+                :style="{ backgroundColor: settings.gradientColor3 }"
+                :title="settings.gradientColor3"
+              ></div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Save Button -->
-      <div class="flex justify-end">
+      <div class="flex justify-end pt-6">
         <button
           type="submit"
           :disabled="isLoading"
-          class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+          class="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors duration-300"
         >
-          <div class="flex items-center">
-            <ScaleIcon v-if="!isLoading" class="w-5 h-5 mr-2" />
-            <div v-else class="w-5 h-5 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-            {{ isLoading ? 'Saving...' : 'Save Settings' }}
-          </div>
+          <span v-if="isLoading" class="flex items-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Saving...
+          </span>
+          <span v-else>Save Settings</span>
+        </button>
+      </div>
+    </form>
+          class="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors duration-300"
+        >
+          <span v-if="isLoading" class="flex items-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Saving...
+          </span>
+          <span v-else>Save Settings</span>
         </button>
       </div>
     </form>
@@ -397,11 +341,8 @@
       v-if="showSuccess"
       class="fixed bottom-4 right-4 z-50 transition-all duration-300"
     >
-      <div class="px-6 py-3 rounded-xl border shadow-lg"
-           :class="isDark 
-             ? 'bg-green-900/20 border-green-500/30 text-green-300' 
-             : 'bg-green-50 border-green-200 text-green-800'">
-        <div class="flex items-center">
+      <div class="bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-6 py-3 rounded-lg shadow-lg">
+        <div class="flex items-center text-green-800 dark:text-green-200">
           <CheckCircleIcon class="w-5 h-5 mr-2" />
           <span class="font-medium">Settings saved successfully!</span>
         </div>
@@ -424,14 +365,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useTheme } from '../../../composables/useTheme'
 import {
   ClockIcon,
   CloudArrowUpIcon,
   PhotoIcon,
-  ScaleIcon,
   CheckCircleIcon,
   UserGroupIcon,
   SwatchIcon
@@ -462,11 +402,6 @@ const logoFile = ref<File | null>(null)
 const backgroundFile = ref<File | null>(null)
 const showSuccess = ref(false)
 const showGradientDialog = ref(false)
-
-// Computed property for current gradient preview
-const currentGradient = computed(() => {
-  return `linear-gradient(135deg, ${settings.value.gradientColor1} 0%, ${settings.value.gradientColor2} 50%, ${settings.value.gradientColor3} 100%)`
-})
 
 const validityOptions = [
   { value: '7days', label: '7 Days', description: 'One week' },
