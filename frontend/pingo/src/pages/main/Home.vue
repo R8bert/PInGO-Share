@@ -4,13 +4,13 @@
         :style="{ backgroundColor: isDark ? '#000000' : '#ffffff' }"
     >
         <!-- WebGL Background -->
-        <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div v-if="isDark" class="fixed inset-0 pointer-events-none overflow-hidden z-0">
             <WebGLBackground
                 :use-settings-color="true"
-                :noise-intensity="isDark ? 0.03 : 0.01"
-                :scanline-intensity="isDark ? 0.1 : 0.05"
+                :noise-intensity="0.03"
+                :scanline-intensity="0.1"
                 :speed="0.3"
-                :scanline-frequency="isDark ? 0.5 : 0.2"
+                :scanline-frequency="0.5"
                 :warp-amount="0.1"
                 :resolution-scale="0.8"
                 class="opacity-40"
@@ -55,30 +55,48 @@
                                     :style="{
                                         color: isDark ? '#ffffff' : '#000000',
                                     }"
-                                    >Share files</span
                                 >
-                                <br />
-
-                                <RotatingText
-                                    :texts="[
-                                        'Secure',
-                                        'Instantly',
-                                        'Free',
-                                        'Easy!',
-                                    ]"
-                                    mainClassName="shake inline-block whitespace-pre-wrap relative px-2 bg-gradient-to-b from-red-800 to-red-500 rounded-lg "
-                                    :initial="{ y: '100%' }"
-                                    :animate="{ y: 0 }"
-                                    :exit="{ y: '-120%' }"
-                                    :staggerDuration="0.055"
-                                    splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
-                                    :transition="{
-                                        type: 'spring',
-                                        damping: 30,
-                                        stiffness: 400,
-                                    }"
-                                    :rotationInterval="3500"
-                                />
+                                    <!-- Share files on first row -->
+                                    <div class="text-center">Share files</div>
+                                    <!-- Apple Hello effect on second row -->
+                                    <div class="relative inline-block font-bold text-center w-full">
+                                        <span 
+                                            v-for="(word, wordIndex) in words" 
+                                            :key="word"
+                                            :class="[
+                                                'absolute top-0 left-1/2 transform -translate-x-1/2 whitespace-nowrap',
+                                                currentWordIndex === wordIndex ? 'block' : 'hidden'
+                                            ]"
+                                        >
+                                            <span
+                                                v-for="(char, charIndex) in word.split('')"
+                                                :key="charIndex"
+                                                :class="[
+                                                    'inline-block transition-all duration-300 ease-out relative',
+                                                    currentWordIndex === wordIndex && charIndex < displayedChars
+                                                        ? 'opacity-100 blur-0 transform translate-y-0'
+                                                        : 'opacity-0 blur-sm transform translate-y-2'
+                                                ]"
+                                                :style="{
+                                                    transitionDelay: `${charIndex * 50}ms`
+                                                }"
+                                            >
+                                                {{ char }}
+                                            </span>
+                                            <!-- Clean progressive highlight -->
+                                            <span 
+                                                v-if="currentWordIndex === wordIndex && isHighlighted"
+                                                :class="[
+                                                    'absolute inset-0 -inset-x-1 -inset-y-1 rounded-md',
+                                                    'clean-highlight-sweep'
+                                                ]"
+                                                style="z-index: -1;"
+                                            ></span>
+                                        </span>
+                                        <!-- Invisible spacer for centering -->
+                                        <span class="opacity-0 select-none font-bold">{{ longestWord }}</span>
+                                    </div>
+                                </span>
                             </h1>
 
                             <p
@@ -1188,7 +1206,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { useTheme } from "../../composables/useTheme";
 import { useUIColors } from "../../composables/useUIColors";
@@ -1200,7 +1218,6 @@ import {
     EyeSlashIcon,
 } from "@heroicons/vue/24/outline";
 import WebGLBackground from "../../components/WebGLBackground.vue";
-import RotatingText from "../../blocks/TextAnimations/RotatingText/RotatingText.vue";
 import ShinyText from "../../blocks/TextAnimations/ShinyText/ShinyText.vue";
 
 const { isAuthenticated } = useAuth();
@@ -1209,55 +1226,70 @@ const {
     primaryGradient,
     buttonGradient,
     hoverGradient,
-    primaryColor,
-    secondaryColor,
-    accentColor,
 } = useUIColors();
 
-// Rotating text logic
-const rotatingWords = ref([
-    "effortlessly",
-    "securely",
-    "instantly",
-    "freely",
-    "seamlessly",
-]);
+// Apple Hello typewriter effect with highlight - exactly like shadcn example
+const words = ["securely", "instantly", "easy", "self-hosted"];
 const currentWordIndex = ref(0);
-let rotationInterval: number | null = null;
+const displayedChars = ref(0);
+const isHighlighted = ref(false);
 
-const getWordStyle = (index: number) => {
-    const colors = [
-        "#ef4444", // effortlessly - red
-        "#10b981", // securely - emerald
-        "#8b5cf6", // instantly - purple
-        "#3b82f6", // freely - blue
-        "#ec4899", // seamlessly - pink
-    ];
+const longestWord = computed(() => {
+    return words.reduce((a, b) => a.length > b.length ? a : b);
+});
 
-    const isActive = index === currentWordIndex.value;
-
-    return {
-        color: colors[index] || "#ef4444",
-        textShadow: isActive
-            ? `0 0 20px ${colors[index]}40, 0 0 40px ${colors[index]}20`
-            : "none",
-        filter: isActive ? `drop-shadow(0 0 10px ${colors[index]}60)` : "none",
-    };
-};
-
-const startRotation = () => {
-    rotationInterval = window.setInterval(() => {
-        currentWordIndex.value =
-            (currentWordIndex.value + 1) % rotatingWords.value.length;
-    }, 2500);
-};
-
-const stopRotation = () => {
-    if (rotationInterval) {
-        clearInterval(rotationInterval);
-        rotationInterval = null;
+// Apple Hello effect cycle with highlight
+const startAppleEffect = async () => {
+    const currentWord = words[currentWordIndex.value];
+    
+    // Reset states
+    displayedChars.value = 0;
+    isHighlighted.value = false;
+    
+    // Type out characters one by one
+    for (let i = 0; i <= currentWord.length; i++) {
+        displayedChars.value = i;
+        await new Promise(resolve => setTimeout(resolve, 100)); // 100ms per character
     }
+    
+    // Brief pause after typing
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Show progressive highlight
+    isHighlighted.value = true;
+    
+    // Keep highlighted and text visible longer
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Keep visible for 2 seconds
+    
+    // Start erasing effect (highlight and text disappear together)
+    for (let i = currentWord.length; i >= 0; i--) {
+        displayedChars.value = i;
+        await new Promise(resolve => setTimeout(resolve, 50)); // Faster erase
+    }
+    
+    // Remove highlight when text is fully erased
+    isHighlighted.value = false;
+    
+    // Brief pause before next word
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Move to next word
+    currentWordIndex.value = (currentWordIndex.value + 1) % words.length;
+    
+    // Continue cycle
+    startAppleEffect();
 };
+
+onMounted(() => {
+    // Start after page loads
+    setTimeout(() => {
+        startAppleEffect();
+    }, 1000);
+});
+
+onUnmounted(() => {
+    // Cleanup if needed
+});
 
 // Refs
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -1573,14 +1605,10 @@ onMounted(() => {
     // Scroll to top smoothly when page loads
     loadSettings();
     window.scrollTo({ top: 0, behavior: "smooth" });
-
-    // Start the rotating text animation
-    startRotation();
 });
 
 onUnmounted(() => {
-    // Clean up the rotation interval
-    stopRotation();
+    // Cleanup handled in startRotationCycle
 });
 </script>
 
@@ -1683,6 +1711,36 @@ html {
 @keyframes gradient-move {
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
+}
+
+/* Clean Modern Highlight */
+.clean-highlight-sweep {
+  background: linear-gradient(
+    90deg,
+    rgba(59, 130, 246, 0.4) 0%,
+    rgba(147, 51, 234, 0.45) 30%,
+    rgba(236, 72, 153, 0.4) 60%,
+    rgba(251, 146, 60, 0.4) 100%
+  );
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: clean-sweep 0.8s ease-out forwards;
+  border-radius: 6px;
+  box-shadow: 0 0 20px rgba(147, 51, 234, 0.2);
+}
+
+@keyframes clean-sweep {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0.9;
+  }
 }
 
 

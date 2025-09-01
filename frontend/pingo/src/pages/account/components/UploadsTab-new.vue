@@ -98,22 +98,21 @@
         </p>
       </div>
 
-      <!-- Uploads List -->
-      <div v-else class="space-y-4">
-        <transition-group name="list" tag="div" class="space-y-4">
+      <!-- Uploads Grid -->
+      <div v-else class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <transition-group name="list" tag="div" class="contents">
           <div
             v-for="upload in displayedUploads"
             :key="upload.upload_id"
             class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 overflow-hidden"
             :class="selectedUpload?.id === upload.id ? 'ring-2 ring-blue-500' : ''"
           >
-            <!-- Main Upload Row -->
-            <div class="p-6">
-              <div class="flex items-center justify-between">
-                <!-- Left side: Icon, Title, and Meta -->
-                <div class="flex items-center gap-4 flex-1 min-w-0">
+            <!-- Upload Header -->
+            <div class="p-6 pb-4">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
                   <!-- File Type Icon -->
-                  <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                  <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                     <img 
                       v-if="getFileTypeSvg(upload) === 'pdf'" 
                       src="/src/assets/svg/icons/files_pdf.svg" 
@@ -137,152 +136,145 @@
                     </svg>
                   </div>
                   
-                  <!-- Upload Info -->
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-3 mb-1">
-                      <h3 class="font-semibold text-gray-900 dark:text-white">Upload {{ upload.upload_id }}</h3>
-                      <!-- Status Badge -->
-                      <span 
-                        :class="[
-                          'px-2 py-1 text-xs font-medium rounded-full',
-                          upload.is_deleted 
-                            ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
-                            : !upload.is_available
-                              ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400'
-                              : upload.expires_at && isExpiringSoon(upload.expires_at)
-                                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
-                                : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                        ]"
-                      >
-                        {{ getStatusText(upload) }}
-                      </span>
-                    </div>
-                    
-                    <!-- Upload Metadata -->
-                    <div class="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                      <span>{{ JSON.parse(upload.files).length }} files</span>
-                      <span>{{ formatFileSize(upload.size || 0) }}</span>
-                      <span>Created {{ formatDate(upload.created_at) }}</span>
-                      <span v-if="upload.expires_at">Expires {{ formatDate(upload.expires_at) }}</span>
-                    </div>
+                  <div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Upload {{ upload.upload_id }}</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ JSON.parse(upload.files).length }} files</p>
                   </div>
                 </div>
 
-                <!-- Right side: Action Buttons -->
-                <div class="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    @click="openFile(upload)"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    Open
-                  </button>
-                  
-                  <button
-                    @click="$emit('copyToClipboard', `${getBaseUrl()}/download/${upload.upload_id}`)"
-                    class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
-                    title="Copy Link"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-                  
-                  <button
-                    @click="selectUpload(upload)"
-                    class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
-                    title="More Options"
-                  >
-                    <svg 
-                      class="w-4 h-4 transition-transform duration-200" 
-                      :class="selectedUpload?.id === upload.id ? 'rotate-180' : ''"
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                <!-- Status Badge -->
+                <span 
+                  :class="[
+                    'px-2 py-1 text-xs font-medium rounded-full',
+                    upload.is_deleted 
+                      ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+                      : !upload.is_available
+                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400'
+                        : upload.expires_at && isExpiringSoon(upload.expires_at)
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                          : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                  ]"
+                >
+                  {{ getStatusText(upload) }}
+                </span>
+              </div>
+
+              <!-- Upload Details -->
+              <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center justify-between">
+                  <span>Created:</span>
+                  <span>{{ formatDate(upload.created_at) }}</span>
                 </div>
+                <div v-if="upload.expires_at" class="flex items-center justify-between">
+                  <span>Expires:</span>
+                  <span>{{ formatDate(upload.expires_at) }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>Size:</span>
+                  <span>{{ formatFileSize(upload.size || 0) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="px-6 pb-6">
+              <div class="flex gap-2">
+                <button
+                  @click="openFile(upload)"
+                  class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  Open
+                </button>
+                
+                <button
+                  @click="$emit('copyToClipboard', `${getBaseUrl()}/download/${upload.upload_id}`)"
+                  class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                
+                <button
+                  @click="selectUpload(upload)"
+                  class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
               </div>
             </div>
 
             <!-- Expanded Details (when selected) -->
             <div v-if="selectedUpload?.id === upload.id" class="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-900/50">
-              <div class="grid md:grid-cols-2 gap-6">
-                <!-- Files List -->
-                <div>
-                  <h4 class="font-medium text-gray-900 dark:text-white mb-3">Files in this upload:</h4>
-                  <div class="space-y-2 max-h-60 overflow-y-auto">
-                    <div v-for="(file, fileIndex) in JSON.parse(upload.files)" :key="fileIndex" 
-                         class="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg">
-                      <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
-                        <img 
-                          v-if="getFileSvg(file) === 'pdf'" 
-                          src="/src/assets/svg/icons/files_pdf.svg" 
-                          alt="PDF" 
-                          class="w-5 h-5"
-                        />
-                        <img 
-                          v-else-if="getFileSvg(file) === 'text'" 
-                          src="/src/assets/svg/icons/word_docx_doc.svg" 
-                          alt="Document" 
-                          class="w-5 h-5"
-                        />
-                        <svg v-else class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <span class="text-sm text-gray-900 dark:text-white truncate">{{ file }}</span>
-                    </div>
+              <h4 class="font-medium text-gray-900 dark:text-white mb-3">Files in this upload:</h4>
+              <div class="space-y-2 max-h-40 overflow-y-auto">
+                <div v-for="(file, fileIndex) in JSON.parse(upload.files)" :key="fileIndex" 
+                     class="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                  <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
+                    <img 
+                      v-if="getFileSvg(file) === 'pdf'" 
+                      src="/src/assets/svg/icons/files_pdf.svg" 
+                      alt="PDF" 
+                      class="w-5 h-5"
+                    />
+                    <img 
+                      v-else-if="getFileSvg(file) === 'text'" 
+                      src="/src/assets/svg/icons/word_docx_doc.svg" 
+                      alt="Document" 
+                      class="w-5 h-5"
+                    />
+                    <svg v-else class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                   </div>
+                  <span class="text-sm text-gray-900 dark:text-white truncate">{{ file }}</span>
                 </div>
+              </div>
+              
+              <!-- Additional Actions -->
+              <div class="flex gap-2 mt-4">
+                <button
+                  @click="downloadSingleFile(upload)"
+                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download
+                </button>
                 
-                <!-- Additional Actions -->
-                <div>
-                  <h4 class="font-medium text-gray-900 dark:text-white mb-3">Actions:</h4>
-                  <div class="space-y-3">
-                    <button
-                      @click="downloadSingleFile(upload)"
-                      class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Download Files
-                    </button>
-                    
-                    <button
-                      v-if="!upload.is_deleted"
-                      @click="$emit('toggleAvailability', upload.upload_id, upload.is_available)"
-                      :class="[
-                        'w-full px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2',
-                        upload.is_available 
-                          ? 'bg-orange-600 hover:bg-orange-700 text-white' 
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
-                      ]"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path v-if="upload.is_available" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-3-3m5.5 5.5l3 3m-3-3l3-3m-3 3l-3 3" />
-                        <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path v-if="!upload.is_available" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      {{ upload.is_available ? 'Hide Upload' : 'Show Upload' }}
-                    </button>
-                    
-                    <button
-                      @click="$emit('deleteUpload', upload.upload_id)"
-                      class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Delete Upload
-                    </button>
-                  </div>
-                </div>
+                <button
+                  v-if="!upload.is_deleted"
+                  @click="$emit('toggleAvailability', upload.upload_id, upload.is_available)"
+                  :class="[
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2',
+                    upload.is_available 
+                      ? 'bg-orange-600 hover:bg-orange-700 text-white' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  ]"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path v-if="upload.is_available" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-3-3m5.5 5.5l3 3m-3-3l3-3m-3 3l-3 3" />
+                    <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path v-if="!upload.is_available" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  {{ upload.is_available ? 'Hide' : 'Show' }}
+                </button>
+                
+                <button
+                  @click="$emit('deleteUpload', upload.upload_id)"
+                  class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
               </div>
             </div>
           </div>
