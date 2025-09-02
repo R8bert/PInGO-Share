@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import VueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
@@ -8,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), tailwindcss()],
+  plugins: [vue(), VueDevTools(), tailwindcss()],
     resolve: {
         alias: {
         '@': path.resolve(__dirname, '../src'),
