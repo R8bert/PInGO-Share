@@ -187,6 +187,16 @@
                   </svg>
                 </button>
 
+                <!-- Full-page View Button for Documents -->
+                <button v-if="isDocument(file)" 
+                        @click="openFullPageView(file)"
+                        class="p-3 rounded-xl transition-all duration-200 hover:scale-110 flex-1 sm:flex-none"
+                        :class="isDark ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-orange-100 text-orange-600 border border-orange-200'">
+                  <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4a1 1 0 011-1h4m0 0l-3 3m3-3v3M20 8V4a1 1 0 00-1-1h-4m0 0l3 3m-3-3v3M4 16v4a1 1 0 001 1h4m0 0l-3-3m3 3h-3M20 16v4a1 1 0 01-1 1h-4m0 0l3-3m-3 3h3"/>
+                  </svg>
+                </button>
+
                 <!-- Download Button -->
                 <button @click="downloadFile(file, index)"
                         :disabled="downloadingStates[index]"
@@ -448,6 +458,16 @@ const togglePreview = (index: number) => {
 const canPreview = (file: FileInfo): boolean => {
   const ext = getFileExtension(file.name)
   return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mp3', 'wav', 'flac', 'pdf'].includes(ext)
+}
+
+const isDocument = (file: FileInfo): boolean => {
+  const ext = getFileExtension(file.name)
+  return ['pdf', 'txt', 'md', 'markdown', 'doc', 'docx'].includes(ext)
+}
+
+const openFullPageView = (file: FileInfo) => {
+  const fileUrl = `http://localhost:8080/file/${route.params.id}/${file.name}`
+  window.open(fileUrl, '_blank')
 }
 
 const formatFileSize = (bytes: number): string => {

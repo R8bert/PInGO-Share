@@ -143,6 +143,21 @@
                   <div class="flex-1 min-w-0 overflow-hidden">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1 min-w-0">
                       <h3 class="font-semibold text-sm sm:text-base truncate min-w-0" :class="isDark ? 'text-white' : 'text-gray-900'">Upload {{ upload.upload_id }}</h3>
+                      
+                      <!-- Reverse Share Tab -->
+                      <span 
+                        v-if="upload.is_reverse"
+                        class="px-2 py-1 text-xs font-medium rounded-full inline-flex items-center gap-1 w-fit flex-shrink-0"
+                        :class="isDark 
+                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
+                          : 'bg-orange-100 text-orange-700 border border-orange-200'"
+                      >
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                        </svg>
+                        Reverse Share
+                      </span>
+                      
                       <!-- Status Badge -->
                       <span 
                         :class="[
@@ -430,6 +445,11 @@ const filterOptions = computed(() => [
     count: props.uploads.filter(u => !u.is_deleted).length 
   },
   { 
+    value: 'reverse', 
+    label: 'Reverse Share', 
+    count: props.uploads.filter(u => u.is_reverse && !u.is_deleted).length 
+  },
+  { 
     value: 'deleted', 
     label: 'Deleted', 
     count: props.uploads.filter(u => u.is_deleted).length 
@@ -450,6 +470,8 @@ const filteredUploads = computed(() => {
     return props.uploads.filter(upload => upload.is_deleted)
   } else if (deletionFilter.value === 'active') {
     return props.uploads.filter(upload => !upload.is_deleted)
+  } else if (deletionFilter.value === 'reverse') {
+    return props.uploads.filter(upload => upload.is_reverse && !upload.is_deleted)
   }
   return props.uploads
 })
