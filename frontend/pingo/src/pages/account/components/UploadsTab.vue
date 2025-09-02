@@ -171,7 +171,7 @@
                     <!-- Upload Metadata -->
                     <div class="flex flex-wrap items-center gap-2 sm:gap-4 lg:gap-6 text-xs sm:text-sm overflow-hidden" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
                       <span class="whitespace-nowrap flex-shrink-0">{{ JSON.parse(upload.files).length }} files</span>
-                      <span class="whitespace-nowrap flex-shrink-0">{{ formatFileSize(upload.size || 0) }}</span>
+                      <span class="whitespace-nowrap flex-shrink-0">{{ getUploadSize(upload) }}</span>
                       <span class="whitespace-nowrap flex-shrink-0">Created {{ formatDate(upload.created_at) }}</span>
                       <span v-if="upload.expires_at" class="whitespace-nowrap flex-shrink-0">Expires {{ formatDate(upload.expires_at) }}</span>
                     </div>
@@ -263,6 +263,62 @@
                       </svg>
                       Download Files
                     </button>
+                    
+                    <!-- Change Expiration -->
+                    <div v-if="!upload.is_deleted" class="space-y-2">
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+                          🕐 Expiration
+                        </span>
+                        <button
+                          @click="toggleExpirationEdit(upload.upload_id)"
+                          class="text-xs px-2 py-1 rounded transition-colors duration-200"
+                          :class="editingExpiration[upload.upload_id] 
+                            ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' 
+                            : (isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')"
+                        >
+                          {{ editingExpiration[upload.upload_id] ? 'Cancel' : 'Change' }}
+                        </button>
+                      </div>
+                      
+                      <div v-if="!editingExpiration[upload.upload_id]" 
+                           class="text-sm p-2 rounded-lg"
+                           :class="isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'">
+                        {{ upload.expires_at ? formatDate(upload.expires_at) : 'Never expires' }}
+                      </div>
+                      
+                      <div v-else class="space-y-2">
+                        <select
+                          v-model="newExpirationValue[upload.upload_id]"
+                          class="w-full px-3 py-2 text-sm rounded-lg border transition-colors duration-200"
+                          :class="isDark 
+                            ? 'bg-gray-800 border-gray-600 text-gray-200 focus:border-amber-500' 
+                            : 'bg-white border-gray-300 text-gray-900 focus:border-amber-500'"
+                        >
+                          <option value="7days">7 Days</option>
+                          <option value="1month">1 Month</option>
+                          <option value="6months">6 Months</option>
+                          <option value="1year">1 Year</option>
+                          <option value="never">Never</option>
+                        </select>
+                        
+                        <div class="flex gap-2">
+                          <button
+                            @click="changeExpiration(upload.upload_id)"
+                            class="flex-1 px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                          >
+                            Save
+                          </button>
+                          <button
+                            @click="toggleExpirationEdit(upload.upload_id)"
+                            class="px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200"
+                            :class="isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                     
                     <button
                       v-if="!upload.is_deleted"
@@ -358,6 +414,8 @@ const deletionFilter = ref('all')
 const itemsPerPage = ref(12)
 const currentPage = ref(0)
 const selectedUpload = ref<any>(null)
+const editingExpiration = ref<Record<string, boolean>>({})
+const newExpirationValue = ref<Record<string, string>>({})
 
 // Dynamic filter options with counts
 const filterOptions = computed(() => [
@@ -495,6 +553,31 @@ const formatDate = (dateString: string | undefined) => {
   })
 }
 
+const getUploadSize = (upload: any) => {
+  // Try to use the total_size field (this is what the backend actually stores)
+  if (upload.total_size && upload.total_size > 0) {
+    return formatFileSize(upload.total_size)
+  }
+  
+  // Fallback to size field if total_size is not available
+  if (upload.size && upload.size > 0) {
+    return formatFileSize(upload.size)
+  }
+  
+  // Try to use file_size if available  
+  if (upload.file_size && upload.file_size > 0) {
+    return formatFileSize(upload.file_size)
+  }
+  
+  // Check if there's a files_size field
+  if (upload.files_size && upload.files_size > 0) {
+    return formatFileSize(upload.files_size)
+  }
+  
+  // As a last resort, show that size is unavailable
+  return 'Size unavailable'
+}
+
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 B'
   const k = 1024
@@ -513,6 +596,44 @@ const isExpiringSoon = (expiresAt: string) => {
 
 const getBaseUrl = () => {
   return window.location.origin
+}
+
+// Expiration change functionality
+const toggleExpirationEdit = (uploadId: string) => {
+  editingExpiration.value[uploadId] = !editingExpiration.value[uploadId]
+  if (editingExpiration.value[uploadId]) {
+    // Initialize with current value or default
+    newExpirationValue.value[uploadId] = '7days'
+  }
+}
+
+const changeExpiration = async (uploadId: string) => {
+  try {
+    const response = await fetch(`http://localhost:8080/uploads/${uploadId}/expiration`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+      },
+      body: JSON.stringify({
+        validity: newExpirationValue.value[uploadId]
+      })
+    })
+
+    if (response.ok) {
+      // Close edit mode
+      editingExpiration.value[uploadId] = false
+      // Emit an event to refresh uploads from parent
+      // We could also update the local state here, but emitting refresh is cleaner
+      window.location.reload() // Simple reload for now, could be improved
+    } else {
+      console.error('Failed to update expiration')
+      alert('Failed to update expiration date')
+    }
+  } catch (error) {
+    console.error('Error updating expiration:', error)
+    alert('Failed to update expiration date')
+  }
 }
 
 // Watch for uploads changes to reset pagination

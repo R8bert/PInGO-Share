@@ -444,53 +444,30 @@
                                     v-if="validityOptions.length > 0"
                                 >
                                     <label
-                                        class="block text-sm font-medium mb-3 transition-colors duration-300"
+                                        class="block text-sm font-medium mb-2 transition-colors duration-300"
                                         :style="{
                                             color: isDark
                                                 ? '#d1d5db'
                                                 : '#374151',
                                         }"
                                     >
-                                        File expiration
+                                        🕐 File Expiration
                                     </label>
 
-                                    <div
-                                        class="grid grid-cols-2 sm:grid-cols-3 gap-3"
-                                    >
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                                         <label
                                             v-for="option in validityOptions"
                                             :key="option.value"
-                                            class="relative flex items-center justify-center px-3 py-2 rounded-lg cursor-pointer transition-all text-sm"
-                                            :style="{
-                                                borderWidth: '2px',
-                                                borderColor:
-                                                    selectedValidity ===
-                                                    option.value
-                                                        ? isDark
-                                                            ? '#60a5fa'
-                                                            : '#3b82f6'
-                                                        : isDark
-                                                        ? '#4b5563'
-                                                        : '#d1d5db',
-                                                backgroundColor:
-                                                    selectedValidity ===
-                                                    option.value
-                                                        ? isDark
-                                                            ? '#1e3a8a20'
-                                                            : '#dbeafe'
-                                                        : isDark
-                                                        ? '#1f2937'
-                                                        : '#ffffff',
-                                                color:
-                                                    selectedValidity ===
-                                                    option.value
-                                                        ? isDark
-                                                            ? '#93c5fd'
-                                                            : '#1d4ed8'
-                                                        : isDark
-                                                        ? '#d1d5db'
-                                                        : '#374151',
-                                            }"
+                                            class="flex flex-col items-center p-2 rounded-lg border cursor-pointer transition-all duration-200 hover:scale-105 text-center"
+                                            :class="[
+                                                selectedValidity === option.value
+                                                    ? isDark
+                                                        ? 'border-amber-500 bg-amber-600/20 shadow-md shadow-amber-500/10'
+                                                        : 'border-amber-500 bg-amber-50 shadow-md shadow-amber-500/10'
+                                                    : isDark
+                                                    ? 'border-gray-600/50 bg-gray-800/30 hover:border-gray-500'
+                                                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                                            ]"
                                         >
                                             <input
                                                 type="radio"
@@ -498,11 +475,54 @@
                                                 :value="option.value"
                                                 class="sr-only"
                                             />
-                                            <div class="text-center">
-                                                <div class="font-medium">
+                                            
+                                            <!-- Custom Radio Button -->
+                                            <div
+                                                class="w-3 h-3 rounded-full border flex items-center justify-center mb-1 flex-shrink-0 transition-all duration-200"
+                                                :class="[
+                                                    selectedValidity === option.value
+                                                        ? isDark
+                                                            ? 'border-amber-400 bg-amber-500'
+                                                            : 'border-amber-500 bg-amber-500'
+                                                        : isDark
+                                                        ? 'border-gray-500'
+                                                        : 'border-gray-300'
+                                                ]"
+                                            >
+                                                <div
+                                                    v-if="selectedValidity === option.value"
+                                                    class="w-1 h-1 rounded-full bg-white"
+                                                ></div>
+                                            </div>
+                                            
+                                            <!-- Option Content -->
+                                            <div class="min-w-0">
+                                                <div 
+                                                    class="font-medium text-xs mb-0.5 leading-tight"
+                                                    :class="[
+                                                        selectedValidity === option.value
+                                                            ? isDark
+                                                                ? 'text-amber-300'
+                                                                : 'text-amber-700'
+                                                            : isDark
+                                                            ? 'text-gray-100'
+                                                            : 'text-gray-900'
+                                                    ]"
+                                                >
                                                     {{ option.label }}
                                                 </div>
-                                                <div class="text-xs opacity-75">
+                                                <div 
+                                                    class="text-xs opacity-75 leading-tight"
+                                                    :class="[
+                                                        selectedValidity === option.value
+                                                            ? isDark
+                                                                ? 'text-amber-200'
+                                                                : 'text-amber-600'
+                                                            : isDark
+                                                            ? 'text-gray-400'
+                                                            : 'text-gray-500'
+                                                    ]"
+                                                >
                                                     {{ option.description }}
                                                 </div>
                                             </div>
@@ -873,7 +893,193 @@
                     </div>
                 </div>
             </section>
-            <div class="flex-1 h-100"></div>
+
+            <!-- Features Section -->
+            <section
+                ref="featuresSection"
+                class="relative py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8"
+            >
+                <div class="max-w-7xl mx-auto">
+                    <div class="text-center mb-12 sm:mb-16">
+                        <h2
+                            class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6"
+                            :style="{ color: isDark ? '#ffffff' : '#000000' }"
+                        >
+                            Why choose PInGO Share?
+                        </h2>
+                        <p
+                            class="text-lg sm:text-xl max-w-3xl mx-auto"
+                            :style="{ color: isDark ? '#a1a1aa' : '#71717a' }"
+                        >
+                            Built with modern technology and user experience in
+                            mind
+                        </p>
+                    </div>
+
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+                    >
+                        <!-- Feature 1 -->
+                        <div class="relative group">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            ></div>
+                            <div
+                                class="relative backdrop-blur-xl border rounded-xl sm:rounded-2xl p-6 sm:p-8 transition-all duration-300 group-hover:scale-105"
+                                :style="{
+                                    backgroundColor: isDark
+                                        ? 'rgba(255,255,255,0.05)'
+                                        : 'rgba(255,255,255,0.8)',
+                                    borderColor: isDark
+                                        ? 'rgba(255,255,255,0.1)'
+                                        : 'rgba(0,0,0,0.1)',
+                                }"
+                            >
+                                <div
+                                    class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6"
+                                >
+                                    <svg
+                                        class="w-6 h-6 sm:w-8 sm:h-8 text-white"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                        ></path>
+                                    </svg>
+                                </div>
+                                <h3
+                                    class="text-lg sm:text-xl font-bold mb-3 sm:mb-4"
+                                    :style="{
+                                        color: isDark ? '#ffffff' : '#000000',
+                                    }"
+                                >
+                                    End-to-End Encryption
+                                </h3>
+                                <p
+                                    class="text-sm sm:text-base"
+                                    :style="{
+                                        color: isDark ? '#a1a1aa' : '#71717a',
+                                    }"
+                                >
+                                    Your files are encrypted before they leave
+                                    your device, ensuring maximum security.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Feature 2 -->
+                        <div class="relative group">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            ></div>
+                            <div
+                                class="relative backdrop-blur-xl border rounded-xl sm:rounded-2xl p-6 sm:p-8 transition-all duration-300 group-hover:scale-105"
+                                :style="{
+                                    backgroundColor: isDark
+                                        ? 'rgba(255,255,255,0.05)'
+                                        : 'rgba(255,255,255,0.8)',
+                                    borderColor: isDark
+                                        ? 'rgba(255,255,255,0.1)'
+                                        : 'rgba(0,0,0,0.1)',
+                                }"
+                            >
+                                <div
+                                    class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6"
+                                >
+                                    <svg
+                                        class="w-6 h-6 sm:w-8 sm:h-8 text-white"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                                        ></path>
+                                    </svg>
+                                </div>
+                                <h3
+                                    class="text-lg sm:text-xl font-bold mb-3 sm:mb-4"
+                                    :style="{
+                                        color: isDark ? '#ffffff' : '#000000',
+                                    }"
+                                >
+                                    Lightning Fast
+                                </h3>
+                                <p
+                                    class="text-sm sm:text-base"
+                                    :style="{
+                                        color: isDark ? '#a1a1aa' : '#71717a',
+                                    }"
+                                >
+                                    Optimized for speed with parallel uploads
+                                    and smart compression.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Feature 3 -->
+                        <div class="relative group">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            ></div>
+                            <div
+                                class="relative backdrop-blur-xl border rounded-xl sm:rounded-2xl p-6 sm:p-8 transition-all duration-300 group-hover:scale-105"
+                                :style="{
+                                    backgroundColor: isDark
+                                        ? 'rgba(255,255,255,0.05)'
+                                        : 'rgba(255,255,255,0.8)',
+                                    borderColor: isDark
+                                        ? 'rgba(255,255,255,0.1)'
+                                        : 'rgba(0,0,0,0.1)',
+                                }"
+                            >
+                                <div
+                                    class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6"
+                                >
+                                    <svg
+                                        class="w-6 h-6 sm:w-8 sm:h-8 text-white"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                        ></path>
+                                    </svg>
+                                </div>
+                                <h3
+                                    class="text-lg sm:text-xl font-bold mb-3 sm:mb-4"
+                                    :style="{
+                                        color: isDark ? '#ffffff' : '#000000',
+                                    }"
+                                >
+                                    No Registration
+                                </h3>
+                                <p
+                                    class="text-sm sm:text-base"
+                                    :style="{
+                                        color: isDark ? '#a1a1aa' : '#71717a',
+                                    }"
+                                >
+                                    Start sharing immediately without creating
+                                    accounts or providing personal info.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <!-- Footer -->
             <footer
@@ -886,7 +1092,7 @@
             >
                 <div class="max-w-7xl mx-auto text-center">
                     <p :style="{ color: isDark ? '#a1a1aa' : '#71717a' }">
-                        PinGO Share. Built with ❤️ for the community.
+                        © 2025 PInGO Share. Built with ❤️ for the community.
                     </p>
                 </div>
             </footer>
@@ -1026,7 +1232,7 @@ const getFileIconAltText = (filename: string) => {
 }
 
 // Apple Hello typewriter effect with highlight - exactly like shadcn example
-const words = [" secure", " instantly", " with-friends", " self-hosted"];
+const words = [" secure", " instantly", " easy", " self-hosted"];
 const currentWordIndex = ref(0);
 const displayedChars = ref(0);
 const isHighlighted = ref(false);
@@ -1258,6 +1464,9 @@ const uploadFiles = async () => {
         selectedFiles.value.forEach((file) => {
             formData.append("files", file);
         });
+        
+        // Add validity/expiration setting to the form data
+        formData.append("validity", selectedValidity.value);
 
         const response = await axios.post(
             "http://localhost:8080/upload",
