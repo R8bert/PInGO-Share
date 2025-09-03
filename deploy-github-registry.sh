@@ -149,9 +149,51 @@ if [ -f "docker-compose.github.yml" ]; then
     docker-compose -f docker-compose.github.yml down 2>/dev/null || true
 fi
 
-# Pull latest images
-print_warning "Pulling latest images from GitHub Container Registry..."
-docker-compose -f docker-compose.github.yml pull
+# Check if images exist in registry
+print_warning "Checking if images exist in GitHub Container Registry..."
+if ! docker-compose -f docker-compose.github.yml pull 2>/dev/null; then
+    print_warning "Images not found in GitHub Container Registry!"
+    echo ""
+    echo "This usually means:"
+    echo "1. GitHub Actions are still building the images"
+    echo "2. GitHub Actions failed to build"
+    echo "3. This is the first deployment"
+    echo ""
+    echo "Let's check GitHub Actions status and build locally if needed..."
+    echo ""
+    
+    read -p "Would you like to build images locally instead? (y/n): " build_local
+    
+    if [[ $build_local =~ ^[Yy]$ ]]; then
+        print_warning "Switching to local build method..."
+        
+        # Download source code
+        if [ ! -d "source" ]; then
+            git clone https://github.com/R8bert/PInGO-Share.git source
+        else
+            cd source && git pull && cd ..
+        fi
+        
+        # Build images locally
+        print_warning "Building backend image..."
+        docker build -t ghcr.io/r8bert/pingo-share-backend:latest -f source/backend/Dockerfile source/
+        
+        print_warning "Building frontend image..."
+        docker build -t ghcr.io/r8bert/pingo-share-frontend:latest source/frontend/pingo/
+        
+        print_success "Images built locally"
+    else
+        echo ""
+        echo "Please:"
+        echo "1. Check GitHub Actions: https://github.com/R8bert/PInGO-Share/actions"
+        echo "2. Wait for build to complete"
+        echo "3. Run this script again"
+        echo ""
+        exit 1
+    fi
+else
+    print_success "Images pulled from GitHub Container Registry"
+fi
 
 # Start services
 print_warning "Starting services..."
