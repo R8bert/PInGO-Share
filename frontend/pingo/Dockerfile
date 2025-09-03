@@ -24,8 +24,8 @@ RUN npm run build
 # Production stage - serve with nginx
 FROM nginx:1.25-alpine
 
-# Install security updates
-RUN apk update && apk upgrade
+# Install security updates and curl for health checks
+RUN apk update && apk upgrade && apk add --no-cache curl
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
@@ -33,26 +33,17 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Create non-root user
-RUN adduser -D -g '' appuser
-
-# Set permissions
-RUN chown -R appuser:appuser /usr/share/nginx/html
-RUN chown -R appuser:appuser /var/cache/nginx
-RUN chown -R appuser:appuser /var/log/nginx
-RUN chown -R appuser:appuser /etc/nginx/conf.d
-RUN touch /var/run/nginx.pid
-RUN chown -R appuser:appuser /var/run/nginx.pid
-
-# Switch to non-root user
-USER appuser
+# Set permissions for static files and nginx cache directories
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx/conf.d
+RUN touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
 
 # Expose port 80
 EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
-
-# Start nginx
+# Start nginx as nginx user
+USER nginx
 CMD ["nginx", "-g", "daemon off;"]

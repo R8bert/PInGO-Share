@@ -67,7 +67,7 @@
                 <div class="w-20 h-20 rounded-2xl overflow-hidden backdrop-blur-sm border-2"
                      :class="isDark ? 'border-white/20' : 'border-gray-200'">
                   <img v-if="uploader.avatar" 
-                       :src="`http://localhost:8080${uploader.avatar}`" 
+                       :src="getAssetUrl(uploader.avatar)" 
                        :alt="uploader.username"
                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                        @error="handleAvatarError" />
@@ -224,7 +224,7 @@
                 <!-- Image preview -->
                 <div v-if="['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(getFileExtension(file.name))">
                   <img 
-                    :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
+                    :src="getApiUrl(`/file/${$route.params.id}/${file.name}?preview=true`)"
                     :alt="file.name"
                     class="w-full max-w-md mx-auto rounded-xl shadow-lg"
                     @error="handlePreviewError">
@@ -233,7 +233,7 @@
                 <!-- Video preview -->
                 <div v-else-if="getFileExtension(file.name) === 'mp4'">
                   <video 
-                    :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
+                    :src="getApiUrl(`/file/${$route.params.id}/${file.name}?preview=true`)"
                     controls 
                     class="w-full max-w-md mx-auto rounded-xl shadow-lg">
                   </video>
@@ -242,7 +242,7 @@
                 <!-- Audio preview -->
                 <div v-else-if="['mp3', 'wav', 'flac'].includes(getFileExtension(file.name))">
                   <audio 
-                    :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
+                    :src="getApiUrl(`/file/${$route.params.id}/${file.name}?preview=true`)"
                     controls 
                     class="w-full max-w-md mx-auto">
                   </audio>
@@ -251,7 +251,7 @@
                 <!-- PDF preview -->
                 <div v-else-if="getFileExtension(file.name) === 'pdf'">
                   <iframe 
-                    :src="`http://localhost:8080/file/${$route.params.id}/${file.name}?preview=true`"
+                    :src="getApiUrl(`/file/${$route.params.id}/${file.name}?preview=true`)"
                     class="w-full max-w-md mx-auto h-64 rounded-xl border"
                     :class="isDark ? 'border-white/10' : 'border-gray-200'">
                   </iframe>
@@ -333,6 +333,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from '../../composables/useTheme'
 import { useIcons } from '../../composables/useIcons'
+import { getApiUrl, getAssetUrl } from '../../utils/apiUtils'
 import axios from 'axios'
 
 // Interfaces
@@ -398,7 +399,7 @@ const downloadFile = async (file: FileInfo, index: number) => {
   
   try {
     const response = await axios.get(
-      `http://localhost:8080/file/${route.params.id}/${file.name}`,
+      getApiUrl(`/file/${route.params.id}/${file.name}`),
       { responseType: 'blob' }
     )
     
@@ -425,7 +426,7 @@ const downloadAll = async () => {
   
   try {
     const response = await axios.get(
-      `http://localhost:8080/download/${route.params.id}`,
+      getApiUrl(`/download/${route.params.id}`),
       { responseType: 'blob' }
     )
     
@@ -466,7 +467,7 @@ const isDocument = (file: FileInfo): boolean => {
 }
 
 const openFullPageView = (file: FileInfo) => {
-  const fileUrl = `http://localhost:8080/file/${route.params.id}/${file.name}`
+  const fileUrl = getApiUrl(`/file/${route.params.id}/${file.name}`)
   window.open(fileUrl, '_blank')
 }
 

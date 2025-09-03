@@ -398,6 +398,7 @@
 import { ref, computed, watch } from 'vue'
 import { useTheme } from '../../../composables/useTheme'
 import { useIcons } from '../../../composables/useIcons'
+import { getApiUrl } from '../../../utils/apiUtils'
 
 // Use composables
 const { isDark } = useTheme()
@@ -631,7 +632,7 @@ const toggleExpirationEdit = (uploadId: string) => {
 
 const changeExpiration = async (uploadId: string) => {
   try {
-    const response = await fetch(`http://localhost:8080/uploads/${uploadId}/expiration`, {
+    const response = await fetch(getApiUrl(`/uploads/${uploadId}/expiration`), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

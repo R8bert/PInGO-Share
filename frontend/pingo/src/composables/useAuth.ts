@@ -40,8 +40,17 @@ const adminUsers = ref<AdminUser[]>([])
 const isInitializing = ref(false)
 const initPromise = ref<Promise<boolean> | null>(null)
 
-// Setup axios defaults
-axios.defaults.baseURL = 'http://localhost:8080'
+// Setup axios defaults - automatically detect API base URL
+const getApiBaseUrl = () => {
+  // In production (when served from same domain), use relative paths
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return '/api'
+  }
+  // In development, use localhost
+  return 'http://localhost:8080'
+}
+
+axios.defaults.baseURL = getApiBaseUrl()
 axios.defaults.withCredentials = true
 
 // Add request interceptor to include token

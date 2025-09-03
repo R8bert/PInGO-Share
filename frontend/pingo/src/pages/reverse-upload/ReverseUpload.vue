@@ -285,6 +285,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from '../../composables/useTheme'
+import { getApiUrl } from '../../utils/apiUtils'
 
 const { isDark } = useTheme()
 const route = useRoute()
@@ -347,7 +348,7 @@ const handleUpload = async () => {
   formData.append('validity', validity.value)
 
   try {
-    const response = await fetch(`http://localhost:8080/reverse-upload/${token.value}`, {
+    const response = await fetch(getApiUrl(`/reverse-upload/${token.value}`), {
       method: 'POST',
       body: formData
     })

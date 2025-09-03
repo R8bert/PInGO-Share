@@ -8,6 +8,7 @@
 <script lang="ts">
 import { ref } from 'vue'
 import axios from 'axios'
+import { getApiUrl, getBaseUrl } from '../../../utils/apiUtils'
 
 export default {
   setup() {
@@ -21,8 +22,8 @@ export default {
       formData.append('file', target.files[0])
 
       try {
-        const response = await axios.post('http://localhost:8080/upload', formData)
-        link.value = 'http://localhost:8080' + response.data.download_url
+        const response = await axios.post(getApiUrl('/upload'), formData)
+        link.value = getBaseUrl() + response.data.download_url
       } catch (error) {
         console.error('Upload failed:', error)
       }

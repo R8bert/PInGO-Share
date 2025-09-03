@@ -62,7 +62,7 @@
                 <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
                   <img 
                     v-if="user.avatar" 
-                    :src="`http://localhost:8080${user.avatar}`" 
+                    :src="getAssetUrl(user.avatar)" 
                     :alt="user.username"
                     class="w-full h-full object-cover"
                     @error="handleAvatarError"
@@ -168,6 +168,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useTheme } from '../../../composables/useTheme'
+import { getAssetUrl } from '../../../utils/apiUtils'
 import { UserIcon } from '@heroicons/vue/24/outline'
 
 const { adminUsers, fetchAdminUsers, toggleUserBlock } = useAuth()

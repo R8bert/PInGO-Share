@@ -8,7 +8,7 @@
           <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg from-blue-500 to-indigo-600 flex items-center justify-center">
             <img 
               v-if="user?.avatar" 
-              :src="`http://localhost:8080${user.avatar}`" 
+              :src="getAssetUrl(user.avatar)" 
               :alt="user.username"
               class="w-full h-full object-cover"
               @error="handleAvatarError"
@@ -430,6 +430,7 @@
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useTheme } from '../../composables/useTheme'
+import { getApiUrl, getAssetUrl } from '../../utils/apiUtils'
 import UploadsTab from './components/UploadsTab.vue'
 import ReverseShareTab from './components/ReverseShareTab.vue'
 import StatisticsTab from './components/StatisticsTab.vue'
@@ -596,7 +597,7 @@ const copyToClipboard = async (text: string) => {
 
 const toggleAvailability = async (uploadId: string, currentAvailability: boolean) => {
   try {
-    const response = await fetch(`http://localhost:8080/uploads/${uploadId}/availability`, {
+    const response = await fetch(getApiUrl(`/uploads/${uploadId}/availability`), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -620,7 +621,7 @@ const toggleAvailability = async (uploadId: string, currentAvailability: boolean
 
 const fetchReverseTokens = async () => {
   try {
-    const response = await fetch('http://localhost:8080/reverse-tokens', {
+    const response = await fetch(getApiUrl('/reverse-tokens'), {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
       },
@@ -659,7 +660,7 @@ const createReverseToken = async (tokenData: ReverseTokenData) => {
 
     console.log('Creating token with data:', payload)
     
-    const response = await fetch('http://localhost:8080/reverse-tokens', {
+    const response = await fetch(getApiUrl('/reverse-tokens'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -690,7 +691,7 @@ const deleteReverseToken = async (tokenId: number) => {
   if (!confirm('Are you sure you want to delete this token?')) return
 
   try {
-    const response = await fetch(`http://localhost:8080/reverse-tokens/${tokenId}`, {
+    const response = await fetch(getApiUrl(`/reverse-tokens/${tokenId}`), {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
@@ -720,7 +721,7 @@ const resetNewToken = () => {
 // Admin functions
 const toggleUserBlock = async (userId: number, isBlocked: boolean) => {
   try {
-    const response = await fetch(`http://localhost:8080/admin/users/${userId}/block`, {
+    const response = await fetch(getApiUrl(`/admin/users/${userId}/block`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -748,7 +749,7 @@ const toggleUserBlock = async (userId: number, isBlocked: boolean) => {
 // Change upload expiration
 const changeExpiration = async (uploadId: string, validity: string) => {
   try {
-    const response = await fetch(`http://localhost:8080/uploads/${uploadId}/expiration`, {
+    const response = await fetch(getApiUrl(`/uploads/${uploadId}/expiration`), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -792,7 +793,7 @@ const fetchAdminData = async () => {
     isLoadingAdminSettings.value = true
     
     // Fetch admin statistics
-    const statsResponse = await fetch('http://localhost:8080/admin/stats', {
+    const statsResponse = await fetch(getApiUrl('/admin/stats'), {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
       }
@@ -808,7 +809,7 @@ const fetchAdminData = async () => {
     }
 
     // Fetch quick settings from main settings endpoint
-    const settingsResponse = await fetch('http://localhost:8080/settings')
+    const settingsResponse = await fetch(getApiUrl('/settings'))
     if (settingsResponse.ok) {
       const settings = await settingsResponse.json()
       quickSettings.value = {
@@ -823,7 +824,7 @@ const fetchAdminData = async () => {
     }
     
     // Fetch admin users
-    const usersResponse = await fetch('http://localhost:8080/admin/users', {
+    const usersResponse = await fetch(getApiUrl('/admin/users'), {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
       }
@@ -928,7 +929,7 @@ const handleAvatarUpload = async (event: Event) => {
   formData.append('avatar', file)
 
   try {
-    const response = await fetch('http://localhost:8080/avatar', {
+    const response = await fetch(getApiUrl('/avatar'), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`

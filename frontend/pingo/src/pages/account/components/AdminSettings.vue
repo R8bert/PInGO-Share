@@ -252,7 +252,7 @@
               <div class="flex items-center space-x-4">
                 <img
                   v-if="settings.logo"
-                  :src="`http://localhost:8080${settings.logo}`"
+                  :src="getAssetUrl(settings.logo)"
                   alt="Current logo"
                   class="w-12 h-12 object-contain rounded-lg border"
                   :class="isDark ? 'border-gray-600' : 'border-gray-300'"
@@ -275,7 +275,7 @@
               <div class="flex items-center space-x-4">
                 <img
                   v-if="settings.backgroundImage"
-                  :src="`http://localhost:8080${settings.backgroundImage}`"
+                  :src="getAssetUrl(settings.backgroundImage)"
                   alt="Current background"
                   class="w-12 h-12 object-cover rounded-lg border"
                   :class="isDark ? 'border-gray-600' : 'border-gray-300'"
@@ -427,6 +427,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useTheme } from '../../../composables/useTheme'
+import { getAssetUrl } from '../../../utils/apiUtils'
 import {
   ClockIcon,
   CloudArrowUpIcon,

@@ -1,5 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
+import { getApiUrl } from '../utils/apiUtils'
 
 interface Settings {
   id: number
@@ -28,7 +29,7 @@ export function useSettings() {
     error.value = null
     
     try {
-      const response = await axios.get('http://localhost:8080/settings')
+      const response = await axios.get(getApiUrl('/settings'))
       settings.value = response.data
     } catch (err: any) {
       error.value = err.response?.data?.error || 'Failed to fetch settings'

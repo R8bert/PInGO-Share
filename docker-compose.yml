@@ -38,7 +38,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-b8jcpfWddxWgkezXow153RHm6DC9RZ/XyyNIi2U8v3k=}
       - DB_NAME=filesharing
       - DB_SSLMODE=disable
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,https://pingo.r8bert-debian.xyz}
       - GIN_MODE=release
     volumes:
       - ./uploads:/uploads

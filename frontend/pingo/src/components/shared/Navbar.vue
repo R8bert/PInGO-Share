@@ -17,7 +17,7 @@
         <div class="rounded-xl flex items-center justify-center transition-colors duration-300">
           <img 
             v-if="logoPath" 
-            :src="logoPath ? `http://localhost:8080${logoPath}` : ''" 
+            :src="getAssetUrl(logoPath)" 
             class="w-8 h-8" 
             alt="Logo" 
             @error="handleImageError" 
@@ -84,7 +84,7 @@
                :style="{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }">
             <img 
               v-if="user?.avatar" 
-              :src="`http://localhost:8080${user.avatar}`" 
+              :src="getAssetUrl(user.avatar)" 
               :alt="user.username"
               class="w-full h-full object-cover"
               @error="handleAvatarError"
@@ -225,7 +225,7 @@
                    :style="{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }">
                 <img 
                   v-if="user?.avatar" 
-                  :src="`http://localhost:8080${user.avatar}`" 
+                  :src="getAssetUrl(user.avatar)" 
                   :alt="user.username"
                   class="w-full h-full object-cover"
                   @error="handleAvatarError"
@@ -370,6 +370,7 @@ import { useAuth } from '../../composables/useAuth'
 import { useTheme } from '../../composables/useTheme'
 import { useRouter } from 'vue-router'
 import { ArrowUpTrayIcon, UserIcon, CloudArrowUpIcon, Bars3Icon, XMarkIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
+import { getApiUrl, getAssetUrl } from '../../utils/apiUtils'
 // import axios from 'axios'
 import ThemeToggle from './ThemeToggle.vue'
 
@@ -393,7 +394,7 @@ const handleLogout = async () => {
 
 const fetchSettings = async () => {
   try {
-    const response = await fetch('http://localhost:8080/settings')
+    const response = await fetch(getApiUrl('/settings'))
     if (response.ok) {
       const settings = await response.json()
       navbarTitle.value = settings.navbarTitle || 'PinGO'
