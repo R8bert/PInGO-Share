@@ -1,0 +1,73 @@
+services:
+  postgres_pingo:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: filesharing
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "your-secure-database-password-here"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - pingo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+
+  backend:
+    image: pingo-share-backend:latest
+    environment:
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - DB_HOST=postgres_pingo
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=your-secure-database-password-here
+      - DB_NAME=filesharing
+      - DB_SSLMODE=disable
+      - ALLOWED_ORIGINS=https://your-domain.com
+      - GIN_MODE=release
+    volumes:
+      - uploads:/uploads
+      - avatars:/avatars
+      - backgrounds:/backgrounds
+      - logos:/logos
+    depends_on:
+      postgres_pingo:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - pingo-network
+    security_opt:
+      - no-new-privileges:true
+
+  frontend:
+    image: pingo-share-frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - pingo-network
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  pingo-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  uploads:
+  avatars:
+  backgrounds:
+  logos:

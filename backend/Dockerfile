@@ -1,6 +1,9 @@
 
 # Multi-stage build for security and smaller image size
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
+
+# Set GOTOOLCHAIN to auto to allow newer versions
+ENV GOTOOLCHAIN=auto
 
 # Install security updates
 RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
@@ -15,7 +18,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy source code
-COPY . .
+COPY backend/ .
 
 # Build the binary with security flags
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o main .

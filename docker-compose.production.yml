@@ -1,14 +1,11 @@
-
 services:
   postgres_pingo:
-    image: postgres:15-alpine  # More secure and smaller
+    image: postgres:15-alpine
     environment:
       POSTGRES_DB: filesharing
       POSTGRES_USER: ${DB_USER:-user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-b8jcpfWddxWgkezXow153RHm6DC9RZ/XyyNIi2U8v3k=}
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
-    ports:
-      - "127.0.0.1:5432:5432"  # Bind to localhost only
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -27,9 +24,7 @@ services:
       - /var/run/postgresql
 
   backend:
-    build: 
-      context: .
-      dockerfile: ./backend/Dockerfile
+    image: ${REGISTRY_URL}/pingo-share-backend:${TAG:-latest}
     environment:
       - JWT_SECRET=${JWT_SECRET}
       - DB_HOST=postgres_pingo
@@ -38,14 +33,14 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-b8jcpfWddxWgkezXow153RHm6DC9RZ/XyyNIi2U8v3k=}
       - DB_NAME=filesharing
       - DB_SSLMODE=disable
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://your-domain.com}
       - GIN_MODE=release
     volumes:
-      - ./uploads:/uploads
-      - ./backend/settings.json:/settings.json:ro
-      - ./backend/avatars:/avatars
-      - ./backend/backgrounds:/backgrounds
-      - ./backend/logos:/logos
+      - uploads:/uploads
+      - settings:/settings.json:ro
+      - avatars:/avatars
+      - backgrounds:/backgrounds
+      - logos:/logos
     depends_on:
       postgres_pingo:
         condition: service_healthy
@@ -60,11 +55,9 @@ services:
       - NET_BIND_SERVICE
 
   frontend:
-    build:
-      context: ./frontend/pingo
-      dockerfile: Dockerfile
+    image: ${REGISTRY_URL}/pingo-share-frontend:${TAG:-latest}
     ports:
-      - "127.0.0.1:3000:80"  # Frontend accessible on port 3000
+      - "${FRONTEND_PORT:-80}:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -87,4 +80,14 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  uploads:
+    driver: local
+  avatars:
+    driver: local
+  backgrounds:
+    driver: local
+  logos:
+    driver: local
+  settings:
     driver: local
