@@ -1,75 +1,80 @@
-# 🎯 PInGO-Share
+# PInGO-Share
 
-A file sharing application with Vue.js frontend and Go backend, deployed using Docker and GitHub Container Registry.
+Self-hosted file sharing platform that gives you complete control over your data. Upload, share, and manage files on your own infrastructure without relying on third-party services.
 
-## 🚀 Quick Deploy
+## Why PInGO-Share?
 
-### Local Development
+Take back control of your file sharing. Whether you're a privacy-conscious individual, a small business, or just tired of file size limits and subscription fees, PInGO-Share puts you in charge.
+
+**Key Features:**
+- No file size restrictions (limited only by your storage)
+- Complete privacy - your files stay on your server
+- No monthly fees or subscriptions
+- Clean, modern web interface
+- Secure user authentication
+- Easy deployment with Docker
+
+## Getting Started
+
+### Quick Setup
+
+Clone this repository and run:
+
 ```bash
 docker-compose up -d
 ```
 
-### Production Deployment (GitHub Container Registry)
+Your file sharing platform will be available at `http://localhost:3000`
+
+### Production Deployment
+
+For a production setup on your server:
+
 ```bash
-# Automated deployment script
 ./deploy-github-registry.sh
-
-# Or manual local build
-./local-build-deploy.sh
 ```
 
-## 📁 Project Structure
+This script handles everything - Docker installation, image building, and service deployment.
 
-```
-├── backend/              # Go backend source
-├── frontend/pingo/       # Vue.js frontend source  
-├── .github/workflows/    # GitHub Actions (auto-builds images)
-├── docker-compose.yml    # Local development
-├── docker-compose.github.yml  # Production with GitHub Container Registry
-└── .env                  # Environment configuration
-```
+## Configuration
 
-## ⚙️ Configuration
-
-Edit `.env` file:
-```bash
-DB_PASSWORD=your_secure_password
-JWT_SECRET=your_32_character_secret
-ALLOWED_ORIGINS=https://yourdomain.com
-```
-
-## 🔧 Management
+Before deploying to production, edit the `.env` file:
 
 ```bash
-# Check status
-docker-compose -f docker-compose.github.yml ps
-
-# View logs  
-docker-compose -f docker-compose.github.yml logs -f
-
-# Update (after pushing new code)
-docker-compose -f docker-compose.github.yml pull && docker-compose -f docker-compose.github.yml up -d
-
-# Stop
-docker-compose -f docker-compose.github.yml down
+DB_PASSWORD=choose_a_strong_password
+JWT_SECRET=your_secret_key_minimum_32_characters
+ALLOWED_ORIGINS=https://your-domain.com
 ```
 
-## 🌐 Access
+## Self-Hosting Benefits
 
-- **Local**: http://localhost:3000
-- **Production**: http://your-server-ip
+- **Privacy**: Your files never leave your infrastructure
+- **Cost-effective**: No per-user or storage fees
+- **Customizable**: Modify the platform to fit your needs
+- **Reliable**: No dependence on external services
+- **Scalable**: Grows with your storage requirements
 
-## 📦 Deployment Methods
+## Architecture
 
-1. **GitHub Container Registry** (Recommended)
-   - Push code → GitHub Actions builds images → Deploy with `deploy-github-registry.sh`
+Built with modern, reliable technologies:
 
-2. **Local Build**  
-   - Build and deploy locally with `local-build-deploy.sh`
+- Vue.js frontend for a responsive user experience
+- Go backend for high performance and reliability
+- PostgreSQL for robust data management
+- Docker for easy deployment and scaling
 
-## 🛠️ Tech Stack
+## Deployment Options
 
-- **Frontend**: Vue.js 3 + TypeScript + Vite
-- **Backend**: Go + Gin Framework  
-- **Database**: PostgreSQL
-- **Deployment**: Docker + GitHub Container Registry
+**Development**: Use `docker-compose.yml` for local testing
+
+**Production**: Use `docker-compose.github.yml` with the deployment script
+
+**Advanced**: Customize the Docker configurations for your specific needs
+
+## Support
+
+This is an open-source project. Feel free to contribute improvements or report issues.
+
+## License
+
+Licensed under the terms included in the LICENSE file.
