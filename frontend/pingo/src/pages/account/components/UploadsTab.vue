@@ -524,7 +524,7 @@ const openFile = (upload: any) => {
 
 const downloadSingleFile = async (upload: any) => {
   try {
-    const response = await fetch(`/api/download/${upload.upload_id}`, {
+    const response = await fetch(getApiUrl(`/download/${upload.upload_id}`), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

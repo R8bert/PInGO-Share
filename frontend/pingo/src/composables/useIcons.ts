@@ -1,14 +1,14 @@
 import { computed } from 'vue'
 
-// Import SVG icons using Vite's asset handling
-import filesPdfIcon from '@/assets/svg/icons/files_pdf.svg'
-import wordDocIcon from '@/assets/svg/icons/word_docx_doc.svg'
-import pptFileIcon from '@/assets/svg/icons/ppt_pptx_file.svg'
-import filesArchiveIcon from '@/assets/svg/icons/files_archive.svg'
-import filesUploadedIcon from '@/assets/svg/icons/files_uploaded.svg'
-import filesUploaded2Icon from '@/assets/svg/icons/files_uploaded2.svg'
-import totalFilesIcon from '@/assets/svg/icons/total_files_icon.svg'
-import unknownFileIcon from '@/assets/svg/icons/unknown_file_formats.svg'
+// Import SVG icons as URLs using Vite's asset handling
+import filesPdfIcon from '@/assets/svg/icons/files_pdf.svg?url'
+import wordDocIcon from '@/assets/svg/icons/word_docx_doc.svg?url'
+import pptFileIcon from '@/assets/svg/icons/ppt_pptx_file.svg?url'
+import filesArchiveIcon from '@/assets/svg/icons/files_archive.svg?url'
+import filesUploadedIcon from '@/assets/svg/icons/files_uploaded.svg?url'
+import filesUploaded2Icon from '@/assets/svg/icons/files_uploaded2.svg?url'
+import totalFilesIcon from '@/assets/svg/icons/total_files_icon.svg?url'
+import unknownFileIcon from '@/assets/svg/icons/unknown_file_formats.svg?url'
 
 // Define file type to icon mapping using imported assets
 const FILE_TYPE_ICONS = {

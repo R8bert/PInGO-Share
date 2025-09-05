@@ -12,10 +12,11 @@ export default defineConfig({
   plugins: [vue(), VueDevTools(), tailwindcss()],
     resolve: {
         alias: {
-        '@': path.resolve(__dirname, '../src'),
-        'images': path.resolve(__dirname, '/src/assets/images'),
+        '@': path.resolve(__dirname, './src'),
+        'images': path.resolve(__dirname, './src/assets/images'),
         },
     },
+    assetsInclude: ['**/*.svg'],
     server: {
         proxy: {
             '/api': {

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>PinGO API Test</h1>
+    
+    <div>
+        <h2>Test Settings API</h2>
+        <button onclick="testSettings()">Test /settings</button>
+        <pre id="settings-result"></pre>
+    </div>
+    
+    <div>
+        <h2>Test Avatar API</h2>
+        <input type="file" id="avatar-file" accept="image/*">
+        <button onclick="testAvatar()">Test /avatar (will fail without auth)</button>
+        <pre id="avatar-result"></pre>
+    </div>
+    
+    <div>
+        <h2>URL Generation Test</h2>
+        <button onclick="testUrls()">Test URL Generation</button>
+        <pre id="url-result"></pre>
+    </div>
+
+    <script>
+        // Replicate the getApiUrl function
+        const getApiBaseUrl = () => {
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                return '/api'
+            }
+            return 'http://localhost:8080'
+        }
+
+        const getApiUrl = (path = '') => {
+            const cleanPath = path.startsWith('/') ? path.slice(1) : path
+            const baseUrl = getApiBaseUrl()
+            return `${baseUrl}/${cleanPath}`
+        }
+
+        async function testSettings() {
+            try {
+                const url = getApiUrl('/settings')
+                console.log('Testing URL:', url)
+                const response = await fetch(url)
+                const data = await response.json()
+                document.getElementById('settings-result').textContent = JSON.stringify(data, null, 2)
+            } catch (error) {
+                document.getElementById('settings-result').textContent = 'Error: ' + error.message
+            }
+        }
+
+        async function testAvatar() {
+            const fileInput = document.getElementById('avatar-file')
+            if (!fileInput.files[0]) {
+                alert('Please select a file first')
+                return
+            }
+
+            try {
+                const url = getApiUrl('/avatar')
+                console.log('Testing URL:', url)
+                const formData = new FormData()
+                formData.append('avatar', fileInput.files[0])
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                })
+                const data = await response.json()
+                document.getElementById('avatar-result').textContent = JSON.stringify(data, null, 2)
+            } catch (error) {
+                document.getElementById('avatar-result').textContent = 'Error: ' + error.message
+            }
+        }
+
+        function testUrls() {
+            const tests = [
+                '/avatar',
+                '/settings', 
+                '/uploads/123/expiration',
+                '/reverse-tokens'
+            ]
+            
+            const results = tests.map(path => ({
+                input: path,
+                output: getApiUrl(path),
+                hostname: window.location.hostname,
+                baseUrl: getApiBaseUrl()
+            }))
+            
+            document.getElementById('url-result').textContent = JSON.stringify(results, null, 2)
+        }
+    </script>
+</body>
+</html>
