@@ -749,27 +749,44 @@ const toggleUserBlock = async (userId: number, isBlocked: boolean) => {
 // Change upload expiration
 const changeExpiration = async (uploadId: string, validity: string) => {
   try {
-    const response = await fetch(getApiUrl(`/uploads/${uploadId}/expiration`), {
+    const url = getApiUrl(`/uploads/${uploadId}/expiration`)
+    const token = localStorage.getItem('auth_token')
+    
+    console.log('=== EXPIRATION UPDATE DEBUG ===')
+    console.log('Update URL:', url)
+    console.log('Upload ID:', uploadId)
+    console.log('Validity:', validity)
+    console.log('Has token:', !!token)
+    
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+        'Authorization': `Bearer ${token || ''}`
       },
       body: JSON.stringify({
         validity
       })
     })
 
+    console.log('Expiration response status:', response.status)
+
     if (response.ok) {
+      console.log('Expiration update successful')
       // Refresh uploads to get updated expiration dates
       await fetchUploads()
       // Close dropdown
       showExpirationDropdown.value[uploadId] = false
     } else {
-      console.error('Failed to update expiration')
+      const errorText = await response.text()
+      console.error('Failed to update expiration - Status:', response.status)
+      console.error('Failed to update expiration - Response:', errorText)
+      alert('Failed to update expiration date')
     }
   } catch (error) {
     console.error('Error updating expiration:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    alert(`Failed to update expiration date: ${errorMessage}`)
   }
 }
 
@@ -929,29 +946,56 @@ const handleAvatarUpload = async (event: Event) => {
   formData.append('avatar', file)
 
   try {
-    const response = await fetch(getApiUrl('/avatar'), {
+    const url = getApiUrl('/avatar')
+    const token = localStorage.getItem('auth_token')
+    
+    console.log('=== AVATAR UPLOAD DEBUG ===')
+    console.log('Upload URL:', url)
+    console.log('Has token:', !!token)
+    console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'none')
+    console.log('File type:', file.type)
+    console.log('File size:', file.size)
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+        'Authorization': `Bearer ${token || ''}`
       },
       body: formData
     })
 
+    console.log('Response status:', response.status)
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+
     if (response.ok) {
       const result = await response.json()
+      console.log('Upload successful:', result)
       // Update user avatar
       if (user.value) {
         user.value.avatar = result.avatar
       }
       // Reset input
       target.value = ''
+      alert('Avatar uploaded successfully!')
     } else {
-      const error = await response.json()
-      alert(error.error || 'Failed to upload avatar')
+      const errorText = await response.text()
+      console.error('Upload failed - Status:', response.status)
+      console.error('Upload failed - Response:', errorText)
+      
+      let errorMessage = 'Failed to upload avatar'
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorMessage = errorJson.error || errorMessage
+      } catch (e) {
+        errorMessage = errorText || errorMessage
+      }
+      
+      alert(`Failed to save avatar: ${errorMessage}`)
     }
   } catch (error) {
     console.error('Error uploading avatar:', error)
-    alert('Failed to upload avatar')
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    alert(`Upload failed. Please try again. Error: ${errorMessage}`)
   }
 }
 

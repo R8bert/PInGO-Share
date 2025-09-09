@@ -1,119 +1,109 @@
 import { computed } from 'vue'
 
-// Import SVG icons as URLs using Vite's asset handling
-import filesPdfIcon from '@/assets/svg/icons/files_pdf.svg?url'
-import wordDocIcon from '@/assets/svg/icons/word_docx_doc.svg?url'
-import pptFileIcon from '@/assets/svg/icons/ppt_pptx_file.svg?url'
-import filesArchiveIcon from '@/assets/svg/icons/files_archive.svg?url'
-import filesUploadedIcon from '@/assets/svg/icons/files_uploaded.svg?url'
-import filesUploaded2Icon from '@/assets/svg/icons/files_uploaded2.svg?url'
-import totalFilesIcon from '@/assets/svg/icons/total_files_icon.svg?url'
-import unknownFileIcon from '@/assets/svg/icons/unknown_file_formats.svg?url'
-
-// Define file type to icon mapping using imported assets
+// Define file type to icon mapping
 const FILE_TYPE_ICONS = {
   // Document files
-  pdf: filesPdfIcon,
-  doc: wordDocIcon,
-  docx: wordDocIcon,
-  ppt: pptFileIcon,
-  pptx: pptFileIcon,
+  pdf: '/src/assets/svg/icons/files_pdf.svg',
+  doc: '/src/assets/svg/icons/word_docx_doc.svg',
+  docx: '/src/assets/svg/icons/word_docx_doc.svg',
+  ppt: '/src/assets/svg/icons/ppt_pptx_file.svg',
+  pptx: '/src/assets/svg/icons/ppt_pptx_file.svg',
   
   // Image files
-  jpg: unknownFileIcon,
-  jpeg: unknownFileIcon,
-  png: unknownFileIcon,
-  gif: unknownFileIcon,
-  svg: unknownFileIcon,
-  webp: unknownFileIcon,
+  jpg: '/src/assets/svg/icons/files_image.svg',
+  jpeg: '/src/assets/svg/icons/files_image.svg',
+  png: '/src/assets/svg/icons/files_image.svg',
+  gif: '/src/assets/svg/icons/files_image.svg',
+  svg: '/src/assets/svg/icons/files_image.svg',
+  webp: '/src/assets/svg/icons/files_image.svg',
   
   // Video files
-  mp4: unknownFileIcon,
-  mov: unknownFileIcon,
-  avi: unknownFileIcon,
-  mkv: unknownFileIcon,
-  wmv: unknownFileIcon,
-  flv: unknownFileIcon,
-  webm: unknownFileIcon,
+  mp4: '/src/assets/svg/icons/files_video.svg',
+  mov: '/src/assets/svg/icons/files_video.svg',
+  avi: '/src/assets/svg/icons/files_video.svg',
+  mkv: '/src/assets/svg/icons/files_video.svg',
+  wmv: '/src/assets/svg/icons/files_video.svg',
+  flv: '/src/assets/svg/icons/files_video.svg',
+  webm: '/src/assets/svg/icons/files_video.svg',
   
   // Audio files
-  mp3: unknownFileIcon,
-  wav: unknownFileIcon,
-  flac: unknownFileIcon,
-  aac: unknownFileIcon,
-  ogg: unknownFileIcon,
+  mp3: '/src/assets/svg/icons/files_audio.svg',
+  wav: '/src/assets/svg/icons/files_audio.svg',
+  flac: '/src/assets/svg/icons/files_audio.svg',
+  aac: '/src/assets/svg/icons/files_audio.svg',
+  ogg: '/src/assets/svg/icons/files_audio.svg',
   
   // Archive files
-  zip: filesArchiveIcon,
-  rar: filesArchiveIcon,
-  '7z': filesArchiveIcon,
-  tar: filesArchiveIcon,
-  gz: filesArchiveIcon,
+  zip: '/src/assets/svg/icons/files_archive.svg',
+  rar: '/src/assets/svg/icons/files_archive.svg',
+  '7z': '/src/assets/svg/icons/files_archive.svg',
+  tar: '/src/assets/svg/icons/files_archive.svg',
+  gz: '/src/assets/svg/icons/files_archive.svg',
   
   // Text files
-  txt: unknownFileIcon,
-  md: unknownFileIcon,
-  rtf: unknownFileIcon,
+  txt: '/src/assets/svg/icons/files_text.svg',
+  md: '/src/assets/svg/icons/files_text.svg',
+  rtf: '/src/assets/svg/icons/files_text.svg',
   
   // Spreadsheet files
-  xls: unknownFileIcon,
-  xlsx: unknownFileIcon,
-  csv: unknownFileIcon,
+  xls: '/src/assets/svg/icons/files_excel.svg',
+  xlsx: '/src/assets/svg/icons/files_excel.svg',
+  csv: '/src/assets/svg/icons/files_excel.svg',
   
   // Code files
-  js: unknownFileIcon,
-  ts: unknownFileIcon,
-  html: unknownFileIcon,
-  css: unknownFileIcon,
-  json: unknownFileIcon,
-  xml: unknownFileIcon,
-  vue: unknownFileIcon,
-  py: unknownFileIcon,
-  java: unknownFileIcon,
-  cpp: unknownFileIcon,
-  c: unknownFileIcon,
-  php: unknownFileIcon,
-  rb: unknownFileIcon,
-  go: unknownFileIcon,
+  js: '/src/assets/svg/icons/files_code.svg',
+  ts: '/src/assets/svg/icons/files_code.svg',
+  html: '/src/assets/svg/icons/files_code.svg',
+  css: '/src/assets/svg/icons/files_code.svg',
+  json: '/src/assets/svg/icons/files_code.svg',
+  xml: '/src/assets/svg/icons/files_code.svg',
+  vue: '/src/assets/svg/icons/files_code.svg',
+  py: '/src/assets/svg/icons/files_code.svg',
+  java: '/src/assets/svg/icons/files_code.svg',
+  cpp: '/src/assets/svg/icons/files_code.svg',
+  c: '/src/assets/svg/icons/files_code.svg',
+  php: '/src/assets/svg/icons/files_code.svg',
+  rb: '/src/assets/svg/icons/files_code.svg',
+  go: '/src/assets/svg/icons/files_code.svg',
 } as const
 
 // System icons for UI components
 const SYSTEM_ICONS = {
   // Upload/file management
-  filesUploaded: filesUploadedIcon,
-  filesUploaded2: filesUploaded2Icon,
-  totalFiles: totalFilesIcon,
-  multipleFiles: unknownFileIcon,
-  fileFolder: unknownFileIcon,
+  filesUploaded: '/src/assets/svg/icons/files_uploaded.svg',
+  filesUploaded2: '/src/assets/svg/icons/files_uploaded2.svg',
+  totalFiles: '/src/assets/svg/icons/total_files_icon.svg',
+  multipleFiles: '/src/assets/svg/icons/default_multiple_files.svg',
+  fileFolder: '/src/assets/svg/icons/file-folder.png',
   
   // File type icons (for missing SVGs, we'll fall back to default)
-  filesImage: unknownFileIcon,
-  filesAudio: unknownFileIcon,
-  filesArchive: filesArchiveIcon,
-  filesText: unknownFileIcon,
-  filesExcel: unknownFileIcon,
-  filesCode: unknownFileIcon,
+  filesImage: '/src/assets/svg/icons/files_image.svg',
+  filesAudio: '/src/assets/svg/icons/files_audio.svg',
+  filesArchive: '/src/assets/svg/icons/files_archive.svg',
+  filesText: '/src/assets/svg/icons/files_text.svg',
+  filesExcel: '/src/assets/svg/icons/files_excel.svg',
+  filesCode: '/src/assets/svg/icons/files_code.svg',
   
   // File operations
-  download: unknownFileIcon,
-  upload: unknownFileIcon,
-  share: unknownFileIcon,
-  copy: unknownFileIcon,
-  delete: unknownFileIcon,
+  download: '/src/assets/svg/icons/download.svg',
+  upload: '/src/assets/svg/icons/upload.svg',
+  share: '/src/assets/svg/icons/share.svg',
+  copy: '/src/assets/svg/icons/copy.svg',
+  delete: '/src/assets/svg/icons/delete.svg',
   
   // Status icons
-  success: unknownFileIcon,
-  error: unknownFileIcon,
-  warning: unknownFileIcon,
-  info: unknownFileIcon,
+  success: '/src/assets/svg/icons/success.svg',
+  error: '/src/assets/svg/icons/error.svg',
+  warning: '/src/assets/svg/icons/warning.svg',
+  info: '/src/assets/svg/icons/info.svg',
   
   // Navigation
-  home: unknownFileIcon,
-  settings: unknownFileIcon,
-  account: unknownFileIcon,
+  home: '/src/assets/svg/icons/home.svg',
+  settings: '/src/assets/svg/icons/settings.svg',
+  account: '/src/assets/svg/icons/account.svg',
   
   // Default fallback
-  default: unknownFileIcon,
+  default: '/src/assets/svg/icons/files_no_icon.svg',
 } as const
 
 export type FileExtension = keyof typeof FILE_TYPE_ICONS
