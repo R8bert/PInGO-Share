@@ -26,7 +26,7 @@
   "devDependencies": {
     "@types/colorthief": "^2.6.0",
     "@types/node": "^24.1.0",
-    "@types/three": "^0.178.0",
+    "@types/three": "^0.178.1",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.21",
