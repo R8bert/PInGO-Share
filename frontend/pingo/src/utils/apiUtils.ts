@@ -2,7 +2,10 @@
 export const getApiBaseUrl = () => {
   // In production (when served from same domain), use relative paths
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return '/api'
+    console.log("The hostname is www." + window.location.hostname)
+    // return error code in console and return root path
+    console.error("API base URL is not set for production")
+    return '/'
   }
   // In development, use localhost
   return 'http://localhost:8080'

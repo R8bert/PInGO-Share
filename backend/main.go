@@ -805,12 +805,6 @@ func main() {
 			return
 		}
 
-		// Validate file size (max 5MB)
-		// if header.Size > 5*1024*1024 {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "File size too large. Maximum 5MB allowed"})
-		// 	return
-		// }
-
 		// Create avatars directory if it doesn't exist
 		avatarsDir := "/avatars"
 		if _, err := os.Stat(avatarsDir); os.IsNotExist(err) {
@@ -846,8 +840,8 @@ func main() {
 
 		// Create new filename: username + checksum + extension
 		filename := user.Username + "$" + hashString + ext
-		avatarPath := "/avatars/" + filename
-		fullPath := "/avatars/" + filename
+		avatarPath := "avatars/" + filename
+		fullPath := "avatars/" + filename
 
 		// Delete old avatar if it exists and is different from new one
 		if user.Avatar != "" && user.Avatar != avatarPath {
