@@ -1200,6 +1200,7 @@ import { useAuth } from "../../composables/useAuth";
 import { useTheme } from "../../composables/useTheme";
 import { useUIColors } from "../../composables/useUIColors";
 import { useIcons } from "../../composables/useIcons";
+import { getApiUrl } from "../../utils/apiUtils";
 import axios from "axios";
 import {
     CloudArrowUpIcon,
@@ -1469,7 +1470,7 @@ const uploadFiles = async () => {
         formData.append("validity", selectedValidity.value);
 
         const response = await axios.post(
-            "http://localhost:8080/upload",
+            getApiUrl("/upload"),
             formData,
             {
                 headers: {
