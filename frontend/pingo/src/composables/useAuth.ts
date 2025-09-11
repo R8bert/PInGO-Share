@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { getApiUrl } from '../utils/apiUtils'
 
 interface User {
   id: number
@@ -40,17 +41,7 @@ const adminUsers = ref<AdminUser[]>([])
 const isInitializing = ref(false)
 const initPromise = ref<Promise<boolean> | null>(null)
 
-// Setup axios defaults - automatically detect API base URL
-const getApiBaseUrl = () => {
-  // In production (when served from same domain), use relative paths
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return '/api'
-  }
-  // In development, use localhost
-  return 'http://localhost:8080'
-}
-
-axios.defaults.baseURL = getApiBaseUrl()
+// Setup axios defaults
 axios.defaults.withCredentials = true
 
 // Add request interceptor to include token
@@ -114,7 +105,7 @@ export const useAuth = () => {
   const register = async (username: string, email: string, password: string) => {
     try {
       isLoading.value = true
-      const response = await axios.post('/register', {
+      const response = await axios.post(getApiUrl('/register'), {
         username,
         email,
         password
@@ -136,7 +127,7 @@ export const useAuth = () => {
   const login = async (email: string, password: string) => {
     try {
       isLoading.value = true
-      const response = await axios.post('/login', {
+      const response = await axios.post(getApiUrl('/login'), {
         email,
         password
       })
@@ -156,7 +147,7 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      await axios.post('/logout')
+      await axios.post(getApiUrl('/logout'))
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
@@ -179,7 +170,7 @@ export const useAuth = () => {
     initPromise.value = (async () => {
       try {
         isInitializing.value = true
-        const response = await axios.get('/me')
+        const response = await axios.get(getApiUrl('/me'))
         user.value = response.data.user
         return true
       } catch (error: any) {
@@ -199,7 +190,7 @@ export const useAuth = () => {
 
   const fetchUploads = async () => {
     try {
-      const response = await axios.get('/uploads')
+      const response = await axios.get(getApiUrl('/uploads'))
       uploads.value = response.data.uploads || []
       return { success: true }
     } catch (error: any) {
@@ -211,7 +202,7 @@ export const useAuth = () => {
   const deleteUpload = async (uploadId: string) => {
     try {
       console.log('Deleting upload:', uploadId)
-      await axios.delete(`/uploads/${uploadId}`)
+      await axios.delete(getApiUrl(`/uploads/${uploadId}`))
       console.log('Upload deleted successfully, refreshing uploads list')
       
       // Refresh the entire uploads list to get updated data including deletion_reason
@@ -227,7 +218,7 @@ export const useAuth = () => {
   const saveAdminSettings = async (formData: FormData) => {
     try {
       isLoading.value = true
-      const response = await axios.post('/admin/settings', formData, {
+      const response = await axios.post(getApiUrl('/admin/settings'), formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -242,7 +233,7 @@ export const useAuth = () => {
 
   const getSettings = async () => {
     try {
-      const response = await axios.get('/settings')
+      const response = await axios.get(getApiUrl('/settings'))
       return response.data
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Failed to fetch settings')
@@ -252,7 +243,7 @@ export const useAuth = () => {
   const fetchAdminUsers = async () => {
     try {
       isLoading.value = true
-      const response = await axios.get('/admin/users')
+      const response = await axios.get(getApiUrl('/admin/users'))
       adminUsers.value = response.data || []
       return { success: true }
     } catch (error: any) {
@@ -265,7 +256,7 @@ export const useAuth = () => {
 
   const toggleUserBlock = async (userId: number, isBlocked: boolean) => {
     try {
-      await axios.post(`/admin/users/${userId}/block`, { blocked: isBlocked })
+      await axios.post(getApiUrl(`/admin/users/${userId}/block`), { blocked: isBlocked })
       // Update local state
       const userIndex = adminUsers.value.findIndex(u => u.id === userId)
       if (userIndex !== -1) {

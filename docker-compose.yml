@@ -41,11 +41,11 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,https://pingo.r8bert-debian.xyz}
       - GIN_MODE=release
     volumes:
-      - ./uploads:/uploads
-      - ./backend/settings.json:/settings.json:ro
-      - ./backend/avatars:/avatars
-      - ./backend/backgrounds:/backgrounds
-      - ./backend/logos:/logos
+      - ./uploads:/app/uploads
+      - ./backend/settings.json:/app/settings.json:ro
+      - ./backend/avatars:/app/avatars
+      - ./backend/backgrounds:/app/backgrounds
+      - ./backend/logos:/app/logos
     depends_on:
       postgres_pingo:
         condition: service_healthy

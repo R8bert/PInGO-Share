@@ -538,9 +538,13 @@ func calculateExpiryTime(validity string) *time.Time {
 	var expiry time.Time
 
 	switch validity {
-	case "7days":
+	case "1h":
+		expiry = now.Add(1 * time.Hour)
+	case "1d", "7days":
 		expiry = now.Add(7 * 24 * time.Hour)
-	case "1month":
+	case "7d":
+		expiry = now.Add(7 * 24 * time.Hour)
+	case "1month", "30d":
 		expiry = now.AddDate(0, 1, 0)
 	case "6months":
 		expiry = now.AddDate(0, 6, 0)
@@ -557,7 +561,11 @@ func calculateExpiryTime(validity string) *time.Time {
 
 func isValidityAllowed(requestedValidity, maxValidity string) bool {
 	validityOrder := map[string]int{
+		"1h":      0,
+		"1d":      1,
+		"7d":      1,
 		"7days":   1,
+		"30d":     2,
 		"1month":  2,
 		"6months": 3,
 		"1year":   4,
@@ -615,7 +623,7 @@ func main() {
 
 	// Enable CORS with environment-based configuration
 	config := cors.DefaultConfig()
-	allowedOrigins := getEnvOrDefault("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:5175,r8bert-debian.xyz")
+	allowedOrigins := getEnvOrDefault("ALLOWED_ORIGINS", "*")
 	config.AllowOrigins = strings.Split(allowedOrigins, ",")
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
@@ -806,7 +814,7 @@ func main() {
 		}
 
 		// Create avatars directory if it doesn't exist
-		avatarsDir := "/avatars"
+		avatarsDir := "./avatars"
 		if _, err := os.Stat(avatarsDir); os.IsNotExist(err) {
 			os.MkdirAll(avatarsDir, 0755)
 		}
@@ -841,7 +849,7 @@ func main() {
 		// Create new filename: username + checksum + extension
 		filename := user.Username + "$" + hashString + ext
 		avatarPath := "avatars/" + filename
-		fullPath := "avatars/" + filename
+		fullPath := "./avatars/" + filename
 
 		// Delete old avatar if it exists and is different from new one
 		if user.Avatar != "" && user.Avatar != avatarPath {
@@ -956,7 +964,7 @@ func main() {
 			}
 
 			// Ensure uploads directory exists and is secure
-			uploadsDir := "/uploads"
+			uploadsDir := "./uploads"
 			if err := os.MkdirAll(uploadsDir, 0755); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create uploads directory"})
 				return
@@ -1119,7 +1127,7 @@ func main() {
 		for _, filename := range files {
 			// Sanitize filename to prevent directory traversal
 			sanitizedFilename := sanitizeFilename(filename)
-			filePath := filepath.Join("/uploads", upload.UploadID+"_"+sanitizedFilename)
+			filePath := filepath.Join("./uploads", upload.UploadID+"_"+sanitizedFilename)
 
 			if err := os.Remove(filePath); err != nil {
 				// Log the error but don't fail the entire operation
@@ -1376,7 +1384,7 @@ func main() {
 			}
 			defer file.Close()
 
-			outPath := "/uploads/" + id + "_" + fileHeader.Filename
+			outPath := "./uploads/" + id + "_" + fileHeader.Filename
 			out, err := os.Create(outPath)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save file"})
@@ -1478,7 +1486,7 @@ func main() {
 			return
 		}
 
-		files, _ := os.ReadDir("/uploads")
+		files, _ := os.ReadDir("./uploads")
 
 		// Find all files with this ID
 		var matchingFiles []string
@@ -1495,7 +1503,7 @@ func main() {
 
 		// If only one file, serve it directly
 		if len(matchingFiles) == 1 {
-			c.File("/uploads/" + matchingFiles[0])
+			c.File("./uploads/" + matchingFiles[0])
 			return
 		}
 
@@ -1510,7 +1518,7 @@ func main() {
 			// Extract original filename (remove ID prefix)
 			originalName := strings.TrimPrefix(fileName, id+"_")
 
-			file, err := os.Open("/uploads/" + fileName)
+			file, err := os.Open("./uploads/" + fileName)
 			if err != nil {
 				continue
 			}
@@ -1569,7 +1577,7 @@ func main() {
 
 		// Construct the actual file path
 		actualFilename := id + "_" + filename
-		filePath := "/uploads/" + actualFilename
+		filePath := "./uploads/" + actualFilename
 
 		// Check if the file exists
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -1636,7 +1644,7 @@ func main() {
 			uploaderInfo.ExpiresAt = nil
 		}
 
-		files, _ := os.ReadDir("/uploads") // Find all files with this ID
+		files, _ := os.ReadDir("./uploads") // Find all files with this ID
 		var fileInfos []map[string]interface{}
 		for _, f := range files {
 			if strings.HasPrefix(f.Name(), id+"_") {
@@ -1741,7 +1749,7 @@ func main() {
 				}
 			}
 
-			logoDir := "/logos"
+			logoDir := "./logos"
 			if err := os.MkdirAll(logoDir, 0755); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create logo directory"})
 				return
@@ -1795,7 +1803,7 @@ func main() {
 				}
 			}
 
-			backgroundDir := "/backgrounds"
+			backgroundDir := "./backgrounds"
 			if err := os.MkdirAll(backgroundDir, 0755); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create background directory"})
 				return
@@ -2220,7 +2228,7 @@ func main() {
 					json.Unmarshal([]byte(upload.Files), &files)
 
 					for _, filename := range files {
-						filePath := "/uploads/" + upload.UploadID + "_" + filename
+						filePath := "./uploads/" + upload.UploadID + "_" + filename
 						if err := os.Remove(filePath); err != nil {
 							fmt.Printf("Failed to delete file %s: %v\n", filePath, err)
 						} else {
@@ -2250,20 +2258,21 @@ func main() {
 
 	// Serve static files for logos, backgrounds, and avatars only
 	// NOTE: uploads directory is NOT served statically for security - access is controlled through /download/:id endpoint
-	router.Static("/logos", "/logos")
-	router.Static("/backgrounds", "/backgrounds")
-	router.Static("/avatars", "/avatars")
+	router.Static("/logos", "./logos")
+	router.Static("/backgrounds", "./backgrounds")
+	router.Static("/avatars", "./avatars")
 
 	// Ensure directories exist
-	os.MkdirAll("/uploads", os.ModePerm)
-	os.MkdirAll("/logos", os.ModePerm)
-	os.MkdirAll("/backgrounds", os.ModePerm)
-	os.MkdirAll("/avatars", os.ModePerm)
+	os.MkdirAll("./uploads", os.ModePerm)
+	os.MkdirAll("./logos", os.ModePerm)
+	os.MkdirAll("./backgrounds", os.ModePerm)
+	os.MkdirAll("./avatars", os.ModePerm)
 
 	// Start server on configurable port
 	port := getEnvOrDefault("SERVER_PORT", "8080")
 	log.Printf("Starting server on port %s", port)
-	router.Run(":" + port)
+	router.Run("0.0.0.0:" + port)
+
 }
 
 // Helper function to parse size (e.g., "10MB", "500KB", "1GB")

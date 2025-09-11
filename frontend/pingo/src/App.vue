@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen transition-colors duration-300">
-    <Navbar />
+    <LiquidGlassNavbar />
     
     <main class="relative">
       <router-view />
@@ -12,7 +12,7 @@
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useAuth } from './composables/useAuth'
 import { useTheme } from './composables/useTheme'
-import Navbar from './components/shared/Navbar.vue'
+import LiquidGlassNavbar from './components/shared/LiquidGlassNavbar.vue'
 
 const { fetchCurrentUser } = useAuth()
 const { } = useTheme() // Initialize theme system

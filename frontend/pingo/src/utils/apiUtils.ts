@@ -1,9 +1,9 @@
 // Get the API base URL
 export const getApiBaseUrl = () => {
-  // In production (when served from same domain), API calls should go to /api/
+  // In production (when served from same domain), API calls should go directly to the endpoint
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     console.log("Production mode detected for hostname:", window.location.hostname)
-    return '/api'
+    return ''
   }
   // In development, use localhost
   return 'http://localhost:8080'
@@ -14,8 +14,18 @@ export const getApiUrl = (path: string = '') => {
   // If path starts with /, remove it to avoid double slashes
   const cleanPath = path.startsWith('/') ? path.slice(1) : path
   
+  // In production, prepend /api to the path
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    const fullUrl = `/api/${cleanPath}`
+    console.log(`API URL constructed: ${fullUrl}`)
+    return fullUrl
+  }
+  
+  // In development, use full base URL
   const baseUrl = getApiBaseUrl()
-  return `${baseUrl}/${cleanPath}`
+  const fullUrl = `${baseUrl}/${cleanPath}`
+  console.log(`API URL constructed: ${fullUrl}`)
+  return fullUrl
 }
 
 // Get full URL for assets (avatars, files, etc.)
@@ -23,6 +33,12 @@ export const getAssetUrl = (path: string) => {
   // If path starts with /, remove it to avoid double slashes
   const cleanPath = path.startsWith('/') ? path.slice(1) : path
   
+  // In production, assets also go through /api proxy
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return `/api/${cleanPath}`
+  }
+  
+  // In development, use full base URL
   const baseUrl = getApiBaseUrl()
   return `${baseUrl}/${cleanPath}`
 }
