@@ -5,14 +5,7 @@
          No Microsoft branding - Custom PInGO file transfer system
          =================================================================== -->
     
-    <div class="xp-desktop">
-        <!-- XP Bliss Background with animated clouds -->
-        <div class="xp-clouds">
-            <div class="cloud cloud-1" ref="cloud1"></div>
-            <div class="cloud cloud-2" ref="cloud2"></div>
-            <div class="cloud cloud-3" ref="cloud3"></div>
-        </div>
-
+    <div class="xp-desktop" :class="{ 'theme-dark': isDark }" :style="desktopBackgroundStyle">
         <!-- Desktop Icons Container - Multiple icons in grid layout -->
         <div class="desktop-icons-container">
             <!-- My Computer Icon -->
@@ -570,172 +563,98 @@
             </div>
         </div>
 
-        <!-- XP Taskbar -->
-        <div class="xp-taskbar">
-            <!-- Start Button -->
-            <button class="start-button" @click="toggleStartMenu">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="#58b158"/>
-                    <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>start</span>
-            </button>
-
-            <div class="taskbar-divider"></div>
-
-            <!-- Taskbar Items (Open Windows) -->
-            <div class="taskbar-items">
-                <button 
-                    v-if="windowVisible" 
-                    class="taskbar-item"
-                    :class="{ active: !startMenuOpen }"
-                    @click="focusWindow"
-                >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
-                        <rect x="2" y="4" width="12" height="10" rx="1"/>
-                    </svg>
-                    <span>PInGO File Upload</span>
-                </button>
-            </div>
-
-            <!-- System Tray -->
-            <div class="system-tray">
-                <!-- Volume Icon -->
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="white" class="tray-icon" title="Volume">
-                    <path d="M2 6H5L9 2V14L5 10H2V6Z"/>
-                    <path d="M11 4C12 5 13 6 13 8C13 10 12 11 11 12" stroke="white" fill="none"/>
-                </svg>
-                
-                <!-- Network Icon -->
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="white" class="tray-icon" title="Network">
-                    <rect x="2" y="10" width="4" height="4"/>
-                    <rect x="6" y="7" width="4" height="7"/>
-                    <rect x="10" y="4" width="4" height="10"/>
-                </svg>
-                
-                <!-- Clock -->
-                <span class="clock">{{ currentTime }}</span>
-            </div>
-        </div>
-
         <!-- Start Menu -->
         <div v-if="startMenuOpen" class="start-menu" ref="startMenu" @click.stop>
+            <!-- Blue Sidebar with Windows Logo -->
             <div class="start-menu-sidebar">
+                <div class="sidebar-logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <!-- Windows XP Logo -->
+                        <path d="M2 2 L14 2 L14 14 L2 14 Z" fill="#f25022"/>
+                        <path d="M16 2 L30 2 L30 14 L16 14 Z" fill="#7fba00"/>
+                        <path d="M2 16 L14 16 L14 30 L2 30 Z" fill="#00a4ef"/>
+                        <path d="M16 16 L30 16 L30 30 L16 30 Z" fill="#ffb900"/>
+                    </svg>
+                </div>
                 <span class="sidebar-text">PInGO</span>
             </div>
             
             <div class="start-menu-content">
-                <!-- User Section -->
-                <div class="start-menu-user">
-                    <div class="user-avatar">
-                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                            <circle cx="24" cy="24" r="22" fill="#4A90E2"/>
-                            <circle cx="24" cy="18" r="8" fill="white"/>
-                            <path d="M10 38C10 30 16 26 24 26C32 26 38 30 38 38" fill="white"/>
-                        </svg>
+                <!-- User Section - White background top -->
+                <div class="start-menu-white-section">
+                    <div class="start-menu-user">
+                        <div class="user-avatar">
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                <circle cx="24" cy="24" r="22" fill="#4A90E2"/>
+                                <circle cx="24" cy="18" r="8" fill="white"/>
+                                <path d="M10 38C10 30 16 26 24 26C32 26 38 30 38 38" fill="white"/>
+                            </svg>
+                        </div>
+                        <span class="username">{{ user?.username || 'User' }}</span>
                     </div>
-                    <span class="username">User</span>
+
+                    <div class="start-menu-separator"></div>
+
+                    <!-- Pinned Programs - Your Pages -->
+                    <div class="start-menu-programs">
+                        <button class="start-menu-item pinned" @click="navigateToUpload">
+                            <div class="item-icon">
+                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                                    <rect x="4" y="6" width="24" height="20" rx="2" fill="#3B82F6"/>
+                                    <path d="M16 12L16 20M16 12L13 15M16 12L19 15" stroke="white" stroke-width="2"/>
+                                    <rect x="10" y="20" width="12" height="2" fill="white"/>
+                                </svg>
+                            </div>
+                            <span>Upload Files</span>
+                        </button>
+
+                        <button class="start-menu-item pinned" @click="navigateToAccount">
+                            <div class="item-icon">
+                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                                    <circle cx="16" cy="16" r="14" fill="#8B5CF6"/>
+                                    <circle cx="16" cy="13" r="5" fill="white"/>
+                                    <path d="M6 28C6 22 10 19 16 19C22 19 26 22 26 28" fill="white"/>
+                                </svg>
+                            </div>
+                            <span>My Account</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="start-menu-separator"></div>
-
-                <!-- Frequent Programs -->
-                <div class="start-menu-list">
-                    <button class="start-menu-item" @click="openWindow">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <circle cx="14" cy="14" r="12" fill="#4CAF50"/>
-                            <path d="M14 8L14 18M14 8L11 11M14 8L17 11" stroke="white" stroke-width="2"/>
-                        </svg>
-                        <span>PInGO Upload</span>
-                    </button>
-                    <button class="start-menu-item" @click="openMyDocuments">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <path d="M6 4L4 6V24H24V8L20 4H6Z" fill="#FFD54F"/>
-                            <path d="M20 4V8H24" fill="#FFA726"/>
-                        </svg>
-                        <span>My Documents</span>
-                    </button>
-                    <button class="start-menu-item" @click="openMyComputer">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <rect x="4" y="6" width="20" height="14" rx="1" fill="#4A90E2"/>
-                            <rect x="6" y="8" width="16" height="10" fill="#87CEEB"/>
-                        </svg>
-                        <span>My Computer</span>
-                    </button>
-                    <button class="start-menu-item">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <circle cx="14" cy="14" r="12" fill="#90A4AE"/>
-                            <path d="M6 14C6 10 10 6 14 6C18 6 22 10 22 14C22 18 18 22 14 22C10 22 6 18 6 14Z" stroke="#546E7A" stroke-width="2" fill="none"/>
-                        </svg>
-                        <span>My Network Places</span>
-                    </button>
-                </div>
-
-                <div class="start-menu-separator"></div>
-
-                <!-- All Programs -->
-                <div class="start-menu-list">
-                    <button class="start-menu-item">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <path d="M10 4L8 6V24H20V8L16 4H10Z" fill="#42A5F5"/>
-                            <path d="M8 6L10 4H14L16 6H20V8H8V6Z" fill="#64B5F6"/>
-                        </svg>
+                <!-- Blue background bottom section -->
+                <div class="start-menu-blue-section">
+                    <button class="start-menu-item all-programs">
+                        <div class="item-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M4 2L2 4V18H18V6L16 4H4Z" fill="white"/>
+                                <path d="M2 4L4 2H8L10 4H16V6H2V4Z" fill="#ddd"/>
+                            </svg>
+                        </div>
                         <span>All Programs</span>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" class="arrow-right">
-                            <path d="M4 2L8 6L4 10"/>
+                        <svg width="8" height="12" viewBox="0 0 8 12" fill="white" class="arrow-icon">
+                            <path d="M2 2L6 6L2 10"/>
                         </svg>
                     </button>
-                </div>
 
-                <div class="start-menu-separator"></div>
+                    <div class="start-menu-separator-blue"></div>
 
-                <!-- System Tools -->
-                <div class="start-menu-list">
-                    <button class="start-menu-item" @click="openSettings">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <circle cx="14" cy="14" r="5" fill="#FF9800"/>
-                            <path d="M14 4L15 9L14 11L13 9L14 4Z" fill="#FFB74D"/>
-                            <path d="M14 24L15 19L14 17L13 19L14 24Z" fill="#FFB74D"/>
-                        </svg>
-                        <span>Control Panel</span>
-                    </button>
-                    <button class="start-menu-item" @click="showHelp">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <circle cx="14" cy="14" r="12" fill="#2196F3"/>
-                            <path d="M14 10C12 10 11 11 11 12H13C13 11.5 13.3 11 14 11C14.7 11 15 11.5 15 12C15 13.5 14 13.5 13 15V16H15V15.3C16 14.5 17 13.5 17 12C17 11 16 10 14 10Z" fill="white"/>
-                            <circle cx="14" cy="18" r="1" fill="white"/>
-                        </svg>
-                        <span>Help and Support</span>
-                    </button>
-                    <button class="start-menu-item">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <path d="M8 8L6 10V22H22V12L20 10H8Z" fill="#E91E63"/>
-                            <rect x="10" y="12" width="8" height="8" fill="#F8BBD0"/>
-                        </svg>
-                        <span>Search</span>
-                    </button>
-                    <button class="start-menu-item">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <path d="M6 6L4 8V24H24V10L22 8H6Z" fill="#9C27B0"/>
-                            <rect x="8" y="12" width="12" height="10" fill="#E1BEE7"/>
-                        </svg>
-                        <span>Run...</span>
-                    </button>
-                </div>
-
-                <!-- Log Off / Turn Off -->
-                <div class="start-menu-footer">
-                    <button class="footer-button log-off" @click="logOff">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M8 8C10 8 12 6 12 4C12 2 10 0 8 0C6 0 4 2 4 4C4 6 6 8 8 8Z"/>
-                            <path d="M2 16V12C2 10 4 8 8 8C12 8 14 10 14 12V16H2Z"/>
-                        </svg>
+                    <button class="start-menu-item" @click="logout">
+                        <div class="item-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
+                                <path d="M10 2L12 4H16V6H4V4H8L10 2Z"/>
+                                <rect x="6" y="7" width="8" height="11" rx="1"/>
+                            </svg>
+                        </div>
                         <span>Log Off</span>
                     </button>
-                    <button class="footer-button turn-off" @click="turnOff">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M8 1V7M5 3C3 4 2 6 2 8C2 11 5 14 8 14C11 14 14 11 14 8C14 6 13 4 11 3"/>
-                        </svg>
+
+                    <button class="start-menu-item turn-off">
+                        <div class="item-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="#FF6B6B">
+                                <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                                <path d="M10 3V10" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </div>
                         <span>Turn Off Computer</span>
                     </button>
                 </div>
@@ -743,7 +662,7 @@
         </div>
 
         <!-- Click Outside to Close Start Menu -->
-        <div v-if="startMenuOpen" class="overlay" @click="startMenuOpen = false"></div>
+        <div v-if="startMenuOpen" class="overlay" @click="closeStartMenu"></div>
     </div>
 </template>
 
@@ -759,22 +678,23 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { useSettings } from "../../composables/useSettings";
-import { getApiUrl } from "../../utils/apiUtils";
+import { useTheme } from "../../composables/useTheme";
+import { useStartMenu } from "../../composables/useStartMenu";
+import { getApiUrl, getAssetUrl } from "../../utils/apiUtils";
 import axios from "axios";
 import { animate } from "animejs";
 
 // ============================================================================
 // COMPOSABLES & AUTHENTICATION
 // ============================================================================
-const { isAuthenticated } = useAuth();
+const { isAuthenticated, user, logout } = useAuth();
 const { settings, fetchSettings } = useSettings();
+const { isDark } = useTheme();
+const { startMenuOpen, closeStartMenu } = useStartMenu();
 
 // ============================================================================
 // REFS - DESKTOP ELEMENTS
 // ============================================================================
-const cloud1 = ref<HTMLElement | null>(null);
-const cloud2 = ref<HTMLElement | null>(null);
-const cloud3 = ref<HTMLElement | null>(null);
 
 // Desktop Icon Refs (12 icons)
 const icon1 = ref<HTMLElement | null>(null);
@@ -826,7 +746,6 @@ const windowStyle = ref({
     height: '650px',
     zIndex: 1000
 });
-const startMenuOpen = ref(false);
 const showSidebar = ref(true);
 const currentPath = ref("Desktop/PInGO Upload");
 const selectedIcon = ref<number | null>(null);
@@ -859,16 +778,18 @@ const validityText = computed(() => {
     return map[selectedValidity.value] || '7 days';
 });
 
-// ============================================================================
-// CLOCK - TASKBAR TIME DISPLAY
-// ============================================================================
-const currentTime = ref(new Date().toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: true 
-}));
-
-let clockInterval: number | undefined;
+// Desktop background style - uses settings.backgroundImage from backend
+const desktopBackgroundStyle = computed(() => {
+    if (settings.value?.backgroundImage) {
+        return {
+            backgroundImage: `url(${getAssetUrl(settings.value.backgroundImage)})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+        };
+    }
+    return {};
+});
 
 // ============================================================================
 // FILE OPERATIONS - SELECT, DROP, REMOVE
@@ -1216,14 +1137,30 @@ const viewUploadDetails = () => {
  * Start window dragging
  */
 const startDrag = (event: MouseEvent) => {
+    // Don't drag if clicking on buttons or other controls
+    if ((event.target as HTMLElement).closest('.window-button, .xp-button, button, input, select')) {
+        return;
+    }
+    
     dragging.value = true;
     
     const rect = uploadWindow.value?.getBoundingClientRect();
     if (rect) {
+        // Calculate offset from click position to top-left corner
         dragOffset.value = {
             x: event.clientX - rect.left,
             y: event.clientY - rect.top
         };
+        
+        // Remove transform if window was centered
+        if (windowStyle.value.transform && windowStyle.value.transform.includes('translate')) {
+            windowStyle.value = {
+                ...windowStyle.value,
+                left: `${rect.left}px`,
+                top: `${rect.top}px`,
+                transform: 'none'
+            };
+        }
     }
     
     document.addEventListener('mousemove', handleDrag);
@@ -1236,13 +1173,21 @@ const startDrag = (event: MouseEvent) => {
 const handleDrag = (event: MouseEvent) => {
     if (!dragging.value || !uploadWindow.value) return;
     
+    // Calculate new position based on mouse and offset
     const newX = event.clientX - dragOffset.value.x;
     const newY = event.clientY - dragOffset.value.y;
     
+    // Constrain to viewport (with some margin)
+    const maxX = window.innerWidth - 100; // Keep at least 100px visible
+    const maxY = window.innerHeight - 100;
+    
+    const constrainedX = Math.max(0, Math.min(newX, maxX));
+    const constrainedY = Math.max(0, Math.min(newY, maxY));
+    
     windowStyle.value = {
         ...windowStyle.value,
-        left: `${newX}px`,
-        top: `${newY}px`,
+        left: `${constrainedX}px`,
+        top: `${constrainedY}px`,
         transform: 'none'
     };
 };
@@ -1283,16 +1228,19 @@ const maximizeWindow = () => {
     const isMaximized = windowStyle.value.width === '100%';
     
     if (isMaximized) {
-        // Restore
+        // Restore to original position and size
         windowStyle.value = { ...originalWindowStyle.value };
     } else {
-        // Maximize
+        // Save current state before maximizing
+        originalWindowStyle.value = { ...windowStyle.value };
+        
+        // Maximize - fill entire screen minus navbar (30px at top)
         windowStyle.value = {
-            left: '0',
-            top: '0',
+            left: '0px',
+            top: '0px',
             transform: 'none',
             width: '100%',
-            height: 'calc(100vh - 40px)',
+            height: 'calc(100vh - 30px)',
             zIndex: 1000
         };
     }
@@ -1326,7 +1274,7 @@ const closeWindow = () => {
  */
 const openWindow = () => {
     windowVisible.value = true;
-    startMenuOpen.value = false;
+    closeStartMenu();
     
     nextTick(() => {
         if (uploadWindow.value) {
@@ -1384,30 +1332,6 @@ const selectIcon = (iconNum: number) => {
 
 // ============================================================================
 // START MENU & TASKBAR
-// ============================================================================
-
-/**
- * Toggle Start Menu
- */
-const toggleStartMenu = () => {
-    startMenuOpen.value = !startMenuOpen.value;
-    
-    nextTick(() => {
-        if (startMenu.value) {
-            if (startMenuOpen.value) {
-                animate(startMenu.value, {
-                    opacity: [0, 1],
-                    translateY: [20, 0],
-                    duration: 200,
-                    easing: 'easeOutQuad'
-                });
-            }
-        }
-    });
-};
-
-// ============================================================================
-// TOOLBAR & MENU ACTIONS
 // ============================================================================
 
 /**
@@ -1469,6 +1393,16 @@ const openMyComputer = () => {
     alert('My Computer\n\nThis would open your computer file system.');
 };
 
+const navigateToUpload = () => {
+    closeStartMenu();
+    window.location.href = '/';
+};
+
+const navigateToAccount = () => {
+    closeStartMenu();
+    window.location.href = '/account';
+};
+
 const openMyDocuments = () => {
     alert('My Documents\n\nThis would open your documents folder.');
 };
@@ -1525,38 +1459,6 @@ const animateDesktopIcons = () => {
 };
 
 /**
- * Animate clouds
- */
-const animateClouds = () => {
-    if (cloud1.value) {
-        animate(cloud1.value, {
-            translateX: ['-100%', '100vw'],
-            duration: 180000,
-            loop: true,
-            easing: 'linear'
-        });
-    }
-    
-    if (cloud2.value) {
-        animate(cloud2.value, {
-            translateX: ['-150%', '100vw'],
-            duration: 240000,
-            loop: true,
-            easing: 'linear'
-        });
-    }
-    
-    if (cloud3.value) {
-        animate(cloud3.value, {
-            translateX: ['-200%', '100vw'],
-            duration: 200000,
-            loop: true,
-            easing: 'linear'
-        });
-    }
-};
-
-/**
  * Animate file list items
  */
 const animateFileItems = () => {
@@ -1584,19 +1486,9 @@ onMounted(() => {
     // Fetch settings from backend
     fetchSettings();
     
-    // Start clock
-    clockInterval = window.setInterval(() => {
-        currentTime.value = new Date().toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: true 
-        });
-    }, 1000);
-    
     // Animate elements
     nextTick(() => {
         animateDesktopIcons();
-        animateClouds();
         
         // Animate window on load
         if (uploadWindow.value) {
@@ -1612,8 +1504,8 @@ onMounted(() => {
     // Click outside to close start menu
     document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
-        if (startMenuOpen.value && !target.closest('.start-menu') && !target.closest('.start-button')) {
-            startMenuOpen.value = false;
+        if (startMenuOpen.value && !target.closest('.start-menu') && !target.closest('.xp-start-button')) {
+            closeStartMenu();
         }
     });
 });
@@ -1622,11 +1514,6 @@ onMounted(() => {
  * On component unmount
  */
 onUnmounted(() => {
-    // Clear clock interval
-    if (clockInterval) {
-        clearInterval(clockInterval);
-    }
-    
     // Remove event listeners
     document.removeEventListener('mousemove', handleDrag);
     document.removeEventListener('mouseup', stopDrag);
@@ -1661,16 +1548,16 @@ onUnmounted(() => {
 
 /* Main Desktop Container - Full screen workspace */
 .xp-desktop {
-    /* Positioning - Fixed to viewport */
+    /* Positioning - Fixed to viewport, above taskbar */
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: 30px;
     
-    /* Dimensions - Full viewport coverage */
+    /* Dimensions - Full viewport coverage minus taskbar */
     width: 100vw;
-    height: 100vh;
+    height: calc(100vh - 30px);
     min-width: 320px;
     min-height: 480px;
     
@@ -1686,249 +1573,43 @@ onUnmounted(() => {
     line-height: 1.4;
     color: #000000;
     
-    /* Bliss Wallpaper Background - Authentic XP gradient */
+    /* Default Bliss Wallpaper - Authentic XP gradient */
     background: linear-gradient(to bottom, 
-        #5a8fd5 0%,        /* Top sky blue */
-        #6b9ddb 10%,       /* Light blue transition */
-        #a4d3ee 25%,       /* Bright cyan peak */
-        #b8e2f5 35%,       /* Lightest cyan */
-        #96c9dc 50%,       /* Mid-tone cyan */
-        #8ab9d0 60%,       /* Deeper cyan */
-        #76a9d5 75%,       /* Ocean blue */
-        #6698c7 85%,       /* Deep blue */
-        #5a8fd5 100%       /* Bottom sky blue (matches top) */
+        #5a8fd5 0%,
+        #6b9ddb 10%,
+        #a4d3ee 25%,
+        #b8e2f5 35%,
+        #96c9dc 50%,
+        #8ab9d0 60%,
+        #76a9d5 75%,
+        #6698c7 85%,
+        #5a8fd5 100%
     );
     
-    /* Texture overlay for depth */
+    /* Background settings */
     background-attachment: fixed;
     background-position: center center;
     background-repeat: no-repeat;
     background-size: cover;
+    transition: background 0.5s ease;
     
     /* User interaction */
     user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     cursor: default;
     
     /* Performance optimization */
     will-change: transform;
     transform: translateZ(0);
-    -webkit-transform: translateZ(0);
     backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
     
-    /* Prevent text rendering issues */
+    /* Font rendering */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 }
 
-/* Desktop content wrapper */
-.xp-desktop::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 40px; /* Space for taskbar */
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* Desktop active area (excludes taskbar) */
-.xp-desktop::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 40px;
-    pointer-events: none;
-    z-index: 0;
-}
-
 /* ===========================================
-   SECTION 2: CLOUD ANIMATIONS
-   Animated clouds floating across the desktop
-   =========================================== */
-
-/* ===========================================
-   SECTION 2: CLOUD ANIMATIONS
-   Animated clouds floating across the desktop
-   =========================================== */
-
-/* Clouds container - Overlays desktop background */
-.xp-clouds,
-.clouds-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 1;
-}
-
-/* Base cloud styling - White fluffy appearance */
-.cloud {
-    position: absolute;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 100px;
-    opacity: 0;
-    filter: blur(2px);
-    -webkit-filter: blur(2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    will-change: transform, opacity;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-}
-
-/* Cloud pseudo-elements for multi-layer effect */
-.cloud::before,
-.cloud::after {
-    content: '';
-    position: absolute;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 100px;
-    filter: blur(2px);
-    -webkit-filter: blur(2px);
-}
-
-/* Cloud 1 - Large slow-moving cloud (top-left area) */
-.cloud.cloud-1 {
-    width: 140px;
-    height: 60px;
-    top: 8%;
-    left: -150px;
-    animation: cloud-drift-1 180s linear infinite;
-}
-
-.cloud.cloud-1::before {
-    width: 80px;
-    height: 60px;
-    top: -30px;
-    left: 20px;
-}
-
-.cloud.cloud-1::after {
-    width: 100px;
-    height: 50px;
-    top: -20px;
-    right: 20px;
-}
-
-/* Cloud 2 - Medium-sized mid-speed cloud (center area) */
-.cloud.cloud-2 {
-    width: 180px;
-    height: 70px;
-    top: 35%;
-    left: -200px;
-    animation: cloud-drift-2 220s linear infinite;
-    opacity: 0;
-}
-
-.cloud.cloud-2::before {
-    width: 90px;
-    height: 70px;
-    top: -35px;
-    left: 30px;
-}
-
-.cloud.cloud-2::after {
-    width: 110px;
-    height: 60px;
-    top: -25px;
-    right: 30px;
-}
-
-/* Cloud 3 - Small fast-moving cloud (bottom area) */
-.cloud.cloud-3 {
-    width: 120px;
-    height: 50px;
-    top: 65%;
-    left: -130px;
-    animation: cloud-drift-3 160s linear infinite;
-    opacity: 0;
-}
-
-.cloud.cloud-3::before {
-    width: 70px;
-    height: 50px;
-    top: -25px;
-    left: 15px;
-}
-
-.cloud.cloud-3::after {
-    width: 85px;
-    height: 45px;
-    top: -18px;
-    right: 15px;
-}
-
-/* Cloud drift animations - Continuous horizontal movement */
-@keyframes cloud-drift-1 {
-    0% {
-        transform: translateX(0);
-        opacity: 0;
-    }
-    5% {
-        opacity: 0.7;
-    }
-    95% {
-        opacity: 0.7;
-    }
-    100% {
-        transform: translateX(calc(100vw + 150px));
-        opacity: 0;
-    }
-}
-
-@keyframes cloud-drift-2 {
-    0% {
-        transform: translateX(0) translateY(0);
-        opacity: 0;
-    }
-    5% {
-        opacity: 0.6;
-    }
-    50% {
-        transform: translateX(calc(50vw + 100px)) translateY(-10px);
-    }
-    95% {
-        opacity: 0.6;
-    }
-    100% {
-        transform: translateX(calc(100vw + 200px)) translateY(0);
-        opacity: 0;
-    }
-}
-
-@keyframes cloud-drift-3 {
-    0% {
-        transform: translateX(0) scale(1);
-        opacity: 0;
-    }
-    5% {
-        opacity: 0.65;
-    }
-    50% {
-        transform: translateX(calc(50vw + 65px)) scale(1.05);
-    }
-    95% {
-        opacity: 0.65;
-    }
-    100% {
-        transform: translateX(calc(100vw + 130px)) scale(1);
-        opacity: 0;
-    }
-}
-
-/* ===========================================
-   SECTION 3: DESKTOP ICONS
+   SECTION 2: DESKTOP ICONS
    Classic XP desktop icon styling
    =========================================== */
 
@@ -1951,8 +1632,8 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 80px;
-    padding: 8px;
+    width: 90px;
+    padding: 8px 4px;
     cursor: pointer;
     border-radius: 2px;
     background: transparent;
@@ -2024,8 +1705,15 @@ onUnmounted(() => {
         -1px 1px 2px rgba(0, 0, 0, 0.8);
     line-height: 1.3;
     word-wrap: break-word;
-    max-width: 100%;
-    padding: 0 2px;
+    max-width: 90px;
+    width: 100%;
+    padding: 2px 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 /* Icon appearance animation */
@@ -3452,6 +3140,26 @@ button:disabled {
     transform: scale(1.1);
 }
 
+/* Tray button (clickable icon) */
+.tray-button {
+    background: transparent;
+    border: none;
+    padding: 2px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.tray-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tray-button:active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 /* System tray clock */
 .clock {
     font-size: 11px;
@@ -3464,25 +3172,24 @@ button:disabled {
 /* Start Menu - Popup menu from Start button */
 .start-menu {
     position: fixed;
-    bottom: 42px;
-    left: 4px;
-    width: 380px;
-    height: auto;
-    max-height: calc(100vh - 100px);
+    bottom: 30px;
+    left: 0;
+    width: 400px;
+    height: 500px;
+    max-height: calc(100vh - 40px);
     background: #ffffff;
-    border: 3px solid;
-    border-color: #0a246a #5a90e5 #5a90e5 #0a246a;
+    border: 2px solid;
+    border-color: #245edb #103da7 #103da7 #245edb;
     border-radius: 8px 8px 0 0;
     box-shadow: 
         0 0 0 1px rgba(255, 255, 255, 0.3) inset,
-        0 8px 32px rgba(0, 0, 0, 0.5),
-        0 16px 64px rgba(0, 0, 0, 0.3);
+        4px 0 16px rgba(0, 0, 0, 0.4);
     display: flex;
     overflow: hidden;
-    z-index: 1001;
+    z-index: 10001;
     opacity: 0;
-    transform: translateY(20px);
-    animation: start-menu-appear 0.2s ease-out forwards;
+    transform: translateY(10px);
+    animation: start-menu-appear 0.15s ease-out forwards;
 }
 
 /* Start menu appear animation */
@@ -3495,43 +3202,40 @@ button:disabled {
 
 /* Start menu sidebar - Vertical banner */
 .start-menu-sidebar {
-    width: 48px;
+    width: 52px;
     background: linear-gradient(to bottom, 
-        #4e7ac7 0%, 
-        #3d6bb5 50%, 
-        #2d5ba3 100%
+        #5a8fd5 0%, 
+        #4e7ac7 50%, 
+        #3d6bb5 100%
     );
     display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding: 16px 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 12px 0;
     border-right: 1px solid #1a4f9c;
     position: relative;
 }
 
-/* Sidebar highlight */
-.start-menu-sidebar::before {
-    content: '';
+/* Sidebar logo */
+.sidebar-logo {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 1px;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.2);
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
 }
 
 /* Sidebar text - Vertical "PInGO" */
 .sidebar-text {
     writing-mode: vertical-rl;
     text-orientation: mixed;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
-    font-family: 'Tahoma', sans-serif;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     color: #ffffff;
-    text-shadow: 
-        2px 2px 4px rgba(0, 0, 0, 0.5),
-        -1px -1px 2px rgba(255, 255, 255, 0.2);
-    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+    letter-spacing: 3px;
 }
 
 /* Start menu content area */
@@ -3539,35 +3243,40 @@ button:disabled {
     flex: 1;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+}
+
+/* White section (top) */
+.start-menu-white-section {
     background: #ffffff;
-    overflow-y: auto;
+    flex-shrink: 0;
 }
 
 /* Start menu user section */
 .start-menu-user {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px 12px;
+    gap: 10px;
+    padding: 8px 12px 8px 8px;
     background: linear-gradient(to bottom, 
         #f0f8ff 0%, 
-        #e8f4ff 100%
+        #e0f0ff 100%
     );
-    border-bottom: 1px solid #d0e8ff;
+    border-bottom: 1px solid #c5d9ed;
 }
 
 /* User avatar */
 .user-avatar {
     width: 48px;
     height: 48px;
-    border-radius: 4px;
+    border-radius: 2px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* Username */
 .username {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
     font-family: 'Tahoma', sans-serif;
     color: #003c74;
@@ -3575,39 +3284,97 @@ button:disabled {
 
 /* Start menu separator */
 .start-menu-separator {
-    height: 2px;
-    background: linear-gradient(to right, 
-        transparent 0%, 
-        #e0e0e0 10%, 
-        #e0e0e0 90%, 
-        transparent 100%
-    );
-    margin: 0;
+    height: 1px;
+    background: #c5d9ed;
+    margin: 2px 0;
 }
 
-/* Start menu list */
-.start-menu-list {
+/* Programs section */
+.start-menu-programs {
     display: flex;
     flex-direction: column;
-    padding: 8px 0;
+    padding: 4px 0;
 }
 
 /* Start menu item */
 .start-menu-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px 8px 52px;
+    gap: 10px;
+    padding: 6px 8px;
     cursor: pointer;
     background: transparent;
     border: none;
-    border-radius: 0;
     font-size: 11px;
     font-family: 'Tahoma', sans-serif;
     color: #000000;
     text-align: left;
-    transition: all 0.1s ease;
+    transition: background 0.05s ease;
     position: relative;
+    white-space: nowrap;
+}
+
+.start-menu-item:hover {
+    background: linear-gradient(to right, 
+        #3a74dc 0%, 
+        #2c5fbb 100%
+    );
+    color: #ffffff;
+}
+
+.start-menu-item.pinned {
+    font-weight: bold;
+}
+
+/* Item icon */
+.item-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Blue section (bottom) */
+.start-menu-blue-section {
+    background: linear-gradient(to bottom, 
+        #5e99de 0%, 
+        #4e85ce 100%
+    );
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+}
+
+.start-menu-blue-section .start-menu-item {
+    color: #ffffff;
+}
+
+.start-menu-blue-section .start-menu-item:hover {
+    background: linear-gradient(to right, 
+        #295fca 0%, 
+        #1d4db5 100%
+    );
+}
+
+/* Separator in blue section */
+.start-menu-separator-blue {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 4px 8px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Arrow icon */
+.arrow-icon {
+    margin-left: auto;
+}
+
+/* Turn off button special style */
+.start-menu-item.turn-off {
+    margin-top: auto;
 }
 
 /* Start menu item hover */
@@ -8157,70 +7924,344 @@ input:-webkit-autofill:focus {
     border: 1px solid #ffffff;
 }
 
-/* Dark Mode (Modern Addition) */
-.theme-dark .xp-desktop {
-    background: linear-gradient(135deg,
-        #1a1a2e 0%,
-        #16213e 50%,
-        #0f3460 100%
-    );
+/* ===========================================
+   DARK MODE THEME
+   Windows XP Dark Mode styling
+   =========================================== */
+
+/* Dark mode desktop - preserve wallpaper, add subtle overlay */
+.theme-dark .xp-desktop::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(20, 30, 50, 0.4);
+    pointer-events: none;
+    z-index: 0;
 }
 
+/* Desktop icons - darker labels in dark mode */
+.theme-dark .icon-label {
+    color: #ffffff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Dark mode windows - softer, better contrast */
 .theme-dark .xp-window {
-    background: #1e1e1e;
-    border-color: #404040;
+    background: #2a2d3a;
+    border-color: #4a5162;
 }
 
 .theme-dark .window-titlebar {
     background: linear-gradient(to bottom,
-        #2d4a6e 0%,
-        #1a3a5e 100%
+        #3d5a8c 0%,
+        #2d4a7c 100%
     );
+    border-bottom-color: #1a2a4c;
 }
 
 .theme-dark .window-content {
-    background: #252526;
-    color: #cccccc;
+    background: #2e3138;
+    color: #e0e0e0;
 }
 
 .theme-dark .main-content {
-    background: #1e1e1e;
+    background: #2a2d3a;
 }
 
 .theme-dark .sidebar {
-    background: #252526;
-    border-color: #404040;
+    background: #33363f;
+    border-color: #4a5162;
 }
 
+/* Dark mode buttons - better contrast */
 .theme-dark .xp-button {
     background: linear-gradient(to bottom,
-        #3c3c3c 0%,
-        #2a2a2a 100%
+        #4a5162 0%,
+        #3a414f 100%
     );
-    color: #ffffff;
-    border-color: #555555;
+    color: #f0f0f0;
+    border-color: #5a6172;
 }
 
 .theme-dark .xp-button:hover {
     background: linear-gradient(to bottom,
-        #4a4a4a 0%,
-        #3a3a3a 100%
+        #5a6172 0%,
+        #4a515f 100%
     );
+    border-color: #6a7182;
 }
 
+/* Dark mode taskbar - authentic XP dark blue */
 .theme-dark .xp-taskbar {
     background: linear-gradient(to bottom,
-        #2d4a6e 0%,
-        #1a3a5e 100%
+        #3d5a8c 0%,
+        #2d4a7c 100%
+    );
+    border-top-color: #5a7aac;
+}
+
+.theme-dark .start-button {
+    background: linear-gradient(to right,
+        #2d6a4e 0%,
+        #3d7a5e 100%
     );
 }
 
+.theme-dark .start-button:hover {
+    background: linear-gradient(to right,
+        #3d7a5e 0%,
+        #4d8a6e 100%
+    );
+}
+
+/* Dark mode start menu - better visibility */
+.theme-dark .start-menu {
+    background: #2e3138;
+    border-color: #4a5162;
+}
+
+.theme-dark .start-menu-left {
+    background: linear-gradient(to bottom,
+        #2d4a7c 0%,
+        #1d3a6c 100%
+    );
+}
+
+.theme-dark .start-menu-item {
+    color: #f0f0f0;
+}
+
+.theme-dark .start-menu-item:hover {
+    background: #3d5a8c;
+}
+
+/* Dark mode file list - better readability */
 .theme-dark .file-list-item {
-    border-color: #404040;
+    border-color: #4a5162;
+    color: #e0e0e0;
 }
 
 .theme-dark .file-list-item:hover {
+    background: #3a3d4a;
+}
+
+.theme-dark .file-list-header {
+    background: #2a2d3a;
+    border-color: #4a5162;
+    color: #e0e0e0;
+}
+
+/* Dark mode inputs - softer background */
+.theme-dark input[type="text"],
+.theme-dark input[type="file"],
+.theme-dark textarea {
+    background: #33363f;
+    color: #e0e0e0;
+    border-color: #4a5162;
+}
+
+/* Dark mode scrollbars - lighter */
+.theme-dark ::-webkit-scrollbar-thumb {
+    background: #5a6172;
+}
+
+.theme-dark ::-webkit-scrollbar-thumb:hover {
+    background: #6a7182;
+}
+
+.theme-dark ::-webkit-scrollbar-track {
     background: #2a2a2a;
+}
+
+/* Dark mode window menubar */
+.theme-dark .window-menubar {
+    background: #33363f;
+    border-bottom-color: #4a5162;
+}
+
+.theme-dark .menu-item {
+    color: #e0e0e0;
+}
+
+.theme-dark .menu-item:hover {
+    background: #3d5a8c;
+    color: #ffffff;
+}
+
+/* Dark mode window toolbar */
+.theme-dark .window-toolbar {
+    background: #33363f;
+    border-bottom-color: #4a5162;
+}
+
+.theme-dark .toolbar-button {
+    color: #e0e0e0;
+    background: transparent;
+}
+
+.theme-dark .toolbar-button:hover {
+    background: #4a5162;
+    border-color: #5a6172;
+}
+
+.theme-dark .toolbar-button:active {
+    background: #3a414f;
+}
+
+.theme-dark .toolbar-separator {
+    background: #4a5162;
+}
+
+/* Dark mode address bar */
+.theme-dark .address-bar {
+    background: #33363f;
+    border-bottom-color: #4a5162;
+}
+
+.theme-dark .address-bar label {
+    color: #e0e0e0;
+}
+
+.theme-dark .address-bar input {
+    background: #2a2d3a;
+    color: #e0e0e0;
+    border-color: #4a5162;
+}
+
+.theme-dark .address-bar .go-button {
+    background: linear-gradient(to bottom,
+        #4a5162 0%,
+        #3a414f 100%
+    );
+    color: #f0f0f0;
+    border-color: #5a6172;
+}
+
+.theme-dark .address-bar .go-button:hover {
+    background: linear-gradient(to bottom,
+        #5a6172 0%,
+        #4a515f 100%
+    );
+}
+
+/* Dark mode sidebar links */
+.theme-dark .sidebar-title {
+    color: #e0e0e0;
+    background: #2a2d3a;
+}
+
+.theme-dark .sidebar-link {
+    color: #4a9eff;
+}
+
+.theme-dark .sidebar-link:hover {
+    color: #6ab0ff;
+    background: #3a3d4a;
+}
+
+.theme-dark .sidebar-link svg {
+    fill: #4a9eff;
+}
+
+/* Dark mode dropzone */
+.theme-dark .dropzone {
+    background: #2a2d3a;
+    border-color: #4a5162;
+}
+
+.theme-dark .dropzone.drag-over {
+    background: #3d5a8c;
+    border-color: #5a7aac;
+}
+
+.theme-dark .dropzone-text {
+    color: #e0e0e0;
+}
+
+.theme-dark .dropzone-icon {
+    color: #4a9eff;
+}
+
+/* Dark mode file items */
+.theme-dark .file-item {
+    background: #33363f;
+    border-color: #4a5162;
+}
+
+.theme-dark .file-item:hover {
+    background: #3a3d4a;
+}
+
+.theme-dark .file-name {
+    color: #e0e0e0;
+}
+
+.theme-dark .file-size {
+    color: #a0a0a0;
+}
+
+.theme-dark .remove-file {
+    color: #ff6b6b;
+    background: #3a3d4a;
+}
+
+.theme-dark .remove-file:hover {
+    background: #ff6b6b;
+    color: #ffffff;
+}
+
+/* Dark mode validity select */
+.theme-dark select {
+    background: #33363f;
+    color: #e0e0e0;
+    border-color: #4a5162;
+}
+
+.theme-dark select:focus {
+    border-color: #5a7aac;
+    outline: none;
+}
+
+/* Dark mode progress bars */
+.theme-dark .upload-progress {
+    background: #2a2d3a;
+}
+
+.theme-dark .progress-bar {
+    background: #3d5a8c;
+}
+
+.theme-dark .progress-text {
+    color: #e0e0e0;
+}
+
+/* Dark mode success/error messages */
+.theme-dark .success-message {
+    background: #2d5a3e;
+    border-color: #3d6a4e;
+    color: #90ee90;
+}
+
+.theme-dark .error-message {
+    background: #5a2d2d;
+    border-color: #6a3d3d;
+    color: #ff9090;
+}
+
+/* Dark mode window buttons */
+.theme-dark .window-button {
+    color: #ffffff;
+}
+
+.theme-dark .window-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.theme-dark .window-button.close:hover {
+    background: #ff4444;
 }
 
 /* ========================================================================

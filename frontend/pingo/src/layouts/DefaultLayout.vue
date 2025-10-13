@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col min-h-screen">
-    <LiquidGlassNavbar />
+    <Navbar />
     <main class="flex-grow pt-20">
       <router-view />
     </main>
@@ -8,5 +8,5 @@
 </template>
 
 <script setup lang="ts">
-import LiquidGlassNavbar from '../components/shared/LiquidGlassNavbar.vue'
+import Navbar from '../components/shared/Navbar.vue'
 </script>
