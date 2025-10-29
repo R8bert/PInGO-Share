@@ -1,5 +1,5 @@
 # PInGO-Share
-<div style="text-align: center;">
+<div style="text-align: right;">
   <img src="https://github.com/user-attachments/assets/c996ea3a-bbb5-4ab9-8f1b-fd7f565fa1f9" alt="DeWatermark ai image" width="150">
 </div>
 Self-hosted file sharing platform that gives you complete control over your data. Upload, share, and manage files on your own infrastructure without relying on third-party services.
