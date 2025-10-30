@@ -72,10 +72,4 @@ Built with modern, reliable technologies:
 
 **Advanced**: Customize the Docker configurations for your specific needs
 
-## Support
 
-This is an open-source project. Feel free to contribute improvements or report issues.
-
-## License
-
-Licensed under the terms included in the LICENSE file.
