@@ -45,7 +45,7 @@ impl Default for Settings {
             theme: "light".to_string(),
             logo_path: None,
             background_path: None,
-            navbar_title: "PInGO Share".to_string(),
+            navbar_title: "RootDrop".to_string(),
             max_upload_size: 104857600, // 100MB
             upload_box_transparency: 0,
             blur_intensity: 0,

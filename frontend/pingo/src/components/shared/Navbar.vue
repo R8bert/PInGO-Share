@@ -1,643 +1,472 @@
 <template>
-  <nav class="navbar" :class="{ 'scrolled': isScrolled, 'menu-open': isMobileMenuOpen }">
-    <div class="navbar-container">
-      <!-- Left Section: Logo & Navigation -->
-      <div class="navbar-left">
-        <!-- Logo/Brand -->
-        <router-link to="/" class="navbar-brand">
-          <div class="brand-logo">
-            <div class="logo-circle">
-              <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-              </svg>
-              <div class="logo-glow"></div>
-            </div>
-            <span class="brand-name">{{ navbarTitle }}</span>
-          </div>
-        </router-link>
+  <nav class="compact-navbar">
+    <div class="navbar-content">
+      <!-- Compact Navigation Buttons -->
+      <div class="nav-items">
+        <template v-if="isAuthenticated">
+          <router-link to="/" class="nav-item" title="Home">
+            <IconHome class="icon" />
+          </router-link>
+          <router-link to="/account" class="nav-item" title="My Files">
+            <IconFolder class="icon" />
+          </router-link>
+          <router-link v-if="isAdmin" to="/admin" class="nav-item" title="Admin Panel">
+            <IconShield class="icon" />
+          </router-link>
+        </template>
       </div>
 
-      <!-- Right Side -->
-      <div class="navbar-actions">
-        <!-- Theme Toggle (Desktop) -->
-        <div class="theme-toggle-wrapper hidden md:flex">
-          <ThemeToggle />
+      <!-- Profile Section -->
+      <div v-if="isAuthenticated" class="profile-section">
+        <div class="profile-info">
+          <span class="profile-name">{{ user?.username }}</span>
         </div>
-
-        <!-- User Section (Authenticated) -->
-        <div v-if="isAuthenticated" class="user-section">
-          <router-link to="/account" class="user-button">
-            <div class="user-avatar">
-              <img 
-                v-if="user?.avatar" 
-                :src="getAssetUrl(user.avatar)" 
-                :alt="user.username"
-                class="avatar-img"
-                @error="handleAvatarError"
-              />
-              <UserIcon v-else class="avatar-icon" />
-            </div>
-            <span class="user-name hidden md:inline">{{ user?.username }}</span>
-          </router-link>
+        <div class="profile-avatar">
+          <img 
+            v-if="user?.avatar" 
+            :src="getAssetUrl(user.avatar)" 
+            :alt="user.username"
+            class="avatar-img"
+          />
+          <span v-else class="avatar-initial">
+            {{ (user?.username || 'U').charAt(0).toUpperCase() }}
+          </span>
         </div>
-
-        <!-- Sign In (Not Authenticated) -->
-        <router-link
-          v-else
-          to="/auth"
-          class="signin-button"
-        >
-          Sign in
-        </router-link>
-
-        <!-- Mobile Menu Toggle -->
-        <button
-          @click="toggleMenu"
-          class="menu-button md:hidden"
-          aria-label="Toggle menu"
-        >
-          <svg v-if="!isMenuOpen" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-          <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+        <button @click="handleLogout" class="logout-icon" title="Sign Out">
+          <IconLogout />
         </button>
       </div>
+
+      <!-- Sign In Button (when not authenticated) -->
+      <router-link v-else to="/login" class="signin-btn">
+        <IconLogin class="icon" />
+        <span>Sign In</span>
+      </router-link>
     </div>
-
-    <!-- Mobile Menu -->
-    <transition name="menu-fade">
-      <div v-if="isMenuOpen" class="mobile-menu md:hidden" @click="toggleMenu">
-        <div class="mobile-menu-content" @click.stop>
-          <div class="mobile-menu-items">
-            <!-- Theme Toggle (Mobile) -->
-            <div class="mobile-menu-item">
-              <ThemeToggle />
-            </div>
-
-            <template v-if="isAuthenticated">
-              <!-- Account Link -->
-              <router-link
-                to="/account"
-                @click="toggleMenu"
-                class="mobile-menu-link"
-              >
-                <UserIcon class="menu-icon" />
-                <span>Account</span>
-              </router-link>
-
-              <!-- Logout -->
-              <button
-                @click="handleLogout"
-                class="mobile-menu-link logout-link"
-              >
-                <ArrowRightOnRectangleIcon class="menu-icon" />
-                <span>Sign out</span>
-              </button>
-            </template>
-
-            <template v-else>
-              <!-- Sign In Link (Mobile) -->
-              <router-link
-                to="/auth"
-                @click="toggleMenu"
-                class="mobile-menu-link"
-              >
-                <ArrowRightOnRectangleIcon class="menu-icon" />
-                <span>Sign in</span>
-              </router-link>
-            </template>
-          </div>
-        </div>
-      </div>
-    </transition>
   </nav>
+
+  <!-- Theme Toggle Button (bottom-right) -->
+  <button @click="toggleTheme" class="theme-toggle" :title="isDark ? 'Light Mode' : 'Dark Mode'">
+    <IconLightMode v-if="isDark" class="icon" />
+    <IconDarkMode v-else class="icon" />
+  </button>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
-import { useSettings } from '../../composables/useSettings'
 import { getAssetUrl } from '../../utils/apiUtils'
-import {
-  UserIcon,
-  ArrowRightOnRectangleIcon,
-} from '@heroicons/vue/24/outline'
-import ThemeToggle from './ThemeToggle.vue'
+import IconHome from '~icons/mdi/home'
+import IconFolder from '~icons/mdi/folder'
+import IconShield from '~icons/mdi/shield-crown'
+import IconLogout from '~icons/mdi/logout'
+import IconLogin from '~icons/mdi/login'
+import IconLightMode from '~icons/mdi/white-balance-sunny'
+import IconDarkMode from '~icons/mdi/moon-waning-crescent'
 
 const router = useRouter()
 const { user, isAuthenticated, logout } = useAuth()
-const { settings } = useSettings()
 
-// State
-const isMenuOpen = ref(false)
-const isMobileMenuOpen = ref(false)
-const isScrolled = ref(false)
-const navbarTitle = ref('PinGO')
+const navbarTitle = ref('RootDrop')
+const isDark = ref(false)
 
-// Methods
-const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
-  isMobileMenuOpen.value = !isMobileMenuOpen.value
-}
+const isAdmin = computed(() => user.value?.is_admin || false)
 
 const handleLogout = async () => {
   await logout()
-  router.push('/auth')
-  isMenuOpen.value = false
-  isMobileMenuOpen.value = false
+  router.push('/login')
 }
 
-const handleAvatarError = (event: Event) => {
-  const img = event.target as HTMLImageElement
-  img.style.display = 'none'
+const toggleTheme = () => {
+  isDark.value = !isDark.value
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+    localStorage.setItem('theme', 'dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
+  }
 }
 
-// Load settings
-onMounted(() => {
-  if (settings.value) {
-    navbarTitle.value = settings.value.navbarTitle || 'PinGO'
+onMounted(async () => {
+  // Load theme preference
+  const savedTheme = localStorage.getItem('theme')
+  isDark.value = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+  }
+
+  try {
+    const response = await fetch('/api/settings')
+    if (response.ok) {
+      const settings = await response.json()
+      if (settings.navbar_title) {
+        navbarTitle.value = settings.navbar_title
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load settings:', error)
   }
 })
 </script>
 
 <style scoped>
-/* ============================================
-   WETRANSFER-STYLE MINIMAL NAVBAR
-   Ultra-clean, nearly invisible navigation
-   ============================================ */
-
-/* Main Navbar - Almost invisible */
-.navbar {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  transition: all 0.3s ease;
+.compact-navbar {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
 }
 
-/* Dark theme support */
-:root[data-theme='dark'] .navbar {
-  background: rgba(15, 15, 15, 0.98);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.navbar-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 50px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.navbar-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 2rem;
+.navbar-content:hover {
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme='dark'] .navbar-content {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme='dark'] .navbar-content:hover {
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* Navigation Items */
+.nav-items {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 70px;
+  gap: 0.25rem;
 }
 
-/* ============================================
-   BRAND/LOGO SECTION - Minimal
-   ============================================ */
-.navbar-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-}
-
-.navbar-brand:hover {
-  opacity: 0.7;
-}
-
-.navbar-logo {
-  width: 36px;
-  height: 36px;
+.nav-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  overflow: hidden;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.logo-image {
+.nav-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nav-item:hover::before {
+  opacity: 1;
+}
+
+.nav-item .icon {
+  font-size: 1.25rem;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.nav-item:hover .icon {
+  transform: scale(1.1);
+  color: #1f2937;
+}
+
+.nav-item.router-link-active {
+  color: #6366f1;
+}
+
+.nav-item.router-link-active::before {
+  background: rgba(99, 102, 241, 0.1);
+  opacity: 1;
+}
+
+:root[data-theme='dark'] .nav-item {
+  color: #94a3af;
+}
+
+:root[data-theme='dark'] .nav-item:hover .icon {
+  color: #e5e7eb;
+}
+
+:root[data-theme='dark'] .nav-item::before {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme='dark'] .nav-item.router-link-active {
+  color: #818cf8;
+}
+
+:root[data-theme='dark'] .nav-item.router-link-active::before {
+  background: rgba(129, 140, 248, 0.15);
+}
+
+/* Profile Section */
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme='dark'] .profile-section {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.profile-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+}
+
+:root[data-theme='dark'] .profile-name {
+  color: #e5e7eb;
+}
+
+.profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.05);
+}
+
+.avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.logo-icon {
-  width: 22px;
-  height: 22px;
-  stroke: currentColor;
-  stroke-width: 2;
+.avatar-initial {
+  user-select: none;
 }
 
-.navbar-title {
+.logout-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.logout-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.08);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.logout-icon:hover::before {
+  opacity: 1;
+}
+
+.logout-icon .icon {
   font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text, #1a1a1a);
-  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
 }
 
-/* ============================================
-   RIGHT SECTION - Ultra minimal actions
-   ============================================ */
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.logout-icon:hover .icon {
+  transform: scale(1.1);
 }
 
-.navbar-theme-toggle {
-  display: flex;
-  align-items: center;
+:root[data-theme='dark'] .logout-icon {
+  color: #f87171;
 }
 
-/* ============================================
-   BUTTONS - Clean and subtle
-   ============================================ */
-.navbar-button {
+:root[data-theme='dark'] .logout-icon::before {
+  background: rgba(248, 113, 113, 0.15);
+}
+
+/* Sign In Button */
+.signin-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border: none;
-  background: transparent;
-  color: var(--color-text-secondary, #666);
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  background: #1f2937;
+  color: white;
   text-decoration: none;
-  font-size: 0.9375rem;
-  font-weight: 500;
-}
-
-.navbar-button:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--color-text, #1a1a1a);
-}
-
-:root[data-theme='dark'] .navbar-button:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--color-text, #fff);
-}
-
-.button-icon {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2;
-}
-
-/* Sign In Button - Slightly more prominent */
-.navbar-signin {
-  background: var(--color-primary, #4F46E5);
-  color: white;
-  padding: 0.5rem 1.25rem;
-}
-
-.navbar-signin:hover {
-  background: var(--color-primary-dark, #4338CA);
-  color: white;
-  transform: translateY(-1px);
-}
-
-/* ============================================
-   USER SECTION - Clean avatar button
-   ============================================ */
-.navbar-user {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 0.375rem 0.75rem 0.375rem 0.5rem;
   border-radius: 50px;
-  background: rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.navbar-user:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-:root[data-theme='dark'] .navbar-user {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-:root[data-theme='dark'] .navbar-user:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-primary, #4F46E5);
-  color: white;
-  overflow: hidden;
   font-size: 0.875rem;
   font-weight: 600;
+  transition: all 0.2s ease;
 }
 
-.user-avatar.large {
-  width: 48px;
-  height: 48px;
+.signin-btn:hover {
+  background: #111827;
+  transform: scale(1.02);
+}
+
+.signin-btn .icon {
   font-size: 1.125rem;
 }
 
-.avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+:root[data-theme='dark'] .signin-btn {
+  background: rgba(99, 102, 241, 0.9);
 }
 
-.avatar-icon {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2;
+:root[data-theme='dark'] .signin-btn:hover {
+  background: #6366f1;
 }
 
-.user-name {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--color-text, #1a1a1a);
-}
-
-/* ============================================
-   MOBILE MENU TOGGLE
-   ============================================ */
-.mobile-menu-toggle {
-  display: none;
-}
-
-/* ============================================
-   MOBILE MENU - Clean slide-in panel
-   ============================================ */
-.mobile-menu {
-  position: fixed;
-  top: 70px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: 99;
-  backdrop-filter: blur(8px);
-}
-
-.mobile-panel {
-  background: var(--color-background, #fff);
-  padding: 2rem;
-  max-height: calc(100vh - 70px);
-  overflow-y: auto;
-  border-radius: 0 0 16px 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-}
-
-/* Mobile User Section */
-.mobile-user {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 12px;
-  margin-bottom: 2rem;
-}
-
-:root[data-theme='dark'] .mobile-user {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.user-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-name-large {
-  font-weight: 600;
-  font-size: 1.0625rem;
-  color: var(--color-text, #1a1a1a);
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.user-email {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary, #666);
-  margin: 0.25rem 0 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Mobile Links */
-.mobile-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-}
-
-.mobile-link {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  padding: 1rem 1.25rem;
-  border-radius: 10px;
-  text-decoration: none;
-  color: var(--color-text, #1a1a1a);
-  font-weight: 500;
-  transition: all 0.2s ease;
-  background: transparent;
-}
-
-.mobile-link:hover,
-.mobile-link.active {
-  background: var(--color-primary, #4F46E5);
-  color: white;
-  transform: translateX(4px);
-}
-
-.link-icon {
-  width: 20px;
-  height: 20px;
-  stroke-width: 2;
-}
-
-/* Mobile Actions */
-.mobile-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-:root[data-theme='dark'] .mobile-actions {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.mobile-auth {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Mobile Buttons */
-.logout-button,
-.signin-button {
-  width: 100%;
-  justify-content: center;
-  padding: 1rem;
-  font-weight: 600;
-  border-radius: 10px;
-}
-
-.logout-button {
-  background: rgba(239, 68, 68, 0.1);
-  color: #DC2626;
-}
-
-.logout-button:hover {
-  background: #DC2626;
-  color: white;
-}
-
-.signin-button {
-  background: var(--color-primary, #4F46E5);
-  color: white;
-}
-
-.signin-button:hover {
-  background: var(--color-primary-dark, #4338CA);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-}
-
-/* ============================================
-   TRANSITIONS & ANIMATIONS
-   ============================================ */
-.menu-slide-enter-active,
-.menu-slide-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.menu-slide-enter-from,
-.menu-slide-leave-to {
-  opacity: 0;
-}
-
-.menu-slide-enter-active .mobile-panel {
-  animation: slideDown 0.3s ease;
-}
-
-.menu-slide-leave-active .mobile-panel {
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-}
-
-/* ============================================
-   RESPONSIVE - Mobile-first design
-   ============================================ */
+/* Responsive */
 @media (max-width: 768px) {
-  .navbar-container {
-    height: 60px;
-    padding: 0 1.25rem;
+  .compact-navbar {
+    top: 1rem;
+    right: 1rem;
   }
 
-  .navbar-title {
-    font-size: 1.0625rem;
+  .navbar-content {
+    padding: 0.5rem 0.625rem;
+    gap: 0.5rem;
   }
 
-  .navbar-logo {
+  .nav-item,
+  .profile-avatar,
+  .logout-icon {
     width: 32px;
     height: 32px;
   }
 
-  /* Hide desktop-only elements */
-  .navbar-theme-toggle {
+  .nav-item .icon {
+    font-size: 1.125rem;
+  }
+
+  .profile-name {
     display: none;
   }
 
-  .navbar-user .user-name {
-    display: none;
-  }
-
-  /* Show mobile menu toggle */
-  .mobile-menu-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: none;
-    background: transparent;
-    color: var(--color-text, #1a1a1a);
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-  }
-
-  .mobile-menu-toggle:hover {
-    background: rgba(0, 0, 0, 0.04);
-  }
-
-  :root[data-theme='dark'] .mobile-menu-toggle:hover {
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  .mobile-menu {
-    top: 60px;
-  }
-
-  .mobile-panel {
-    max-height: calc(100vh - 60px);
-    padding: 1.5rem;
+  .profile-section {
+    padding-left: 0.5rem;
+    gap: 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .navbar-container {
-    padding: 0 1rem;
+  .compact-navbar {
+    top: 0.75rem;
+    right: 0.75rem;
   }
 
-  .mobile-panel {
-    padding: 1.25rem;
+  .nav-items {
+    gap: 0.125rem;
+  }
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 999;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle .icon {
+  font-size: 1.5rem;
+  color: #64748b;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover .icon {
+  transform: rotate(20deg);
+}
+
+:global(.dark) .theme-toggle {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(71, 85, 105, 0.3);
+}
+
+:global(.dark) .theme-toggle .icon {
+  color: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .theme-toggle {
+    bottom: 1rem;
+    right: 1rem;
+    width: 48px;
+    height: 48px;
   }
 
-  .navbar-button {
-    padding: 0.5rem 0.875rem;
-    font-size: 0.875rem;
+  .theme-toggle .icon {
+    font-size: 1.25rem;
   }
 }
 </style>

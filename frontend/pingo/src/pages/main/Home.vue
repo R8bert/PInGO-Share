@@ -1,3904 +1,935 @@
 <template>
-  <div class="home-page">
-    <!-- Animated Background -->
-    <div class="animated-background">
-      <div class="gradient-orb orb-1"></div>
-      <div class="gradient-orb orb-2"></div>
-      <div class="gradient-orb orb-3"></div>
-      <div class="gradient-mesh"></div>
-      <div class="floating-particles">
-        <div v-for="i in 50" :key="i" class="particle" :style="getParticleStyle(i)"></div>
-      </div>
-    </div>
-
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-container">
-        <!-- Announcement Banner -->
-        <div class="announcement-banner">
-          <span class="announcement-badge">✨ NEW</span>
-          <span class="announcement-text">Transfer up to 10GB files with premium accounts</span>
-          <button class="announcement-cta">Learn More →</button>
-        </div>
-
-        <!-- Main Hero Content -->
-        <div class="hero-content">
-          <h1 class="hero-title">
-            <span class="title-line">Share Files</span>
-            <span class="title-line gradient-text">The Simple Way</span>
-          </h1>
-          <p class="hero-subtitle">
-            Transfer files of any size to anyone, anywhere. 
-            <span class="subtitle-highlight">Fast, secure, and incredibly simple.</span>
-          </p>
-
-          <!-- Hero Stats -->
-          <div class="hero-stats">
-            <div class="stat-item">
-              <div class="stat-number" data-count="10000000">{{ animatedStats.files }}</div>
-              <div class="stat-label">Files Transferred</div>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-              <div class="stat-number">256-bit</div>
-              <div class="stat-label">Encryption</div>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-              <div class="stat-number">{{ animatedStats.uptime }}%</div>
-              <div class="stat-label">Uptime</div>
-            </div>
-          </div>
-
-          <!-- Scroll Indicator -->
-          <div class="scroll-indicator">
-            <div class="mouse">
-              <div class="wheel"></div>
-            </div>
-            <div class="arrow-container">
-              <span class="arrow"></span>
-              <span class="arrow"></span>
-              <span class="arrow"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Upload Section -->
-    <section class="upload-section" id="upload-section">
-      <div class="upload-container">
-        <div class="section-header-inline">
-          <h2 class="section-title">Start Sharing</h2>
-          <p class="section-subtitle">Drag and drop or click to select files</p>
-        </div>
-
-        <!-- Main Upload Area -->
-        <div v-if="!uploadSuccess" class="upload-zone-wrapper">
-          <!-- Drop Zone -->
-          <div
-            class="upload-drop-zone"
-            :class="{ 
-              'dragging': isDragging,
-              'has-files': selectedFiles.length > 0,
-              'upload-error': uploadError
-            }"
-            @drop.prevent="handleDrop"
-            @dragover.prevent="isDragging = true"
-            @dragleave.prevent="isDragging = false"
-            @click="triggerFileInput"
-          >
-            <input
-              ref="fileInput"
-              type="file"
-              multiple
-              @change="handleFileSelect"
-              class="file-input-hidden"
-            />
-
-            <!-- Empty State -->
-            <div v-if="selectedFiles.length === 0" class="drop-zone-empty">
-              <div class="upload-icon-container">
-                <div class="icon-background">
-                  <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <div class="icon-pulse"></div>
-                </div>
-              </div>
-              <h3 class="drop-zone-title">Drop your files here</h3>
-              <p class="drop-zone-subtitle">or click to browse from your computer</p>
-              <div class="drop-zone-features">
-                <div class="feature-badge">
-                  <svg class="badge-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" />
-                  </svg>
-                  Encrypted
-                </div>
-                <div class="feature-badge">
-                  <svg class="badge-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
-                  </svg>
-                  Auto-Delete
-                </div>
-                <div class="feature-badge">
-                  <svg class="badge-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                  </svg>
-                  Up to {{ formatFileSize(maxUploadSize) }}
-                </div>
-              </div>
-            </div>
-
-            <!-- File List -->
-            <div v-else class="file-list-container">
-              <div class="file-list-header">
-                <div class="header-left">
-                  <div class="file-count-badge">{{ selectedFiles.length }}</div>
-                  <h3 class="file-list-title">{{ selectedFiles.length === 1 ? 'File' : 'Files' }} Selected</h3>
-                  <span class="file-total-size">{{ getTotalSize() }}</span>
-                </div>
-                <button @click.stop="clearFiles" class="clear-all-button">
-                  <svg class="button-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" />
-                  </svg>
-                  Clear All
-                </button>
-              </div>
-
-              <div class="file-list-scrollable">
-                <div
-                  v-for="(file, index) in selectedFiles"
-                  :key="index"
-                  class="file-item"
-                  :class="{ 'file-item-error': file.error }"
-                >
-                  <div class="file-icon-wrapper">
-                    <div class="file-icon" :class="getFileTypeClass(file.name)">
-                      <span class="file-extension">{{ getFileExtension(file.name) }}</span>
-                    </div>
-                    <div v-if="file.error" class="file-error-badge">!</div>
-                  </div>
-                  <div class="file-details">
-                    <div class="file-name" :title="file.name">{{ file.name }}</div>
-                    <div class="file-meta">
-                      <span class="file-size">{{ formatFileSize(file.size) }}</span>
-                      <span v-if="file.error" class="file-error-text">{{ file.error }}</span>
-                    </div>
-                  </div>
-                  <button @click.stop="removeFile(index)" class="file-remove-button">
-                    <svg class="remove-icon" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="add-more-section">
-                <button @click.stop="triggerFileInput" class="add-more-button">
-                  <svg class="button-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
-                  </svg>
-                  Add More Files
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Upload Options Panel -->
-          <div v-if="selectedFiles.length > 0 && !uploading" class="upload-options-panel">
-            <h4 class="options-title">Transfer Options</h4>
+    <div class="min-h-screen flex" :class="isDark ? 'bg-neutral-900 text-white' : 'bg-neutral-50 text-neutral-900'">
+        
+        <!-- Left Sidebar - Upload Form -->
+        <div class="w-full lg:w-[420px] flex flex-col relative z-20" 
+            :class="isDark ? 'bg-neutral-900' : 'bg-white'">
             
-            <div class="options-grid">
-              <div class="option-group">
-                <label class="option-label">
-                  <svg class="option-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
-                  </svg>
-                  Link Expiration
-                </label>
-                <select v-model="uploadValidity" class="option-select">
-                  <option value="1">1 Hour</option>
-                  <option value="6">6 Hours</option>
-                  <option value="24">24 Hours</option>
-                  <option value="168">7 Days</option>
-                  <option value="720">30 Days</option>
-                </select>
-                <span class="option-help">Link will be automatically deleted</span>
-              </div>
-
-              <div class="option-group">
-                <label class="option-label">
-                  <svg class="option-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" />
-                  </svg>
-                  Password Protection
-                </label>
-                <div class="password-input-wrapper">
-                  <input 
-                    v-model="uploadPassword"
-                    :type="showPassword ? 'text' : 'password'"
-                    placeholder="Optional password"
-                    class="option-input"
-                  />
-                  <button @click="showPassword = !showPassword" class="password-toggle">
-                    <svg v-if="!showPassword" class="toggle-icon" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <svg v-else class="toggle-icon" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" />
-                      <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                    </svg>
-                  </button>
-                </div>
-                <span class="option-help">Protect your files with a password</span>
-              </div>
-
-              <div class="option-group">
-                <label class="option-label">
-                  <svg class="option-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                  </svg>
-                  Email Notification
-                </label>
-                <input 
-                  v-model="recipientEmail"
-                  type="email"
-                  placeholder="recipient@example.com (optional)"
-                  class="option-input"
-                />
-                <span class="option-help">Notify recipient when files are uploaded</span>
-              </div>
-
-              <div class="option-group">
-                <label class="option-label">
-                  <svg class="option-icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" />
-                  </svg>
-                  Transfer Message
-                </label>
-                <textarea 
-                  v-model="transferMessage"
-                  placeholder="Add a message for the recipient (optional)"
-                  class="option-textarea"
-                  rows="3"
-                ></textarea>
-                <span class="option-help">{{ transferMessage.length }}/500 characters</span>
-              </div>
+            <!-- Logo/Brand -->
+            <div class="p-8">
+                <h2 class="text-2xl font-semibold tracking-tight">PInGO</h2>
             </div>
 
-            <!-- Upload Action Button -->
-            <div class="upload-action-section">
-              <button @click="uploadFiles" class="upload-main-button">
-                <svg class="button-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" />
-                </svg>
-                <div class="button-content">
-                  <span class="button-text">Start Transfer</span>
-                  <span class="button-subtext">{{ getTotalSize() }} • {{ selectedFiles.length }} {{ selectedFiles.length === 1 ? 'file' : 'files' }}</span>
+            <!-- Upload Form Content -->
+            <div class="flex-1 flex flex-col px-8 pb-8">
+                <div class="flex-1 flex flex-col justify-center max-w-md">
+                    
+                    <!-- Heading -->
+                    <div class="mb-8">
+                        <h1 class="text-4xl font-semibold mb-3 tracking-tight" 
+                            :class="isDark ? 'text-white' : 'text-neutral-900'">
+                            Transfer files
+                        </h1>
+                        <p class="text-base" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'">
+                            Up to {{ formatFileSize(maxUploadSize) }}, free
+                        </p>
+                    </div>
+
+                    <!-- Upload Section -->
+                    <div v-if="!uploadComplete" class="animate-fade-in-up">
+                        <!-- Request Files Button -->
+                        <div class="mb-4 flex gap-3">
+                            <button @click="triggerFileInput"
+                                class="flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-300 text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98]">
+                                <span class="flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Add files
+                                </span>
+                            </button>
+                        </div>
+
+                        <!-- File Size Counter -->
+                        <div v-if="selectedFiles.length > 0" class="mb-4 p-3 rounded-lg backdrop-blur-sm animate-slide-down"
+                            :class="totalSize > maxUploadSize ? 'bg-red-500/10 border border-red-500/20' : isDark ? 'bg-neutral-800/50 border border-neutral-700/50' : 'bg-blue-50/50 border border-blue-200/50'">
+                            <div class="flex items-center justify-between text-sm">
+                                <span :class="totalSize > maxUploadSize ? 'text-red-500' : isDark ? 'text-neutral-300' : 'text-neutral-700'">
+                                    <span class="font-semibold">{{ selectedFiles.length }}</span> file{{ selectedFiles.length !== 1 ? 's' : '' }} selected
+                                </span>
+                                <span class="font-mono" :class="totalSize > maxUploadSize ? 'text-red-500 font-bold' : isDark ? 'text-neutral-400' : 'text-neutral-600'">
+                                    {{ formatFileSize(totalSize) }} / {{ formatFileSize(maxUploadSize) }}
+                                </span>
+                            </div>
+                            <div class="mt-2 h-1.5 rounded-full overflow-hidden" :class="isDark ? 'bg-neutral-700' : 'bg-neutral-200'">
+                                <div class="h-full transition-all duration-500 rounded-full"
+                                    :class="totalSize > maxUploadSize ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 to-blue-400'"
+                                    :style="{ width: `${Math.min((totalSize / maxUploadSize) * 100, 100)}%` }">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden File Input -->
+                        <input ref="fileInput" type="file" multiple @change="onFileChange" class="hidden" />
+
+                        <!-- Drag and Drop Zone -->
+                        <div v-if="selectedFiles.length === 0"
+                            @drop.prevent="onDrop"
+                            @dragover.prevent="isDragging = true"
+                            @dragleave.prevent="isDragging = false"
+                            class="relative mt-6 p-16 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-300 group overflow-hidden"
+                            :class="[
+                                isDragging ? 'border-blue-500 bg-blue-500/10 scale-[1.02]' : isDark ? 'border-neutral-700 hover:border-neutral-600 hover:bg-neutral-800/30' : 'border-neutral-300 hover:border-blue-400 hover:bg-blue-50/30',
+                            ]"
+                            @click="triggerFileInput">
+                            
+                            <!-- Animated background effect -->
+                            <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            
+                            <!-- Upload icon with animation -->
+                            <div class="relative flex flex-col items-center">
+                                <div class="mb-4 p-4 rounded-2xl transition-all duration-300"
+                                    :class="isDragging ? 'bg-blue-500/20 scale-110' : isDark ? 'bg-neutral-800' : 'bg-neutral-200 group-hover:bg-blue-100'">
+                                    <svg class="w-10 h-10 transition-all duration-300"
+                                        :class="isDragging ? 'text-blue-500 animate-bounce' : isDark ? 'text-neutral-400 group-hover:text-blue-500' : 'text-neutral-500 group-hover:text-blue-600'"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-center font-medium transition-colors duration-300" 
+                                    :class="isDragging ? 'text-blue-500' : isDark ? 'text-neutral-300 group-hover:text-white' : 'text-neutral-700 group-hover:text-blue-600'">
+                                    {{ isDragging ? 'Drop files here' : 'Drop files here' }}
+                                </p>
+                                <p class="text-sm text-center mt-2" :class="isDark ? 'text-neutral-500' : 'text-neutral-500'">
+                                    or click to browse
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- File List with enhanced animations -->
+                        <div v-if="selectedFiles.length > 0" class="mt-6 space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                            <div v-for="(file, index) in selectedFiles" :key="index"
+                                class="group flex items-center gap-3 p-4 rounded-xl border transition-all duration-300 hover:scale-[1.01] animate-slide-in-left backdrop-blur-sm"
+                                :style="{ animationDelay: `${index * 50}ms` }"
+                                :class="isDark ? 'bg-neutral-800/80 border-neutral-700/50 hover:bg-neutral-800 hover:border-neutral-600 hover:shadow-lg hover:shadow-neutral-900/20' : 'bg-white/80 border-neutral-200 hover:bg-white hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10'">
+                                
+                                <!-- File type icon with gradient -->
+                                <div class="relative w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold uppercase flex-shrink-0 overflow-hidden group-hover:scale-110 transition-transform duration-300"
+                                    :class="getFileTypeColor(file)">
+                                    <div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
+                                    <span class="relative z-10">{{ getFileExtension(file).slice(0, 3) }}</span>
+                                </div>
+                                
+                                <!-- File info -->
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold truncate transition-colors duration-300" 
+                                        :class="isDark ? 'text-neutral-100 group-hover:text-white' : 'text-neutral-900'">
+                                        {{ file.name }}
+                                    </p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <p class="text-xs" :class="isDark ? 'text-neutral-500' : 'text-neutral-600'">
+                                            {{ formatFileSize(file.size) }}
+                                        </p>
+                                        <span class="text-xs" :class="isDark ? 'text-neutral-600' : 'text-neutral-400'">•</span>
+                                        <p class="text-xs" :class="isDark ? 'text-neutral-500' : 'text-neutral-600'">
+                                            {{ getFileType(file) }}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Remove button with animation -->
+                                <button @click.stop="removeFile(index)" 
+                                    class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
+                                    :class="isDark ? 'hover:bg-red-500/20 text-neutral-400 hover:text-red-400' : 'hover:bg-red-50 text-neutral-500 hover:text-red-600'">
+                                    <XMarkIcon class="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Options -->
+                        <div v-if="selectedFiles.length > 0" class="mt-6 space-y-3">
+                            <!-- Email to -->
+                            <div>
+                                <label class="block text-sm mb-2" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'">
+                                    Email to
+                                </label>
+                                <input v-model="recipientEmail" type="email" placeholder="name@email.com"
+                                    class="w-full px-4 py-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-transparent text-sm"
+                                    :class="isDark ? 'border-neutral-700 focus:border-transparent' : 'border-neutral-300 focus:border-transparent'" />
+                            </div>
+
+                            <!-- Message -->
+                            <div>
+                                <label class="block text-sm mb-2" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'">
+                                    Message
+                                </label>
+                                <textarea v-model="transferMessage" placeholder="Add a message..." rows="3"
+                                    class="w-full px-4 py-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none bg-transparent text-sm"
+                                    :class="isDark ? 'border-neutral-700 focus:border-transparent' : 'border-neutral-300 focus:border-transparent'"></textarea>
+                            </div>
+
+                            <!-- Password & Validity -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm mb-2" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'">
+                                        Password
+                                    </label>
+                                    <div class="relative">
+                                        <input v-model="uploadPassword" :type="showPassword ? 'text' : 'password'" 
+                                            placeholder="Optional"
+                                            class="w-full px-4 py-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-transparent text-sm pr-10"
+                                            :class="isDark ? 'border-neutral-700 focus:border-transparent' : 'border-neutral-300 focus:border-transparent'" />
+                                        <button @click="showPassword = !showPassword"
+                                            class="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity"
+                                            :class="isDark ? 'text-neutral-500 hover:text-neutral-400' : 'text-neutral-400 hover:text-neutral-600'">
+                                            <EyeIcon v-if="!showPassword" class="w-4 h-4" />
+                                            <EyeSlashIcon v-else class="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm mb-2" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'">
+                                        Expiry
+                                    </label>
+                                    <select v-model="selectedValidity" 
+                                        class="w-full px-4 py-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-transparent cursor-pointer text-sm"
+                                        :class="isDark ? 'border-neutral-700 focus:border-transparent' : 'border-neutral-300 focus:border-transparent'">
+                                        <option v-for="option in validityOptions" :key="option.value" :value="option.value"
+                                            :class="isDark ? 'bg-neutral-900' : 'bg-white'">
+                                            {{ option.label }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Transfer Button with enhanced styling -->
+                            <button @click="uploadFiles" :disabled="isUploading || totalSize > maxUploadSize"
+                                class="relative w-full py-4 rounded-xl font-semibold transition-all duration-300 text-white overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+                                :class="totalSize > maxUploadSize ? 'bg-red-500 cursor-not-allowed' : isUploading ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98]'">
+                                
+                                <!-- Shimmer effect -->
+                                <div v-if="!isUploading && totalSize <= maxUploadSize" class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" style="background-size: 200% 100%;"></div>
+                                </div>
+                                
+                                <span class="relative flex items-center justify-center gap-2">
+                                    <svg v-if="isUploading" class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <svg v-else-if="totalSize > maxUploadSize" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                    <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                    {{ totalSize > maxUploadSize ? 'Files too large' : isUploading ? 'Transferring...' : 'Transfer' }}
+                                </span>
+                            </button>
+
+                            <!-- Enhanced Progress -->
+                            <div v-if="isUploading" class="mt-4 space-y-3 animate-slide-down">
+                                <!-- Progress stats -->
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                                        <span class="font-medium" :class="isDark ? 'text-neutral-300' : 'text-neutral-700'">
+                                            Uploading...
+                                        </span>
+                                    </div>
+                                    <span class="font-mono font-semibold" :class="isDark ? 'text-blue-400' : 'text-blue-600'">
+                                        {{ progress }}%
+                                    </span>
+                                </div>
+
+                                <!-- Progress bar with gradient -->
+                                <div class="relative h-2 rounded-full overflow-hidden" :class="isDark ? 'bg-neutral-800' : 'bg-neutral-200'">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 transition-all duration-300 animate-glow" 
+                                        :style="{ width: `${progress}%` }">
+                                        <!-- Shimmer effect on progress bar -->
+                                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" 
+                                            style="animation: shimmer 2s linear infinite; background-size: 200% 100%;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Upload statistics -->
+                                <div class="grid grid-cols-2 gap-3 text-xs">
+                                    <div class="p-3 rounded-lg backdrop-blur-sm" :class="isDark ? 'bg-neutral-800/50' : 'bg-blue-50/50'">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <svg class="w-4 h-4" :class="isDark ? 'text-blue-400' : 'text-blue-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                            </svg>
+                                            <span :class="isDark ? 'text-neutral-500' : 'text-neutral-600'">Speed</span>
+                                        </div>
+                                        <p class="font-mono font-semibold" :class="isDark ? 'text-neutral-300' : 'text-neutral-900'">
+                                            {{ uploadSpeed > 0 ? formatFileSize(uploadSpeed) + '/s' : 'Calculating...' }}
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="p-3 rounded-lg backdrop-blur-sm" :class="isDark ? 'bg-neutral-800/50' : 'bg-blue-50/50'">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <svg class="w-4 h-4" :class="isDark ? 'text-blue-400' : 'text-blue-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span :class="isDark ? 'text-neutral-500' : 'text-neutral-600'">Time left</span>
+                                        </div>
+                                        <p class="font-mono font-semibold" :class="isDark ? 'text-neutral-300' : 'text-neutral-900'">
+                                            {{ estimatedTimeRemaining > 0 ? (estimatedTimeRemaining < 60 ? Math.ceil(estimatedTimeRemaining) + 's' : Math.ceil(estimatedTimeRemaining / 60) + 'm') : 'Calculating...' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success State -->
+                    <div v-else class="flex flex-col items-center justify-center py-12">
+                        <div class="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        
+                        <h3 class="text-xl font-semibold mb-2">Transfer complete</h3>
+                        <p class="text-sm mb-6" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'">
+                            Your files are ready to share
+                        </p>
+
+                        <div class="w-full space-y-3">
+                            <div class="p-4 rounded-lg border flex items-center gap-3"
+                                :class="isDark ? 'bg-neutral-800/50 border-neutral-700' : 'bg-neutral-100 border-neutral-300'">
+                                <input :value="uploadLink" readonly 
+                                    class="flex-1 bg-transparent outline-none text-sm truncate" />
+                                <button @click="copyLink"
+                                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                    :class="isDark ? 'bg-neutral-700 hover:bg-neutral-600' : 'bg-neutral-200 hover:bg-neutral-300'">
+                                    {{ copied ? 'Copied!' : 'Copy' }}
+                                </button>
+                            </div>
+
+                            <button @click="uploadNew"
+                                class="w-full py-3 rounded-lg font-medium transition-colors text-white bg-blue-600 hover:bg-blue-700">
+                                Transfer new files
+                            </button>
+                        </div>
+                    </div>
                 </div>
-              </button>
             </div>
-          </div>
         </div>
 
-        <!-- Upload Progress State -->
-        <div v-if="uploading" class="upload-progress-state">
-          <div class="progress-header-section">
-            <h3 class="progress-main-title">Uploading Your Files</h3>
-            <p class="progress-main-subtitle">Please keep this window open while we transfer your files securely</p>
-          </div>
-
-          <div class="progress-visual-container">
-            <!-- Circular Progress -->
-            <div class="progress-circle-wrapper">
-              <svg class="progress-circle-svg" viewBox="0 0 200 200">
-                <defs>
-                  <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
-                  </linearGradient>
-                </defs>
-                <circle class="progress-circle-track" cx="100" cy="100" r="85" />
-                <circle 
-                  class="progress-circle-indicator" 
-                  cx="100" 
-                  cy="100" 
-                  r="85"
-                  :style="{ strokeDashoffset: progressStrokeDashoffset }"
-                />
-              </svg>
-              <div class="progress-center-content">
-                <div class="progress-percentage-large">{{ uploadProgress }}%</div>
-                <div class="progress-status-text">Uploading</div>
-              </div>
+        <!-- Right Side - Hero Image/Content -->
+        <div class="hidden lg:flex flex-1 relative overflow-hidden"
+            :class="isDark ? 'bg-neutral-800' : 'bg-neutral-200'">
+            
+            <!-- Placeholder gradient -->
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 opacity-20"></div>
+            
+            <!-- Optional: Add background image -->
+            <div class="absolute inset-0 flex items-center justify-center">
+                <div class="text-center p-12 max-w-lg">
+                    <h2 class="text-5xl font-bold mb-4" :class="isDark ? 'text-white' : 'text-neutral-900'">
+                        Simple, secure file sharing
+                    </h2>
+                    <p class="text-lg" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'">
+                        Transfer files up to {{ formatFileSize(maxUploadSize) }} with end-to-end encryption
+                    </p>
+                </div>
             </div>
-
-            <!-- Progress Stats Grid -->
-            <div class="progress-stats-grid">
-              <div class="progress-stat-card">
-                <div class="stat-card-icon">
-                  <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" />
-                  </svg>
-                </div>
-                <div class="stat-card-content">
-                  <div class="stat-card-label">Upload Speed</div>
-                  <div class="stat-card-value">{{ uploadSpeed }}</div>
-                </div>
-              </div>
-
-              <div class="progress-stat-card">
-                <div class="stat-card-icon">
-                  <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
-                  </svg>
-                </div>
-                <div class="stat-card-content">
-                  <div class="stat-card-label">Time Remaining</div>
-                  <div class="stat-card-value">{{ timeRemaining }}</div>
-                </div>
-              </div>
-
-              <div class="progress-stat-card">
-                <div class="stat-card-icon">
-                  <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-                  </svg>
-                </div>
-                <div class="stat-card-content">
-                  <div class="stat-card-label">Files Uploaded</div>
-                  <div class="stat-card-value">{{ uploadedFiles }} / {{ selectedFiles.length }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Linear Progress Bar -->
-          <div class="progress-bar-section">
-            <div class="progress-bar-track">
-              <div class="progress-bar-indicator" :style="{ width: uploadProgress + '%' }">
-                <div class="progress-bar-glow"></div>
-              </div>
-            </div>
-            <div class="progress-bar-labels">
-              <span class="progress-label">{{ uploadProgress }}% Complete</span>
-              <span class="progress-label">{{ formatFileSize(uploadedBytes) }} / {{ getTotalSize() }}</span>
-            </div>
-          </div>
-
-          <!-- File Progress List -->
-          <div class="file-progress-list">
-            <div class="file-progress-header">
-              <span>Transfer Progress</span>
-              <span>{{ uploadedFiles }} of {{ selectedFiles.length }} files</span>
-            </div>
-            <div class="file-progress-items">
-              <div
-                v-for="(file, index) in selectedFiles"
-                :key="index"
-                class="file-progress-row"
-                :class="{ 'completed': index < uploadedFiles, 'active': index === uploadedFiles }"
-              >
-                <div class="file-progress-status-icon">
-                  <svg v-if="index < uploadedFiles" class="status-icon-check" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                  </svg>
-                  <svg v-else-if="index === uploadedFiles" class="status-icon-loading" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" />
-                  </svg>
-                  <svg v-else class="status-icon-pending" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
-                  </svg>
-                </div>
-                <div class="file-progress-info">
-                  <div class="file-progress-name">{{ file.name }}</div>
-                  <div class="file-progress-size">{{ formatFileSize(file.size) }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <!-- Success State -->
-        <div v-if="uploadSuccess" class="success-state-container">
-          <!-- Success Animation -->
-          <div class="success-animation-wrapper">
-            <div class="success-checkmark-circle">
-              <svg class="checkmark-svg" viewBox="0 0 100 100">
-                <circle class="checkmark-circle-bg" cx="50" cy="50" r="45" />
-                <path class="checkmark-path" d="M25 50 L40 65 L75 30" />
-              </svg>
-            </div>
-            <div class="success-confetti">
-              <div v-for="i in 30" :key="i" class="confetti-piece" :style="getConfettiStyle(i)"></div>
-            </div>
-          </div>
-
-          <h2 class="success-main-title">Files Uploaded Successfully!</h2>
-          <p class="success-main-subtitle">Your files are securely stored and ready to share</p>
-
-          <!-- Share Link Section -->
-          <div class="share-link-section">
-            <label class="share-link-label">Your Share Link</label>
-            <div class="share-link-input-wrapper">
-              <input
-                ref="shareLinkInput"
-                :value="shareableLink"
-                readonly
-                class="share-link-input-field"
-                @focus="$event.target.select()"
-              />
-              <button @click="copyToClipboard" class="copy-button" :class="{ 'copied': copied }">
-                <svg v-if="!copied" class="copy-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                  <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-                </svg>
-                <svg v-else class="copy-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-                </svg>
-                <span>{{ copied ? 'Copied!' : 'Copy' }}</span>
-              </button>
-            </div>
-
-            <!-- Transfer Info -->
-            <div class="transfer-info-grid">
-              <div class="info-item-card">
-                <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
-                </svg>
-                <div>
-                  <div class="info-label">Expires In</div>
-                  <div class="info-value">{{ getExpirationText() }}</div>
-                </div>
-              </div>
-
-              <div class="info-item-card">
-                <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" />
-                </svg>
-                <div>
-                  <div class="info-label">Protection</div>
-                  <div class="info-value">{{ uploadPassword ? 'Password Protected' : 'Public Link' }}</div>
-                </div>
-              </div>
-
-              <div class="info-item-card">
-                <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" />
-                </svg>
-                <div>
-                  <div class="info-label">Files</div>
-                  <div class="info-value">{{ selectedFiles.length }} {{ selectedFiles.length === 1 ? 'File' : 'Files' }}</div>
-                </div>
-              </div>
-
-              <div class="info-item-card">
-                <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z" />
-                  <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z" />
-                  <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z" />
-                </svg>
-                <div>
-                  <div class="info-label">Total Size</div>
-                  <div class="info-value">{{ getTotalSize() }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Actions -->
-          <div class="success-actions-grid">
-            <button @click="copyToClipboard" class="success-action-button primary">
-              <svg class="action-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
-              </svg>
-              <span>Share Link</span>
-            </button>
-
-            <button @click="downloadQRCode" class="success-action-button secondary">
-              <svg class="action-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z" />
-                <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 9a1 1 0 100 2 1 1 0 000-2zM9 13a1 1 0 011-1h1a1 1 0 110 2v2a1 1 0 11-2 0v-3zM7 11a1 1 0 100-2H4a1 1 0 100 2h3zM17 13a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM16 17a1 1 0 100-2h-3a1 1 0 100 2h3z" />
-              </svg>
-              <span>QR Code</span>
-            </button>
-
-            <button @click="shareViaEmail" class="success-action-button secondary">
-              <svg class="action-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-              </svg>
-              <span>Email</span>
-            </button>
-
-            <button @click="resetUpload" class="success-action-button secondary">
-              <svg class="action-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" />
-              </svg>
-              <span>New Transfer</span>
-            </button>
-          </div>
-
-          <!-- File List Summary -->
-          <div class="uploaded-files-summary">
-            <h4 class="summary-title">Uploaded Files</h4>
-            <div class="summary-file-list">
-              <div v-for="(file, index) in selectedFiles" :key="index" class="summary-file-item">
-                <div class="summary-file-icon" :class="getFileTypeClass(file.name)">
-                  <span>{{ getFileExtension(file.name) }}</span>
-                </div>
-                <div class="summary-file-info">
-                  <div class="summary-file-name">{{ file.name }}</div>
-                  <div class="summary-file-size">{{ formatFileSize(file.size) }}</div>
-                </div>
-                <div class="summary-file-status">
-                  <svg class="status-check" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features-section">
-      <div class="features-container">
-        <div class="section-header-center">
-          <span class="section-tag">Features</span>
-          <h2 class="section-title-large">Why Choose PinGO?</h2>
-          <p class="section-subtitle-large">Everything you need for secure and reliable file transfers</p>
-        </div>
-
-        <div class="features-grid-large">
-          <div class="feature-card-enhanced" v-for="(feature, index) in features" :key="index">
-            <div class="feature-icon-container">
-              <div class="feature-icon-bg" :style="{ background: feature.color }"></div>
-              <svg class="feature-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path :d="feature.iconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-              </svg>
-            </div>
-            <h3 class="feature-card-title">{{ feature.title }}</h3>
-            <p class="feature-card-description">{{ feature.description }}</p>
-            <ul class="feature-list">
-              <li v-for="(item, idx) in feature.list" :key="idx" class="feature-list-item">
-                <svg class="list-check" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                </svg>
-                <span>{{ item }}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Stats Section -->
-    <section class="stats-section-large">
-      <div class="stats-container-large">
-        <div class="stats-grid-large">
-          <div class="stat-card-large">
-            <div class="stat-icon-wrapper">
-              <svg class="stat-icon-svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <div class="stat-number-animated">{{ animatedStats.files }}</div>
-            <div class="stat-label-large">Files Transferred</div>
-            <div class="stat-description">Millions of files securely shared worldwide</div>
-          </div>
-
-          <div class="stat-card-large">
-            <div class="stat-icon-wrapper">
-              <svg class="stat-icon-svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-              </svg>
-            </div>
-            <div class="stat-number-animated">500K+</div>
-            <div class="stat-label-large">Happy Users</div>
-            <div class="stat-description">Trusted by users around the globe</div>
-          </div>
-
-          <div class="stat-card-large">
-            <div class="stat-icon-wrapper">
-              <svg class="stat-icon-svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
-            </div>
-            <div class="stat-number-animated">150+</div>
-            <div class="stat-label-large">Countries</div>
-            <div class="stat-description">Available in countries worldwide</div>
-          </div>
-
-          <div class="stat-card-large">
-            <div class="stat-icon-wrapper">
-              <svg class="stat-icon-svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-              </svg>
-            </div>
-            <div class="stat-number-animated">{{ animatedStats.uptime }}%</div>
-            <div class="stat-label-large">Uptime</div>
-            <div class="stat-description">Reliable service you can depend on</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- FAQ Section -->
-    <section class="faq-section">
-      <div class="faq-container">
-        <div class="section-header-center">
-          <span class="section-tag">FAQ</span>
-          <h2 class="section-title-large">Frequently Asked Questions</h2>
-          <p class="section-subtitle-large">Everything you need to know about file transfers</p>
-        </div>
-
-        <div class="faq-grid">
-          <div 
-            v-for="(faq, index) in faqs" 
-            :key="index"
-            class="faq-item-card"
-            :class="{ 'active': activeFaq === index }"
-            @click="toggleFaq(index)"
-          >
-            <div class="faq-question-header">
-              <span class="faq-number">{{ String(index + 1).padStart(2, '0') }}</span>
-              <span class="faq-question-text">{{ faq.question }}</span>
-              <svg class="faq-toggle-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-              </svg>
-            </div>
-            <div class="faq-answer-content">
-              <p>{{ faq.answer }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="testimonials-section">
-      <div class="testimonials-container">
-        <div class="section-header-center">
-          <span class="section-tag">Testimonials</span>
-          <h2 class="section-title-large">Loved by Users Worldwide</h2>
-          <p class="section-subtitle-large">See what our users have to say about PinGO</p>
-        </div>
-
-        <div class="testimonials-grid">
-          <div v-for="(testimonial, index) in testimonials" :key="index" class="testimonial-card">
-            <div class="testimonial-rating">
-              <svg v-for="i in 5" :key="i" class="star-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            </div>
-            <p class="testimonial-quote">"{{ testimonial.quote }}"</p>
-            <div class="testimonial-author">
-              <div class="author-avatar" :style="{ background: testimonial.avatarColor }">
-                {{ testimonial.name.charAt(0) }}
-              </div>
-              <div class="author-info">
-                <div class="author-name">{{ testimonial.name }}</div>
-                <div class="author-role">{{ testimonial.role }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-      <div class="cta-container">
-        <div class="cta-content">
-          <h2 class="cta-title">Ready to start sharing?</h2>
-          <p class="cta-subtitle">Join millions of users who trust PinGO for their file transfers. No registration required.</p>
-          <div class="cta-buttons">
-            <button @click="scrollToUpload" class="cta-button primary">
-              <span>Get Started Free</span>
-              <svg class="button-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" />
-              </svg>
-            </button>
-            <button class="cta-button secondary">
-              <svg class="button-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-              </svg>
-              <span>Watch Demo</span>
-            </button>
-          </div>
-          <div class="cta-features">
-            <div class="cta-feature">
-              <svg class="feature-check" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-              </svg>
-              <span>No credit card required</span>
-            </div>
-            <div class="cta-feature">
-              <svg class="feature-check" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-              </svg>
-              <span>Free up to 2GB</span>
-            </div>
-            <div class="cta-feature">
-              <svg class="feature-check" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-              </svg>
-              <span>Cancel anytime</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-container">
-        <div class="footer-top">
-          <div class="footer-brand-section">
-            <div class="footer-logo">
-              <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-              </svg>
-              <span class="logo-text">PinGO</span>
-            </div>
-            <p class="footer-description">The simple way to share files securely with anyone, anywhere. Fast, reliable, and incredibly easy to use.</p>
-            <div class="social-links">
-              <a href="#" class="social-link" aria-label="Twitter">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
-              </a>
-              <a href="#" class="social-link" aria-label="GitHub">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-              </a>
-              <a href="#" class="social-link" aria-label="LinkedIn">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-              </a>
-              <a href="#" class="social-link" aria-label="Discord">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026 13.83 13.83 0 0 0 1.226-1.963.074.074 0 0 0-.041-.104 13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028zM8.02 15.278c-1.182 0-2.157-1.069-2.157-2.38 0-1.312.956-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.956 2.38-2.157 2.38zm7.975 0c-1.183 0-2.157-1.069-2.157-2.38 0-1.312.955-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.946 2.38-2.157 2.38z"/></svg>
-              </a>
-            </div>
-          </div>
-
-          <div class="footer-links-grid">
-            <div class="footer-column">
-              <h4 class="footer-column-title">Product</h4>
-              <ul class="footer-links-list">
-                <li><a href="#" class="footer-link">Features</a></li>
-                <li><a href="#" class="footer-link">Pricing</a></li>
-                <li><a href="#" class="footer-link">Security</a></li>
-                <li><a href="#" class="footer-link">API</a></li>
-                <li><a href="#" class="footer-link">Integrations</a></li>
-              </ul>
-            </div>
-
-            <div class="footer-column">
-              <h4 class="footer-column-title">Company</h4>
-              <ul class="footer-links-list">
-                <li><a href="#" class="footer-link">About Us</a></li>
-                <li><a href="#" class="footer-link">Blog</a></li>
-                <li><a href="#" class="footer-link">Careers</a></li>
-                <li><a href="#" class="footer-link">Press</a></li>
-                <li><a href="#" class="footer-link">Contact</a></li>
-              </ul>
-            </div>
-
-            <div class="footer-column">
-              <h4 class="footer-column-title">Resources</h4>
-              <ul class="footer-links-list">
-                <li><a href="#" class="footer-link">Documentation</a></li>
-                <li><a href="#" class="footer-link">Help Center</a></li>
-                <li><a href="#" class="footer-link">Community</a></li>
-                <li><a href="#" class="footer-link">Status</a></li>
-                <li><a href="#" class="footer-link">Roadmap</a></li>
-              </ul>
-            </div>
-
-            <div class="footer-column">
-              <h4 class="footer-column-title">Legal</h4>
-              <ul class="footer-links-list">
-                <li><a href="#" class="footer-link">Privacy Policy</a></li>
-                <li><a href="#" class="footer-link">Terms of Service</a></li>
-                <li><a href="#" class="footer-link">Cookie Policy</a></li>
-                <li><a href="#" class="footer-link">GDPR</a></li>
-                <li><a href="#" class="footer-link">Licenses</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="footer-bottom">
-          <div class="footer-bottom-left">
-            <p class="footer-copyright">© 2025 PinGO. All rights reserved.</p>
-          </div>
-          <div class="footer-bottom-right">
-            <div class="footer-badges">
-              <span class="badge-item">
-                <svg class="badge-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" />
-                </svg>
-                SSL Secured
-              </span>
-              <span class="badge-item">
-                <svg class="badge-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                </svg>
-                GDPR Compliant
-              </span>
-              <span class="badge-item">
-                <svg class="badge-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                </svg>
-                SOC 2 Certified
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </footer>
-  </div>
+    </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuth } from '../../composables/useAuth'
-import axios from 'axios'
+import { ref, onMounted, onUnmounted, computed } from "vue";
+import { useAuth } from "../../composables/useAuth";
+import { useTheme } from "../../composables/useTheme";
+import axios from "axios";
+import {
+    XMarkIcon,
+    EyeIcon,
+    EyeSlashIcon,
+} from "@heroicons/vue/24/outline";
+
+const { isAuthenticated } = useAuth();
+const { isDark } = useTheme();
 
 // Refs
-const fileInput = ref<HTMLInputElement | null>(null)
-const selectedFiles = ref<File[]>([])
-const isDragging = ref(false)
-const uploading = ref(false)
-const uploadSuccess = ref(false)
-const uploadProgress = ref(0)
-const uploadError = ref('')
-const shareableLink = ref('')
-const copied = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null);
+const uploadSection = ref<HTMLElement | null>(null);
+const { getSettings } = useAuth();
+// State
+const selectedFiles = ref<File[]>([]);
+const isDragging = ref(false);
+const isUploading = ref(false);
+const progress = ref(0);
+const uploadComplete = ref(false);
 
-// Upload Options
-const uploadValidity = ref('24')
-const uploadPassword = ref('')
-const recipientEmail = ref('')
-const transferMessage = ref('')
-const showPassword = ref(false)
+// New upload options
+const uploadPassword = ref('');
+const transferMessage = ref('');
+const recipientEmail = ref('');
+const showPassword = ref(false);
 
-// Upload Stats
-const uploadSpeed = ref('0 MB/s')
-const timeRemaining = ref('Calculating...')
-const uploadedFiles = ref(0)
-const uploadedBytes = ref(0)
-const maxUploadSize = ref(2 * 1024 * 1024 * 1024) // 2GB
+// Upload statistics
+const uploadSpeed = ref(0);
+const timeRemaining = ref('Calculating...');
+const estimatedTimeRemaining = ref(0);
+const startTime = ref(0);
+const lastLoaded = ref(0);
+const lastTime = ref(0);
+const uploadedUrl = ref("");
+const uploadLink = ref("");
+const copied = ref(false);
+const message = ref({ text: "", type: "success" as "success" | "error" });
+const previewingFiles = ref<Set<number>>(new Set());
+const previewUrls = ref<Map<number, string>>(new Map());
+const textPreviews = ref<Map<number, string>>(new Map());
+const maxUploadSize = ref<number>(104857600); // Default 100 MB
 
-// UI State
-const animatedStats = ref({
-  files: 0,
-  uptime: 0
-})
-const activeFaq = ref<number | null>(null)
+const validityOptions = ref([
+    { value: "7days", label: "7 Days", description: "One week" },
+    { value: "1month", label: "1 Month", description: "30 days" },
+    { value: "6months", label: "6 Months", description: "Half year" },
+    { value: "1year", label: "1 Year", description: "12 months" },
+    { value: "never", label: "Never", description: "Permanent" },
+]);
+const selectedValidity = ref("7days");
+const maxAllowedValidity = ref("7days");
 
-// Router
-const router = useRouter()
-const { isAuthenticated } = useAuth()
+// Computed properties
+const totalSize = computed(() => {
+    return selectedFiles.value.reduce((total, file) => total + file.size, 0);
+});
 
-// Features Data
-const features = [
-  {
-    title: 'Lightning Fast',
-    description: 'Transfer files at blazing speeds with our optimized infrastructure',
-    iconPath: 'M13 10V3L4 14h7v7l9-11h-7z',
-    color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    list: [
-      'Multi-threaded uploads',
-      'Global CDN network',
-      'Automatic compression',
-      'Resume interrupted transfers'
-    ]
-  },
-  {
-    title: 'Bank-Grade Security',
-    description: 'Your files are encrypted with military-grade 256-bit AES encryption',
-    iconPath: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
-    color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    list: [
-      'End-to-end encryption',
-      'Zero-knowledge architecture',
-      'Secure password protection',
-      'SSL/TLS protocol'
-    ]
-  },
-  {
-    title: 'Unlimited File Size',
-    description: 'Share files of any size without compression or quality loss',
-    iconPath: 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12',
-    color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    list: [
-      'No file size restrictions',
-      'Support all file types',
-      'Batch upload multiple files',
-      'Folder upload support'
-    ]
-  },
-  {
-    title: 'Auto-Delete',
-    description: 'Files automatically delete after expiration for your privacy',
-    iconPath: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-    color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    list: [
-      'Customizable expiration',
-      'Automatic cleanup',
-      'Download tracking',
-      'One-time download option'
-    ]
-  },
-  {
-    title: 'Password Protection',
-    description: 'Add an extra layer of security with password protection',
-    iconPath: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z',
-    color: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-    list: [
-      'Optional password requirement',
-      'Brute force protection',
-      'Password strength meter',
-      'Secure password hashing'
-    ]
-  },
-  {
-    title: 'Privacy First',
-    description: 'No registration required. Your data stays private and secure',
-    iconPath: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
-    color: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-    list: [
-      'No account needed',
-      'Anonymous transfers',
-      'No data tracking',
-      'GDPR compliant'
-    ]
-  }
-]
+// Helper methods
+const getFileType = (file: File): string => {
+    const ext = getFileExtension(file).toLowerCase();
+    const types: { [key: string]: string } = {
+        // Images
+        jpg: 'Image', jpeg: 'Image', png: 'Image', gif: 'Image', webp: 'Image', svg: 'Image',
+        // Documents
+        pdf: 'Document', doc: 'Document', docx: 'Document', txt: 'Text', rtf: 'Document',
+        // Spreadsheets
+        xls: 'Spreadsheet', xlsx: 'Spreadsheet', csv: 'Spreadsheet',
+        // Presentations
+        ppt: 'Presentation', pptx: 'Presentation',
+        // Archives
+        zip: 'Archive', rar: 'Archive', '7z': 'Archive', tar: 'Archive', gz: 'Archive',
+        // Videos
+        mp4: 'Video', avi: 'Video', mov: 'Video', mkv: 'Video', webm: 'Video',
+        // Audio
+        mp3: 'Audio', wav: 'Audio', ogg: 'Audio', m4a: 'Audio',
+        // Code
+        js: 'Code', ts: 'Code', py: 'Code', java: 'Code', cpp: 'Code', html: 'Code', css: 'Code',
+    };
+    return types[ext] || 'File';
+};
 
-// FAQs Data
-const faqs = [
-  {
-    question: 'How large can my files be?',
-    answer: 'Free users can transfer files up to 2GB. Premium users enjoy unlimited file sizes with no restrictions whatsoever.'
-  },
-  {
-    question: 'How long are files stored?',
-    answer: 'Files are stored based on your selected expiration time (1 hour to 30 days). After expiration, files are automatically and permanently deleted from our servers.'
-  },
-  {
-    question: 'Is my data encrypted?',
-    answer: 'Yes! All files are encrypted using 256-bit AES encryption during transfer and storage. We use zero-knowledge architecture, meaning only you and your recipients can access the files.'
-  },
-  {
-    question: 'Do I need to create an account?',
-    answer: 'No account required! You can start sharing files immediately. However, creating a free account gives you access to transfer history, extended storage time, and other premium features.'
-  },
-  {
-    question: 'Can I password protect my files?',
-    answer: 'Absolutely! You can add password protection to any transfer. Recipients will need to enter the correct password before they can download your files.'
-  },
-  {
-    question: 'What happens if my upload fails?',
-    answer: 'Our system automatically saves your progress. You can resume interrupted uploads from where they left off without starting over.'
-  },
-  {
-    question: 'Can I see who downloaded my files?',
-    answer: 'Premium users get detailed analytics including download counts, timestamps, and recipient locations (anonymized for privacy).'
-  },
-  {
-    question: 'Is PinGO GDPR compliant?',
-    answer: 'Yes, we are fully GDPR compliant. We don\'t track user behavior, sell data to third parties, or use your files for any purpose other than transfer and delivery.'
-  }
-]
-
-// Testimonials Data
-const testimonials = [
-  {
-    name: 'Sarah Johnson',
-    role: 'Graphic Designer',
-    quote: 'PinGO has completely transformed how I share large design files with clients. Fast, secure, and incredibly easy to use!',
-    avatarColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-  },
-  {
-    name: 'Michael Chen',
-    role: 'Software Developer',
-    quote: 'The API integration is seamless. We use PinGO for all our automated file transfers and it has never let us down.',
-    avatarColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-  },
-  {
-    name: 'Emma Williams',
-    role: 'Content Creator',
-    quote: 'I love that I don\'t need to create an account. Just drag, drop, and share. The password protection is a huge plus!',
-    avatarColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-  },
-  {
-    name: 'David Martinez',
-    role: 'Photographer',
-    quote: 'Sharing RAW photo files used to be a nightmare. PinGO makes it effortless, and my clients love how easy it is to download.',
-    avatarColor: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-  },
-  {
-    name: 'Lisa Anderson',
-    role: 'Marketing Manager',
-    quote: 'The team collaboration features are excellent. We can share campaigns, assets, and files securely within our organization.',
-    avatarColor: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
-  },
-  {
-    name: 'James Taylor',
-    role: 'Architect',
-    quote: 'Sending large CAD files to contractors is now a breeze. The download tracking helps me know when they\'ve received everything.',
-    avatarColor: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)'
-  }
-]
-
-// Computed Properties
-const progressStrokeDashoffset = computed(() => {
-  const circumference = 2 * Math.PI * 85
-  return circumference - (uploadProgress.value / 100) * circumference
-})
-
-const progressCircleOffset = computed(() => {
-  const circumference = 2 * Math.PI * 85
-  return circumference * (1 - uploadProgress.value / 100)
-})
+const getFileTypeColor = (file: File): string => {
+    const type = getFileType(file);
+    const colors: { [key: string]: string } = {
+        'Image': isDark.value ? 'bg-gradient-to-br from-purple-600 to-pink-600 text-white' : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white',
+        'Document': isDark.value ? 'bg-gradient-to-br from-blue-600 to-cyan-600 text-white' : 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white',
+        'Spreadsheet': isDark.value ? 'bg-gradient-to-br from-green-600 to-emerald-600 text-white' : 'bg-gradient-to-br from-green-500 to-emerald-500 text-white',
+        'Presentation': isDark.value ? 'bg-gradient-to-br from-orange-600 to-red-600 text-white' : 'bg-gradient-to-br from-orange-500 to-red-500 text-white',
+        'Archive': isDark.value ? 'bg-gradient-to-br from-yellow-600 to-amber-600 text-white' : 'bg-gradient-to-br from-yellow-500 to-amber-500 text-white',
+        'Video': isDark.value ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white' : 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white',
+        'Audio': isDark.value ? 'bg-gradient-to-br from-pink-600 to-rose-600 text-white' : 'bg-gradient-to-br from-pink-500 to-rose-500 text-white',
+        'Code': isDark.value ? 'bg-gradient-to-br from-slate-600 to-gray-600 text-white' : 'bg-gradient-to-br from-slate-500 to-gray-500 text-white',
+        'Text': isDark.value ? 'bg-gradient-to-br from-teal-600 to-cyan-600 text-white' : 'bg-gradient-to-br from-teal-500 to-cyan-500 text-white',
+    };
+    return colors[type] || (isDark.value ? 'bg-gradient-to-br from-neutral-600 to-neutral-700 text-white' : 'bg-gradient-to-br from-neutral-400 to-neutral-500 text-white');
+};
 
 // Methods
-const getParticleStyle = (index: number) => {
-  const size = Math.random() * 4 + 2
-  const duration = Math.random() * 20 + 10
-  const delay = Math.random() * -20
-  return {
-    width: `${size}px`,
-    height: `${size}px`,
-    left: `${Math.random() * 100}%`,
-    top: `${Math.random() * 100}%`,
-    animationDuration: `${duration}s`,
-    animationDelay: `${delay}s`
-  }
-}
-
-const getConfettiStyle = (index: number) => {
-  const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7']
-  const rotation = Math.random() * 360
-  const x = (Math.random() - 0.5) * 1000
-  const y = Math.random() * 1000 + 500
-  const delay = Math.random() * 0.3
-  return {
-    left: `${50 + (Math.random() - 0.5) * 20}%`,
-    backgroundColor: colors[index % colors.length],
-    transform: `rotate(${rotation}deg)`,
-    '--x': `${x}px`,
-    '--y': `${y}px`,
-    animationDelay: `${delay}s`
-  }
-}
-
 const triggerFileInput = () => {
-  fileInput.value?.click()
-}
+    fileInput.value?.click();
+};
 
-const handleFileSelect = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (target.files) {
-    addFiles(Array.from(target.files))
-  }
-}
-
-const handleDrop = (event: DragEvent) => {
-  isDragging.value = false
-  if (event.dataTransfer?.files) {
-    addFiles(Array.from(event.dataTransfer.files))
-  }
-}
-
-const addFiles = (files: File[]) => {
-  files.forEach(file => {
-    if (file.size > maxUploadSize.value) {
-      selectedFiles.value.push(Object.assign(file, { error: 'File too large' }))
-    } else {
-      selectedFiles.value.push(file)
+const onFileChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files) {
+        selectedFiles.value = Array.from(target.files);
     }
-  })
-}
+};
+
+const onDrop = (event: DragEvent) => {
+    isDragging.value = false;
+    if (event.dataTransfer?.files) {
+        selectedFiles.value = Array.from(event.dataTransfer.files);
+    }
+};
 
 const removeFile = (index: number) => {
-  selectedFiles.value.splice(index, 1)
-}
+    // Clean up preview URLs and refs when removing file
+    if (previewingFiles.value.has(index)) {
+        const url = previewUrls.value.get(index);
+        if (url) URL.revokeObjectURL(url);
+        previewUrls.value.delete(index);
+        textPreviews.value.delete(index);
+        previewingFiles.value.delete(index);
+    }
 
-const clearFiles = () => {
-  selectedFiles.value = []
-  uploadError.value = ''
-}
+    selectedFiles.value.splice(index, 1);
+
+    // Re-index remaining files
+    const newPreviewingFiles = new Set<number>();
+    const newPreviewUrls = new Map<number, string>();
+    const newTextPreviews = new Map<number, string>();
+
+    previewingFiles.value.forEach((previewIndex) => {
+        if (previewIndex > index) {
+            newPreviewingFiles.add(previewIndex - 1);
+            const url = previewUrls.value.get(previewIndex);
+            if (url) newPreviewUrls.set(previewIndex - 1, url);
+            const textPreview = textPreviews.value.get(previewIndex);
+            if (textPreview) newTextPreviews.set(previewIndex - 1, textPreview);
+        } else if (previewIndex < index) {
+            newPreviewingFiles.add(previewIndex);
+            const url = previewUrls.value.get(previewIndex);
+            if (url) newPreviewUrls.set(previewIndex, url);
+            const textPreview = textPreviews.value.get(previewIndex);
+            if (textPreview) newTextPreviews.set(previewIndex, textPreview);
+        }
+    });
+
+    previewingFiles.value = newPreviewingFiles;
+    previewUrls.value = newPreviewUrls;
+    textPreviews.value = newTextPreviews;
+};
+
+const togglePreview = (index: number) => {
+    if (previewingFiles.value.has(index)) {
+        // Hide preview
+        previewingFiles.value.delete(index);
+        const url = previewUrls.value.get(index);
+        if (url) {
+            URL.revokeObjectURL(url);
+            previewUrls.value.delete(index);
+        }
+        textPreviews.value.delete(index);
+    } else {
+        // Show preview
+        previewingFiles.value.add(index);
+        const file = selectedFiles.value[index];
+        const fileExtension = getFileExtension(file);
+
+        if (["txt", "md", "json", "csv", "xml"].includes(fileExtension)) {
+            // Handle text file preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target?.result as string;
+                const truncatedContent =
+                    content.length > 1000
+                        ? content.substring(0, 1000) + "\n\n... (truncated)"
+                        : content;
+                textPreviews.value.set(index, truncatedContent);
+            };
+            reader.readAsText(file);
+        } else {
+            // Handle other file types (images, videos, audio)
+            createPreviewUrl(file, index);
+        }
+    }
+};
+
+const createPreviewUrl = (file: File, index: number) => {
+    const url = URL.createObjectURL(file);
+    previewUrls.value.set(index, url);
+};
+
+const canPreview = (file: File): boolean => {
+    const ext = getFileExtension(file);
+    return [
+        "mp4",
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "webp",
+        "txt",
+        "md",
+        "json",
+        "csv",
+        "xml",
+        "torrent",
+        "mp3",
+        "wav",
+        "flac",
+    ].includes(ext);
+};
 
 const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
-}
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
 
-const getTotalSize = (): string => {
-  const total = selectedFiles.value.reduce((sum, file) => sum + file.size, 0)
-  return formatFileSize(total)
-}
-
-const getFileExtension = (filename: string): string => {
-  const ext = filename.split('.').pop()?.toUpperCase()
-  return ext || 'FILE'
-}
-
-const getFileTypeClass = (filename: string): string => {
-  const ext = filename.split('.').pop()?.toLowerCase()
-  const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp']
-  const videoExts = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv']
-  const audioExts = ['mp3', 'wav', 'ogg', 'flac', 'm4a']
-  const docExts = ['pdf', 'doc', 'docx', 'txt', 'rtf']
-  const codeExts = ['js', 'ts', 'html', 'css', 'json', 'xml', 'php', 'py']
-  
-  if (imageExts.includes(ext || '')) return 'file-type-image'
-  if (videoExts.includes(ext || '')) return 'file-type-video'
-  if (audioExts.includes(ext || '')) return 'file-type-audio'
-  if (docExts.includes(ext || '')) return 'file-type-document'
-  if (codeExts.includes(ext || '')) return 'file-type-code'
-  return 'file-type-other'
-}
+const getFileExtension = (file: File): string => {
+    return file.name.split(".").pop()?.toLowerCase() || "";
+};
 
 const uploadFiles = async () => {
-  if (selectedFiles.value.length === 0) return
-  
-  uploading.value = true
-  uploadError.value = ''
-  uploadProgress.value = 0
-  uploadedFiles.value = 0
-  uploadedBytes.value = 0
+    if (selectedFiles.value.length === 0 || isUploading.value) return;
 
-  try {
-    const formData = new FormData()
-    
-    selectedFiles.value.forEach((file, index) => {
-      formData.append('files', file)
-    })
-    
-    formData.append('validity', uploadValidity.value)
-    if (uploadPassword.value) formData.append('password', uploadPassword.value)
-    if (recipientEmail.value) formData.append('email', recipientEmail.value)
-    if (transferMessage.value) formData.append('message', transferMessage.value)
+    isUploading.value = true;
+    progress.value = 0;
+    startTime.value = Date.now();
+    lastLoaded.value = 0;
+    lastTime.value = Date.now();
+    uploadSpeed.value = 0;
+    estimatedTimeRemaining.value = 0;
+    timeRemaining.value = 'Calculating...';
 
-    const startTime = Date.now()
-    let lastLoaded = 0
-    let lastTime = startTime
+    try {
+        const formData = new FormData();
+        selectedFiles.value.forEach((file) => {
+            formData.append("files", file);
+        });
 
-    const response = await axios.post('/api/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      onUploadProgress: (progressEvent) => {
-        if (progressEvent.total) {
-          uploadProgress.value = Math.round((progressEvent.loaded / progressEvent.total) * 100)
-          uploadedBytes.value = progressEvent.loaded
-          
-          // Calculate speed
-          const currentTime = Date.now()
-          const timeDiff = (currentTime - lastTime) / 1000
-          const bytesDiff = progressEvent.loaded - lastLoaded
-          
-          if (timeDiff > 0) {
-            const speed = bytesDiff / timeDiff
-            uploadSpeed.value = formatFileSize(speed) + '/s'
-            
-            // Calculate time remaining
-            const bytesRemaining = progressEvent.total - progressEvent.loaded
-            const secondsRemaining = bytesRemaining / speed
-            
-            if (secondsRemaining < 60) {
-              timeRemaining.value = Math.round(secondsRemaining) + ' seconds'
-            } else if (secondsRemaining < 3600) {
-              timeRemaining.value = Math.round(secondsRemaining / 60) + ' minutes'
-            } else {
-              timeRemaining.value = Math.round(secondsRemaining / 3600) + ' hours'
-            }
-            
-            lastLoaded = progressEvent.loaded
-            lastTime = currentTime
-          }
-          
-          // Simulate file completion
-          uploadedFiles.value = Math.floor((uploadProgress.value / 100) * selectedFiles.value.length)
+        // Add upload options
+        if (uploadPassword.value) {
+            formData.append("password", uploadPassword.value);
         }
-      }
-    })
+        if (transferMessage.value) {
+            formData.append("message", transferMessage.value);
+        }
+        if (recipientEmail.value) {
+            formData.append("recipient_email", recipientEmail.value);
+        }
+        if (selectedValidity.value) {
+            formData.append("validity_hours", selectedValidity.value.toString());
+        }
 
-    shareableLink.value = response.data.link || 'https://pingo.sh/d/' + response.data.id
-    uploadSuccess.value = true
-    uploading.value = false
-    uploadedFiles.value = selectedFiles.value.length
+        const response = await axios.post(
+            "http://localhost:8080/upload",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    ...(isAuthenticated.value &&
+                    localStorage.getItem("auth_token")
+                        ? {
+                              Authorization: `Bearer ${localStorage.getItem(
+                                  "auth_token"
+                              )}`,
+                          }
+                        : {}),
+                },
+                withCredentials: true,
+                onUploadProgress: (progressEvent) => {
+                    if (progressEvent.total) {
+                        progress.value = Math.round(
+                            (progressEvent.loaded * 100) / progressEvent.total
+                        );
 
-  } catch (error) {
-    console.error('Upload error:', error)
-    uploadError.value = 'Upload failed. Please try again.'
-    uploading.value = false
-  }
-}
+                        // Calculate upload speed and time remaining
+                        const currentTime = Date.now();
+                        const timeElapsed = (currentTime - lastTime.value) / 1000; // seconds
+                        
+                        if (timeElapsed > 0.5) { // Update every 0.5 seconds
+                            const bytesUploaded = progressEvent.loaded - lastLoaded.value;
+                            const speed = bytesUploaded / timeElapsed; // bytes per second
+                            uploadSpeed.value = speed;
 
-const copyToClipboard = async () => {
-  try {
-    await navigator.clipboard.writeText(shareableLink.value)
-    copied.value = true
-    setTimeout(() => {
-      copied.value = false
-    }, 2000)
-  } catch (error) {
-    console.error('Copy failed:', error)
-  }
-}
+                            const remainingBytes = progressEvent.total - progressEvent.loaded;
+                            const remainingSeconds = remainingBytes / speed;
+                            estimatedTimeRemaining.value = remainingSeconds;
+                            
+                            if (remainingSeconds < 60) {
+                                timeRemaining.value = `${Math.ceil(remainingSeconds)}s remaining`;
+                            } else if (remainingSeconds < 3600) {
+                                timeRemaining.value = `${Math.ceil(remainingSeconds / 60)}m remaining`;
+                            } else {
+                                timeRemaining.value = `${Math.ceil(remainingSeconds / 3600)}h remaining`;
+                            }
 
-const resetUpload = () => {
-  selectedFiles.value = []
-  uploading.value = false
-  uploadSuccess.value = false
-  uploadProgress.value = 0
-  uploadError.value = ''
-  shareableLink.value = ''
-  copied.value = false
-  uploadPassword.value = ''
-  recipientEmail.value = ''
-  transferMessage.value = ''
-  uploadedFiles.value = 0
-  uploadedBytes.value = 0
-}
+                            lastLoaded.value = progressEvent.loaded;
+                            lastTime.value = currentTime;
+                        }
+                    }
+                },
+            }
+        );
 
-const toggleFaq = (index: number) => {
-  activeFaq.value = activeFaq.value === index ? null : index
-}
+        if (response.data.download_url) {
+            progress.value = 100;
+            uploadComplete.value = true;
 
-const scrollToUpload = () => {
-  const uploadSection = document.getElementById('upload-section')
-  uploadSection?.scrollIntoView({ behavior: 'smooth' })
-}
+            // Extract upload ID from download_url and create full URL
+            const uploadId = response.data.download_url.split("/").pop();
+            const fullUrl = `${window.location.origin}/download/${uploadId}`;
+            uploadedUrl.value = fullUrl;
+            uploadLink.value = fullUrl;
 
-const getExpirationText = (): string => {
-  const hours = parseInt(uploadValidity.value)
-  if (hours < 24) return `${hours} hours`
-  return `${hours / 24} days`
-}
+            message.value = {
+                text: "Files uploaded successfully!",
+                type: "success",
+            };
 
-const downloadQRCode = () => {
-  // QR code generation would be implemented here
-  console.log('Generate QR code for:', shareableLink.value)
-}
+            // Scroll to center the upload success section
+            setTimeout(() => {
+                uploadSection.value?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                });
+            }, 100);
 
-const shareViaEmail = () => {
-  const subject = encodeURIComponent('File Sharing Link')
-  const body = encodeURIComponent(`I've shared some files with you via PinGO:\n\n${shareableLink.value}`)
-  window.location.href = `mailto:?subject=${subject}&body=${body}`
-}
+            // Clean up preview URLs
+            previewUrls.value.forEach((url) => URL.revokeObjectURL(url));
+            previewUrls.value.clear();
+            textPreviews.value.clear();
+            previewingFiles.value.clear();
+        }
+    } catch (error) {
+        console.error("Upload error:", error);
+        message.value = {
+            text: "Upload failed. Please try again.",
+            type: "error",
+        };
+        progress.value = 0;
+    } finally {
+        isUploading.value = false;
 
-const animateStats = () => {
-  const duration = 2000
-  const steps = 60
-  const interval = duration / steps
-  
-  let currentStep = 0
-  const timer = setInterval(() => {
-    currentStep++
-    const progress = currentStep / steps
-    
-    animatedStats.value.files = Math.floor(10000000 * progress)
-    animatedStats.value.uptime = parseFloat((99.9 * progress).toFixed(1))
-    
-    if (currentStep >= steps) {
-      clearInterval(timer)
-      animatedStats.value.files = 10000000
-      animatedStats.value.uptime = 99.9
+        // Clear message after 5 seconds instead of 3
+        setTimeout(() => {
+            message.value = { text: "", type: "success" };
+            if (!isUploading.value) progress.value = 0;
+        }, 5000);
     }
-  }, interval)
-}
+};
 
-// Lifecycle Hooks
+// Action buttons for upload success
+const uploadNew = () => {
+    uploadComplete.value = false;
+    uploadedUrl.value = "";
+    selectedFiles.value = [];
+    progress.value = 0;
+    message.value = { text: "", type: "success" };
+
+    // Clean up any remaining preview URLs
+    previewUrls.value.forEach((url) => URL.revokeObjectURL(url));
+    previewUrls.value.clear();
+    textPreviews.value.clear();
+    previewingFiles.value.clear();
+};
+
+const copyLink = async () => {
+    try {
+        await navigator.clipboard.writeText(uploadLink.value);
+        copied.value = true;
+        setTimeout(() => {
+            copied.value = false;
+        }, 2000);
+    } catch (err) {
+        message.value = { text: "Failed to copy link", type: "error" };
+        setTimeout(() => {
+            message.value = { text: "", type: "success" };
+        }, 3000);
+    }
+};
+
+const loadSettings = async () => {
+    try {
+        const settings = await getSettings();
+        maxUploadSize.value = settings.maxUploadSize || 104857600;
+        maxAllowedValidity.value = settings.maxValidity || "7days";
+
+        // Filter validity options based on max allowed
+        const validityOrder = ["7days", "1month", "6months", "1year", "never"];
+        const maxIndex = validityOrder.indexOf(maxAllowedValidity.value);
+
+        if (maxIndex !== -1) {
+            const allowedOptions = validityOrder.slice(0, maxIndex + 1);
+            validityOptions.value = validityOptions.value.filter((option) =>
+                allowedOptions.includes(option.value)
+            );
+        }
+
+        // Set default validity to first available option
+        if (validityOptions.value.length > 0) {
+            selectedValidity.value = validityOptions.value[0].value;
+        }
+    } catch (error) {
+        console.error("Error loading settings:", error);
+    }
+};
+
 onMounted(() => {
-  animateStats()
-  
-  // Intersection Observer for scroll animations
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('animate-in')
-      }
-    })
-  }, { threshold: 0.1 })
-  
-  document.querySelectorAll('.feature-card-enhanced, .stat-card-large, .faq-item-card, .testimonial-card').forEach(el => {
-    observer.observe(el)
-  })
-})
+    // Scroll to top smoothly when page loads
+    loadSettings();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+onUnmounted(() => {
+    // Clean up preview URLs
+    previewUrls.value.forEach((url) => URL.revokeObjectURL(url));
+});
 </script>
 
 <style scoped>
-/* ==============================================
-   BASE STYLES & CSS VARIABLES
-   ============================================== */
-.home-page {
-  min-height: 100vh;
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-  color: #f8fafc;
-  position: relative;
-  overflow-x: hidden;
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
 }
 
-/* ==============================================
-   ANIMATED BACKGROUND
-   ============================================== */
-.animated-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-.gradient-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.3;
-  animation: float 20s infinite ease-in-out;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.3);
+    border-radius: 3px;
 }
 
-.orb-1 {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, #667eea 0%, #764ba2 100%);
-  top: -250px;
-  left: -250px;
-  animation-delay: 0s;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.5);
 }
 
-.orb-2 {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, #f093fb 0%, #f5576c 100%);
-  top: 30%;
-  right: -200px;
-  animation-delay: -7s;
-}
-
-.orb-3 {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, #4facfe 0%, #00f2fe 100%);
-  bottom: -300px;
-  left: 30%;
-  animation-delay: -14s;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  25% {
-    transform: translate(50px, -50px) scale(1.1);
-  }
-  50% {
-    transform: translate(-30px, 30px) scale(0.9);
-  }
-  75% {
-    transform: translate(30px, 50px) scale(1.05);
-  }
-}
-
-.gradient-mesh {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-              radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-              radial-gradient(ellipse at 20% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
-  opacity: 0.5;
-}
-
-.floating-particles {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-}
-
-.particle {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  animation: particle-float linear infinite;
-}
-
-@keyframes particle-float {
-  0% {
-    transform: translateY(0) translateX(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100vh) translateX(50px);
-    opacity: 0;
-  }
-}
-
-/* ==============================================
-   HERO SECTION
-   ============================================== */
-.hero-section {
-  position: relative;
-  z-index: 1;
-  padding: 8rem 2rem 6rem;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.announcement-banner {
-  display: inline-flex;
-  align-items: center;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 100px;
-  padding: 0.75rem 1.5rem;
-  margin: 0 auto 3rem;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.announcement-banner:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
-}
-
-.announcement-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 100px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.announcement-text {
-  color: #e2e8f0;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.announcement-cta {
-  background: transparent;
-  border: none;
-  color: #818cf8;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.announcement-cta:hover {
-  color: #a5b4fc;
-}
-
-.hero-content {
-  text-align: center;
-}
-
-.hero-title {
-  font-size: clamp(3rem, 8vw, 6rem);
-  font-weight: 900;
-  line-height: 1.1;
-  margin-bottom: 2rem;
-  letter-spacing: -0.02em;
-}
-
-.title-line {
-  display: block;
-  color: #f8fafc;
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradient-shift 8s ease infinite;
-  background-size: 200% 200%;
-}
-
-@keyframes gradient-shift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-.hero-subtitle {
-  font-size: clamp(1.125rem, 2vw, 1.5rem);
-  color: #cbd5e1;
-  max-width: 700px;
-  margin: 0 auto 4rem;
-  line-height: 1.6;
-  font-weight: 400;
-}
-
-.subtitle-highlight {
-  color: #a5b4fc;
-  font-weight: 600;
-}
-
-.hero-stats {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3rem;
-  flex-wrap: wrap;
-  margin-bottom: 4rem;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 24px;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.stat-number {
-  font-size: 2.5rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
-}
-
-.stat-divider {
-  width: 1px;
-  height: 40px;
-  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
-}
-
-.scroll-indicator {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 6rem;
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.mouse {
-  width: 26px;
-  height: 40px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 13px;
-  position: relative;
-}
-
-.wheel {
-  width: 4px;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 2px;
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  animation: scroll-wheel 1.5s infinite;
-}
-
-@keyframes scroll-wheel {
-  0% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(12px);
-  }
-}
-
-.arrow-container {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.arrow {
-  width: 12px;
-  height: 12px;
-  border-left: 2px solid rgba(255, 255, 255, 0.4);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
-  transform: rotate(-45deg);
-  animation: arrow-float 1.5s infinite;
-}
-
-.arrow:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.arrow:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes arrow-float {
-  0%, 100% {
-    opacity: 0;
-    transform: rotate(-45deg) translateY(-10px);
-  }
-  50% {
-    opacity: 1;
-    transform: rotate(-45deg) translateY(0);
-  }
-}
-
-/* ==============================================
-   UPLOAD SECTION
-   ============================================== */
-.upload-section {
-  position: relative;
-  z-index: 1;
-  padding: 6rem 2rem;
-  min-height: 100vh;
-}
-
-.upload-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.section-header-inline {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.section-title {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 800;
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.section-subtitle {
-  font-size: 1.25rem;
-  color: #94a3b8;
-  font-weight: 400;
-}
-
-.upload-zone-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-/* ==============================================
-   DROP ZONE
-   ============================================== */
-.upload-drop-zone {
-  position: relative;
-  border: 3px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 24px;
-  padding: 4rem 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  min-height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.upload-drop-zone:hover {
-  border-color: rgba(99, 102, 241, 0.5);
-  background: rgba(99, 102, 241, 0.05);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2);
-}
-
-.upload-drop-zone.dragging {
-  border-color: #667eea;
-  background: rgba(99, 102, 241, 0.1);
-  border-style: solid;
-  transform: scale(1.02);
-}
-
-.upload-drop-zone.has-files {
-  padding: 2rem;
-  min-height: auto;
-}
-
-.upload-drop-zone.upload-error {
-  border-color: rgba(239, 68, 68, 0.5);
-  background: rgba(239, 68, 68, 0.05);
-}
-
-.file-input-hidden {
-  display: none;
-}
-
-/* Empty State */
-.drop-zone-empty {
-  text-align: center;
-  width: 100%;
-}
-
-.upload-icon-container {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 2rem;
-}
-
-.icon-background {
-  width: 120px;
-  height: 120px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  animation: icon-pulse 2s ease-in-out infinite;
-}
-
-@keyframes icon-pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 20px rgba(99, 102, 241, 0);
-  }
-}
-
-.upload-icon {
-  width: 60px;
-  height: 60px;
-  color: white;
-  stroke-width: 2.5;
-}
-
-.icon-pulse {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  border: 2px solid #667eea;
-  border-radius: 50%;
-  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse-ring {
-  0% {
-    transform: translate(-50%, -50%) scale(0.95);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.5);
-    opacity: 0;
-  }
-}
-
-.drop-zone-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 0.75rem;
-}
-
-.drop-zone-subtitle {
-  font-size: 1.125rem;
-  color: #94a3b8;
-  margin-bottom: 2rem;
-}
-
-.drop-zone-features {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.feature-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 100px;
-  font-size: 0.875rem;
-  color: #cbd5e1;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.feature-badge:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.badge-icon {
-  width: 16px;
-  height: 16px;
-  color: #818cf8;
-}
-
-/* ==============================================
-   FILE LIST
-   ============================================== */
-.file-list-container {
-  width: 100%;
-}
-
-.file-list-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.file-count-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.125rem;
-  color: white;
-}
-
-.file-list-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #f8fafc;
-}
-
-.file-total-size {
-  color: #94a3b8;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.clear-all-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 12px;
-  color: #fca5a5;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.clear-all-button:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.5);
-  transform: translateY(-2px);
-}
-
-.button-icon {
-  width: 16px;
-  height: 16px;
-}
-
-.file-list-scrollable {
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-.file-list-scrollable::-webkit-scrollbar {
-  width: 8px;
-}
-
-.file-list-scrollable::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-}
-
-.file-list-scrollable::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
-
-.file-list-scrollable::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.file-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  margin-bottom: 0.75rem;
-  transition: all 0.3s ease;
-}
-
-.file-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateX(4px);
-}
-
-.file-item-error {
-  border-color: rgba(239, 68, 68, 0.5);
-  background: rgba(239, 68, 68, 0.05);
-}
-
-.file-icon-wrapper {
-  position: relative;
-}
-
-.file-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.625rem;
-  letter-spacing: 0.5px;
-  color: white;
-}
-
-.file-type-image {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.file-type-video {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.file-type-audio {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.file-type-document {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-}
-
-.file-type-code {
-  background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-}
-
-.file-type-other {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.file-extension {
-  display: block;
-}
-
-.file-error-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  background: #ef4444;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: white;
-  border: 2px solid #0f172a;
-}
-
-.file-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.file-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #f8fafc;
-  margin-bottom: 0.25rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.file-meta {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.file-size {
-  font-size: 0.8125rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.file-error-text {
-  font-size: 0.8125rem;
-  color: #fca5a5;
-  font-weight: 500;
-}
-
-.file-remove-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-
-.file-remove-button:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.4);
-  transform: scale(1.1);
-}
-
-.remove-icon {
-  width: 18px;
-  height: 18px;
-  color: #fca5a5;
-}
-
-.add-more-section {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.add-more-button {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  color: #cbd5e1;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  width: 100%;
-  justify-content: center;
-}
-
-.add-more-button:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(99, 102, 241, 0.5);
-  color: #a5b4fc;
-  transform: translateY(-2px);
-}
-
-/* ==============================================
-   UPLOAD OPTIONS PANEL
-   ============================================== */
-.upload-options-panel {
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-}
-
-.options-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 2rem;
-}
-
-.options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.option-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.option-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #cbd5e1;
-  letter-spacing: 0.3px;
-}
-
-.option-icon {
-  width: 18px;
-  height: 18px;
-  color: #818cf8;
-}
-
-.option-select,
-.option-input,
-.option-textarea {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: #f8fafc;
-  font-size: 0.9375rem;
-  font-family: inherit;
-  transition: all 0.3s ease;
-}
-
-.option-select:focus,
-.option-input:focus,
-.option-textarea:focus {
-  outline: none;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.option-select {
-  cursor: pointer;
-}
-
-.option-textarea {
-  resize: vertical;
-  min-height: 100px;
-  font-family: inherit;
-}
-
-.password-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-input-wrapper .option-input {
-  padding-right: 3rem;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 0.75rem;
-  width: 36px;
-  height: 36px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.password-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.toggle-icon {
-  width: 20px;
-  height: 20px;
-  color: #94a3b8;
-}
-
-.option-help {
-  font-size: 0.8125rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-/* ==============================================
-   UPLOAD ACTION BUTTON
-   ============================================== */
-.upload-action-section {
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.upload-main-button {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1.25rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 16px;
-  color: white;
-  font-size: 1.125rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.upload-main-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.upload-main-button:hover::before {
-  left: 100%;
-}
-
-.upload-main-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.4);
-}
-
-.upload-main-button:active {
-  transform: translateY(0);
-}
-
-.upload-main-button .button-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.button-content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
-}
-
-.button-text {
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-}
-
-.button-subtext {
-  font-size: 0.8125rem;
-  opacity: 0.9;
-  font-weight: 500;
-}
-
-/* ==============================================
-   UPLOAD PROGRESS STATE
-   ============================================== */
-.upload-progress-state {
-  padding: 3rem 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-}
-
-.progress-header-section {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.progress-main-title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #f8fafc;
-  margin-bottom: 0.75rem;
-}
-
-.progress-main-subtitle {
-  font-size: 1rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.progress-visual-container {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 3rem;
-  align-items: center;
-  margin-bottom: 3rem;
-}
-
-/* Circular Progress */
-.progress-circle-wrapper {
-  position: relative;
-  width: 250px;
-  height: 250px;
-  margin: 0 auto;
-}
-
-.progress-circle-svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.progress-circle-track {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.1);
-  stroke-width: 12;
-}
-
-.progress-circle-indicator {
-  fill: none;
-  stroke: url(#progressGradient);
-  stroke-width: 12;
-  stroke-linecap: round;
-  stroke-dasharray: 534.07;
-  transition: stroke-dashoffset 0.3s ease;
-  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
-}
-
-.progress-center-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.progress-percentage-large {
-  font-size: 3.5rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1;
-  margin-bottom: 0.5rem;
-}
-
-.progress-status-text {
-  font-size: 1rem;
-  color: #94a3b8;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Progress Stats Grid */
-.progress-stats-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.progress-stat-card {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-}
-
-.progress-stat-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateX(8px);
-}
-
-.stat-card-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-card-icon svg {
-  width: 28px;
-  height: 28px;
-  color: white;
-}
-
-.stat-card-content {
-  flex: 1;
-}
-
-.stat-card-label {
-  font-size: 0.875rem;
-  color: #94a3b8;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.stat-card-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #f8fafc;
-}
-
-/* Linear Progress Bar */
-.progress-bar-section {
-  margin-bottom: 3rem;
-}
-
-.progress-bar-track {
-  width: 100%;
-  height: 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 100px;
-  overflow: hidden;
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.progress-bar-indicator {
-  height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  border-radius: 100px;
-  transition: width 0.3s ease;
-  position: relative;
-}
-
-.progress-bar-glow {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100px;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
-  animation: progress-glow 1.5s ease-in-out infinite;
-}
-
-@keyframes progress-glow {
-  0% {
-    transform: translateX(-100px);
-  }
-  100% {
-    transform: translateX(100px);
-  }
-}
-
-.progress-bar-labels {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.progress-label {
-  font-size: 0.875rem;
-  color: #94a3b8;
-  font-weight: 600;
-}
-
-/* File Progress List */
-.file-progress-list {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 1.5rem;
-}
-
-.file-progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #cbd5e1;
-}
-
-.file-progress-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.file-progress-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.875rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.file-progress-row.completed {
-  border-color: rgba(34, 197, 94, 0.3);
-  background: rgba(34, 197, 94, 0.05);
-}
-
-.file-progress-row.active {
-  border-color: rgba(99, 102, 241, 0.5);
-  background: rgba(99, 102, 241, 0.05);
-  animation: pulse-border 2s ease-in-out infinite;
-}
-
-@keyframes pulse-border {
-  0%, 100% {
-    border-color: rgba(99, 102, 241, 0.3);
-  }
-  50% {
-    border-color: rgba(99, 102, 241, 0.6);
-  }
-}
-
-.file-progress-status-icon {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-}
-
-.status-icon-check {
-  width: 100%;
-  height: 100%;
-  color: #22c55e;
-}
-
-.status-icon-loading {
-  width: 100%;
-  height: 100%;
-  color: #818cf8;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.status-icon-pending {
-  width: 100%;
-  height: 100%;
-  color: #64748b;
-}
-
-.file-progress-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.file-progress-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #f8fafc;
-  margin-bottom: 0.25rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.file-progress-size {
-  font-size: 0.8125rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-/* ==============================================
-   SUCCESS STATE
-   ============================================== */
-.success-state-container {
-  padding: 4rem 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Success Animation */
-.success-animation-wrapper {
-  position: relative;
-  margin-bottom: 2rem;
-  display: inline-block;
-}
-
-.success-checkmark-circle {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 2;
-}
-
-.checkmark-svg {
-  width: 100%;
-  height: 100%;
-}
-
-.checkmark-circle-bg {
-  fill: none;
-  stroke: #22c55e;
-  stroke-width: 4;
-  stroke-dasharray: 283;
-  stroke-dashoffset: 283;
-  animation: checkmark-circle 0.6s ease-out forwards;
-}
-
-@keyframes checkmark-circle {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-.checkmark-path {
-  fill: none;
-  stroke: #22c55e;
-  stroke-width: 6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 70;
-  stroke-dashoffset: 70;
-  animation: checkmark-path 0.4s 0.6s ease-out forwards;
-}
-
-@keyframes checkmark-path {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* Confetti */
-.success-confetti {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.confetti-piece {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  opacity: 0;
-  animation: confetti-fall 2s ease-out forwards;
-}
-
-@keyframes confetti-fall {
-  0% {
-    opacity: 1;
-    transform: translate(0, 0) rotate(0deg);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--x), var(--y)) rotate(720deg);
-  }
-}
-
-.success-main-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #f8fafc;
-  margin-bottom: 0.75rem;
-}
-
-.success-main-subtitle {
-  font-size: 1.125rem;
-  color: #94a3b8;
-  margin-bottom: 3rem;
-  font-weight: 500;
-}
-
-/* Share Link Section */
-.share-link-section {
-  max-width: 700px;
-  margin: 0 auto 3rem;
-  text-align: left;
-}
-
-.share-link-label {
-  display: block;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #cbd5e1;
-  margin-bottom: 0.75rem;
-  letter-spacing: 0.3px;
-}
-
-.share-link-input-wrapper {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-}
-
-.share-link-input-field {
-  flex: 1;
-  padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: #f8fafc;
-  font-size: 0.9375rem;
-  font-family: 'Monaco', 'Courier New', monospace;
-  transition: all 0.3s ease;
-}
-
-.share-link-input-field:focus {
-  outline: none;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.copy-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.copy-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
-}
-
-.copy-button.copied {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-}
-
-.copy-icon {
-  width: 18px;
-  height: 18px;
-}
-
-/* Transfer Info Grid */
-.transfer-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.info-item-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.info-item-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.info-icon {
-  width: 36px;
-  height: 36px;
-  color: #818cf8;
-  flex-shrink: 0;
-}
-
-.info-label {
-  font-size: 0.75rem;
-  color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.25rem;
-}
-
-.info-value {
-  font-size: 0.9375rem;
-  color: #f8fafc;
-  font-weight: 600;
-}
-
-/* Quick Actions Grid */
-.success-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 1rem;
-  max-width: 700px;
-  margin: 0 auto 3rem;
-}
-
-.success-action-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.success-action-button.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.success-action-button.primary:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);
-}
-
-.success-action-button.secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
-}
-
-.success-action-button.secondary:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.action-icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* Uploaded Files Summary */
-.uploaded-files-summary {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-}
-
-.summary-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 1.5rem;
-}
-
-.summary-file-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.summary-file-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.875rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-}
-
-.summary-file-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.625rem;
-  letter-spacing: 0.5px;
-  color: white;
-  flex-shrink: 0;
-}
-
-.summary-file-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.summary-file-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #f8fafc;
-  margin-bottom: 0.25rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.summary-file-size {
-  font-size: 0.8125rem;
-  color: #94a3b8;
-}
-
-.summary-file-status {
-  flex-shrink: 0;
-}
-
-.status-check {
-  width: 28px;
-  height: 28px;
-  color: #22c55e;
-}
-
-/* ==============================================
-   FEATURES SECTION
-   ============================================== */
-.features-section {
-  position: relative;
-  z-index: 1;
-  padding: 6rem 2rem;
-}
-
-.features-container {
-  max-width: 1400px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.section-header-center {
-  text-align: center;
-  margin-bottom: 4rem;
-}
-
-.section-tag {
-  display: inline-block;
-  padding: 0.5rem 1.25rem;
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 100px;
-  color: #a5b4fc;
-  font-size: 0.875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 1.5rem;
-}
-
-.section-title-large {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 900;
-  color: #f8fafc;
-  margin-bottom: 1rem;
-  line-height: 1.1;
-}
-
-.section-subtitle-large {
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  color: #94a3b8;
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-.features-grid-large {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-}
-
-.feature-card-enhanced {
-  padding: 2.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  transition: all 0.4s ease;
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-.feature-card-enhanced.animate-in {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.feature-card-enhanced:hover {
-  transform: translateY(-12px);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 30px 80px rgba(99, 102, 241, 0.3);
-}
-
-.feature-icon-container {
-  position: relative;
-  margin-bottom: 2rem;
-  width: 80px;
-  height: 80px;
-}
-
-.feature-icon-bg {
-  position: absolute;
-  inset: 0;
-  border-radius: 20px;
-  opacity: 0.15;
-}
-
-.feature-icon-svg {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  padding: 1.25rem;
-  color: white;
-  filter: drop-shadow(0 4px 12px rgba(99, 102, 241, 0.3));
-}
-
-.feature-card-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 1rem;
-}
-
-.feature-card-description {
-  font-size: 1rem;
-  color: #94a3b8;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-}
-
-.feature-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-}
-
-.feature-list-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9375rem;
-  color: #cbd5e1;
-  font-weight: 500;
-}
-
-.list-check {
-  width: 20px;
-  height: 20px;
-  color: #22c55e;
-  flex-shrink: 0;
-}
-
-/* ==============================================
-   STATS SECTION
-   ============================================== */
-.stats-section-large {
-  position: relative;
-  z-index: 1;
-  padding: 6rem 2rem;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.stats-container-large {
-  max-width: 1400px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.stats-grid-large {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-}
-
-.stat-card-large {
-  padding: 3rem 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  text-align: center;
-  transition: all 0.4s ease;
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-.stat-card-large.animate-in {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.stat-card-large:hover {
-  transform: translateY(-8px);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2);
-}
-
-.stat-icon-wrapper {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-icon-svg {
-  width: 40px;
-  height: 40px;
-  color: white;
-}
-
-.stat-number-animated {
-  font-size: 3.5rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1;
-  margin-bottom: 0.75rem;
-}
-
-.stat-label-large {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #cbd5e1;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 0.75rem;
-}
-
-.stat-description {
-  font-size: 0.9375rem;
-  color: #64748b;
-  line-height: 1.5;
-}
-
-/* ==============================================
-   FAQ SECTION
-   ============================================== */
-.faq-section {
-  position: relative;
-  z-index: 1;
-  padding: 6rem 2rem;
-}
-
-.faq-container {
-  max-width: 1000px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.faq-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.faq-item-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 1.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-.faq-item-card.animate-in {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.faq-item-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.faq-item-card.active {
-  background: rgba(99, 102, 241, 0.05);
-  border-color: rgba(99, 102, 241, 0.3);
-}
-
-.faq-question-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.faq-number {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: white;
-  font-size: 0.875rem;
-  flex-shrink: 0;
-}
-
-.faq-question-text {
-  flex: 1;
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #f8fafc;
-}
-
-.faq-toggle-icon {
-  width: 24px;
-  height: 24px;
-  color: #94a3b8;
-  transition: transform 0.3s ease;
-  flex-shrink: 0;
-}
-
-.faq-item-card.active .faq-toggle-icon {
-  transform: rotate(180deg);
-  color: #818cf8;
-}
-
-.faq-answer-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease, padding 0.3s ease;
-}
-
-.faq-item-card.active .faq-answer-content {
-  max-height: 500px;
-  padding-top: 1rem;
-  padding-left: 56px;
-}
-
-.faq-answer-content p {
-  font-size: 1rem;
-  color: #94a3b8;
-  line-height: 1.7;
-  margin: 0;
-}
-
-/* ==============================================
-   TESTIMONIALS SECTION
-   ============================================== */
-.testimonials-section {
-  position: relative;
-  z-index: 1;
-  padding: 6rem 2rem;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.testimonials-container {
-  max-width: 1400px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.testimonials-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-}
-
-.testimonial-card {
-  padding: 2.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  transition: all 0.4s ease;
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-.testimonial-card.animate-in {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.testimonial-card:hover {
-  transform: translateY(-8px);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2);
-}
-
-.testimonial-rating {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.star-icon {
-  width: 20px;
-  height: 20px;
-  color: #fbbf24;
-}
-
-.testimonial-quote {
-  font-size: 1.125rem;
-  color: #cbd5e1;
-  line-height: 1.7;
-  margin-bottom: 2rem;
-  font-style: italic;
-}
-
-.testimonial-author {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.author-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: white;
-  flex-shrink: 0;
-}
-
-.author-info {
-  flex: 1;
-}
-
-.author-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 0.25rem;
-}
-
-.author-role {
-  font-size: 0.875rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-/* ==============================================
-   CTA SECTION
-   ============================================== */
-.cta-section {
-  position: relative;
-  z-index: 1;
-  padding: 8rem 2rem;
-}
-
-.cta-container {
-  max-width: 1000px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.cta-content {
-  text-align: center;
-  padding: 5rem 3rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 32px;
-  position: relative;
-  overflow: hidden;
-}
-
-.cta-content::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
-  animation: cta-glow 8s ease-in-out infinite;
-}
-
-@keyframes cta-glow {
-  0%, 100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(20%, 20%);
-  }
-}
-
-.cta-title {
-  position: relative;
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 900;
-  color: #f8fafc;
-  margin-bottom: 1.5rem;
-  line-height: 1.1;
-}
-
-.cta-subtitle {
-  position: relative;
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  color: #94a3b8;
-  margin-bottom: 3rem;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.6;
-}
-
-.cta-buttons {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 3rem;
-}
-
-.cta-button {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem 2.5rem;
-  border-radius: 16px;
-  font-size: 1.125rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.cta-button.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.cta-button.primary:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.4);
-}
-
-.cta-button.secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  color: #cbd5e1;
-}
-
-.cta-button.secondary:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.cta-features {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.cta-feature {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9375rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.feature-check {
-  width: 20px;
-  height: 20px;
-  color: #22c55e;
-}
-
-/* ==============================================
-   FOOTER
-   ============================================== */
-.footer {
-  position: relative;
-  z-index: 1;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 4rem 2rem 2rem;
-}
-
-.footer-container {
-  max-width: 1400px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.footer-top {
-  display: grid;
-  grid-template-columns: 1.5fr 2fr;
-  gap: 4rem;
-  margin-bottom: 3rem;
-  padding-bottom: 3rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.footer-brand-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.footer-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.logo-icon {
-  width: 40px;
-  height: 40px;
-  color: #818cf8;
-}
-
-.logo-text {
-  font-size: 1.75rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.footer-description {
-  font-size: 0.9375rem;
-  color: #94a3b8;
-  line-height: 1.6;
-  max-width: 350px;
-}
-
-.social-links {
-  display: flex;
-  gap: 1rem;
-}
-
-.social-link {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.social-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(99, 102, 241, 0.5);
-  transform: translateY(-4px);
-}
-
-.social-link svg {
-  width: 20px;
-  height: 20px;
-  color: #cbd5e1;
-}
-
-.footer-links-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 3rem;
-}
-
-.footer-column-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 1.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.footer-links-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.footer-link {
-  font-size: 0.9375rem;
-  color: #94a3b8;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  display: inline-block;
-}
-
-.footer-link:hover {
-  color: #a5b4fc;
-  transform: translateX(4px);
-}
-
-.footer-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 2rem;
-}
-
-.footer-copyright {
-  font-size: 0.875rem;
-  color: #64748b;
-}
-
-.footer-badges {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.badge-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.badge-icon {
-  width: 16px;
-  height: 16px;
-  color: #818cf8;
-}
-
-/* ==============================================
-   RESPONSIVE DESIGN
-   ============================================== */
-@media (max-width: 1024px) {
-  .progress-visual-container {
-    grid-template-columns: 1fr;
-  }
-  
-  .footer-top {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-  }
-  
-  .footer-links-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .hero-section {
-    padding: 6rem 1.5rem 4rem;
-    min-height: auto;
-  }
-  
-  .hero-stats {
-    flex-direction: column;
-    gap: 2rem;
-  }
-  
-  .stat-divider {
-    display: none;
-  }
-  
-  .upload-section {
-    padding: 4rem 1.5rem;
-  }
-  
-  .upload-drop-zone {
-    padding: 3rem 1.5rem;
-    min-height: 350px;
-  }
-  
-  .features-grid-large,
-  .testimonials-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .stats-grid-large {
-    grid-template-columns: 1fr;
-  }
-  
-  .cta-content {
-    padding: 3rem 2rem;
-  }
-  
-  .cta-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .cta-button {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .footer-links-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-  
-  .footer-bottom {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-@media (max-width: 640px) {
-  .upload-options-panel {
-    padding: 1.5rem;
-  }
-  
-  .options-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .transfer-info-grid,
-  .success-actions-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .share-link-input-wrapper {
-    flex-direction: column;
-  }
-  
-  .copy-button {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* ==============================================
-   UTILITY & ANIMATION CLASSES
-   ============================================== */
-.animate-in {
-  animation: fadeInUp 0.6s ease-out forwards;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Smooth Scrolling */
+/* Smooth scrolling */
 html {
-  scroll-behavior: smooth;
+    scroll-behavior: smooth;
 }
 
-/* Selection Colors */
-::selection {
-  background: rgba(99, 102, 241, 0.3);
-  color: #f8fafc;
+/* Fade in up animation */
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Focus Styles */
-*:focus-visible {
-  outline: 2px solid #667eea;
-  outline-offset: 2px;
+/* Slide down animation */
+@keyframes slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Slide in from left */
+@keyframes slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Scale in animation */
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Pulse animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* Bounce animation */
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Spin animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Float animation */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Glow animation */
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6);
+    }
+}
+
+/* Animation classes */
+.animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out;
+}
+
+.animate-slide-down {
+    animation: slide-down 0.4s ease-out;
+}
+
+.animate-slide-in-left {
+    animation: slide-in-left 0.5s ease-out;
+    animation-fill-mode: both;
+}
+
+.animate-scale-in {
+    animation: scale-in 0.5s ease-out;
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+    animation: bounce 1s infinite;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+    animation: glow 2s ease-in-out infinite;
 }
 </style>

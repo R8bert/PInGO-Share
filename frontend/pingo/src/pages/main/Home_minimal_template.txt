@@ -1,0 +1,72 @@
+<template>
+    <div class="min-h-screen flex items-center justify-center p-6" :class="isDark ? 'bg-black text-white' : 'bg-white text-black'">
+        <div class="w-full max-w-2xl space-y-12">
+            <div class="text-center space-y-3">
+                <h1 class="text-4xl font-light tracking-tight">Share files securely</h1>
+                <p class="text-sm opacity-50">End-to-end encrypted • Open source • No tracking</p>
+            </div>
+
+            <div ref="uploadSection" class="space-y-6">
+                <div v-if="!uploadComplete" @drop.prevent="onDrop" @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false" @click="triggerFileInput" class="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors" :class="[isDragging ? 'border-opacity-100 bg-opacity-5' : 'border-opacity-20', isDark ? 'border-white hover:border-opacity-40' : 'border-black hover:border-opacity-40']">
+                    <CloudArrowUpIcon class="w-12 h-12 mx-auto mb-4 opacity-30" />
+                    <p class="text-lg font-light mb-2">{{ isDragging ? 'Drop files here' : 'Click to upload or drag files' }}</p>
+                    <p class="text-sm opacity-40">Max {{ formatFileSize(maxUploadSize) }} • Expires in {{ selectedValidity.replace(/(\d+)(\w+)/, '$1 $2') }}</p>
+                </div>
+
+                <div v-if="selectedFiles.length > 0 && !uploadComplete" class="space-y-2">
+                    <div v-for="(file, index) in selectedFiles" :key="index" class="border rounded-lg p-4" :class="isDark ? 'border-white/10 bg-white/5' : 'border-black/10 bg-black/5'">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium truncate">{{ file.name }}</p>
+                                <p class="text-sm opacity-50 mt-1">{{ formatFileSize(file.size) }}</p>
+                                <button v-if="canPreview(file)" @click.stop="togglePreview(index)" class="text-sm opacity-50 hover:opacity-100 mt-2 transition-opacity">{{ previewingFiles.has(index) ? 'Hide preview' : 'Show preview' }}</button>
+                            </div>
+                            <button @click.stop="removeFile(index)" class="p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors"><XMarkIcon class="w-5 h-5" /></button>
+                        </div>
+                        <div v-if="previewingFiles.has(index)" class="mt-4 pt-4 border-t" :class="isDark ? 'border-white/10' : 'border-black/10'">
+                            <img v-if="previewUrls.has(index) && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name)" :src="previewUrls.get(index)" class="max-w-full h-auto rounded-lg" />
+                            <video v-else-if="previewUrls.has(index) && /\.(mp4|webm|ogg)$/i.test(file.name)" :src="previewUrls.get(index)" controls class="max-w-full h-auto rounded-lg" />
+                            <audio v-else-if="previewUrls.has(index) && /\.(mp3|wav|ogg|m4a)$/i.test(file.name)" :src="previewUrls.get(index)" controls class="w-full" />
+                            <pre v-else-if="textPreviews.has(index)" class="text-xs p-4 rounded-lg overflow-x-auto" :class="isDark ? 'bg-white/5' : 'bg-black/5'">{{ textPreviews.get(index) }}</pre>
+                        </div>
+                    </div>
+                    <button @click="triggerFileInput" class="w-full border border-dashed rounded-lg p-4 text-sm opacity-50 hover:opacity-100 transition-opacity" :class="isDark ? 'border-white/20' : 'border-black/20'">Add more files</button>
+                </div>
+
+                <div v-if="selectedFiles.length > 0 && !uploadComplete" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <input v-model="uploadPassword" :type="showPassword ? 'text' : 'password'" placeholder="Password (optional)" class="w-full px-4 py-3 rounded-lg border bg-transparent outline-none focus:border-opacity-100 transition-colors" :class="isDark ? 'border-white/20 focus:border-white/40' : 'border-black/20 focus:border-black/40'" />
+                            <button @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100"><EyeIcon v-if="!showPassword" class="w-5 h-5" /><EyeSlashIcon v-else class="w-5 h-5" /></button>
+                        </div>
+                        <select v-model="selectedValidity" class="w-full px-4 py-3 rounded-lg border bg-transparent outline-none focus:border-opacity-100 transition-colors appearance-none cursor-pointer" :class="isDark ? 'border-white/20 focus:border-white/40' : 'border-black/20 focus:border-black/40'"><option v-for="option in validityOptions" :key="option.value" :value="option.value">Expires: {{ option.label }}</option></select>
+                    </div>
+                    <input v-model="recipientEmail" type="email" placeholder="Recipient email (optional)" class="w-full px-4 py-3 rounded-lg border bg-transparent outline-none focus:border-opacity-100 transition-colors" :class="isDark ? 'border-white/20 focus:border-white/40' : 'border-black/20 focus:border-black/40'" />
+                    <textarea v-model="transferMessage" placeholder="Add a message (optional)" rows="3" class="w-full px-4 py-3 rounded-lg border bg-transparent outline-none focus:border-opacity-100 transition-colors resize-none" :class="isDark ? 'border-white/20 focus:border-white/40' : 'border-black/20 focus:border-black/40'"></textarea>
+                    <button @click="uploadFiles" :disabled="isUploading" class="w-full px-6 py-4 rounded-lg font-medium transition-opacity disabled:opacity-50" :class="isDark ? 'bg-white text-black hover:opacity-90' : 'bg-black text-white hover:opacity-90'">{{ isUploading ? 'Uploading...' : 'Upload' }}</button>
+                    <div v-if="isUploading" class="space-y-3">
+                        <div class="h-1 rounded-full overflow-hidden" :class="isDark ? 'bg-white/10' : 'bg-black/10'"><div class="h-full transition-all duration-300" :class="isDark ? 'bg-white' : 'bg-black'" :style="{ width: progress + '%' }"></div></div>
+                        <div class="flex justify-between text-sm opacity-50"><span>{{ uploadSpeed }}</span><span>{{ timeRemaining }}</span></div>
+                    </div>
+                </div>
+
+                <div v-if="uploadComplete" class="text-center space-y-6 py-12">
+                    <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center" :class="isDark ? 'bg-white/10' : 'bg-black/10'"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>
+                    <div><h3 class="text-2xl font-light mb-2">Upload complete</h3><p class="text-sm opacity-50">Share this link with anyone</p></div>
+                    <div class="flex gap-2"><input :value="uploadedUrl" readonly class="flex-1 px-4 py-3 rounded-lg border bg-transparent outline-none" :class="isDark ? 'border-white/20' : 'border-black/20'" /><button @click="copyLink" class="px-6 py-3 rounded-lg font-medium" :class="isDark ? 'bg-white text-black hover:opacity-90' : 'bg-black text-white hover:opacity-90'">Copy</button></div>
+                    <button @click="uploadNew" class="text-sm opacity-50 hover:opacity-100 transition-opacity">Upload another file</button>
+                </div>
+
+                <div v-if="message.text" class="p-4 rounded-lg text-center" :class="message.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'">{{ message.text }}</div>
+            </div>
+
+            <div ref="featuresSection" class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12">
+                <div class="text-center space-y-2"><div class="text-3xl mb-3">🔒</div><h3 class="font-medium">End-to-end encrypted</h3><p class="text-sm opacity-50">Your files are secure and private</p></div>
+                <div class="text-center space-y-2"><div class="text-3xl mb-3">⚡</div><h3 class="font-medium">Lightning fast</h3><p class="text-sm opacity-50">Direct peer-to-peer transfer</p></div>
+                <div class="text-center space-y-2"><div class="text-3xl mb-3">🌐</div><h3 class="font-medium">Open source</h3><p class="text-sm opacity-50">Transparent and community-driven</p></div>
+            </div>
+        </div>
+
+        <input ref="fileInput" type="file" multiple @change="onFileChange" class="hidden" />
+    </div>
+</template>

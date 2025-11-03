@@ -1,325 +1,429 @@
 <template>
-  <!-- Windows XP Desktop Background -->
-  <div class="xp-account-page" :class="{ 'theme-dark': isDark }">
-    <div class="xp-account-container">
-      
-      <!-- XP Window - User Profile -->
-      <div class="xp-window user-profile-window">
-        <!-- Title Bar -->
-        <div class="xp-title-bar">
-          <div class="title-bar-left">
-            <svg class="title-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="5" r="3" fill="white"/>
-              <path d="M2 14C2 10 4 8 8 8C12 8 14 10 14 14" fill="white"/>
-            </svg>
-            <span class="title-text">User Account - {{ user?.username }}</span>
+  <div class="min-h-screen pt-20 transition-colors duration-300"
+       :style="{ backgroundColor: isDark ? '#0a0a0a' : '#f8fafc' }">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Header Section -->
+      <div class="text-center mb-12">
+        <div class="relative inline-block mb-6">
+          <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg from-blue-500 to-indigo-600 flex items-center justify-center">
+            <img 
+              v-if="user?.avatar" 
+              :src="getAssetUrl(user.avatar)" 
+              :alt="user.username"
+              class="w-full h-full object-cover"
+              @error="handleAvatarError"
+            />
+            <UserIcon v-else class="w-12 h-12 text-white" />
           </div>
-          <div class="title-bar-buttons">
-            <button class="title-btn minimize" title="Minimize">
-              <span></span>
-            </button>
-            <button class="title-btn maximize" title="Maximize">
-              <svg width="10" height="10" viewBox="0 0 10 10">
-                <rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor"/>
-              </svg>
-            </button>
-            <button class="title-btn close" title="Close" @click="$router.push('/')">
-              <svg width="10" height="10" viewBox="0 0 10 10">
-                <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="2"/>
-              </svg>
-            </button>
+          <button 
+            @click="openAvatarUpload"
+            class="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg transition-colors"
+            title="Change avatar"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </button>
+          <input 
+            ref="avatarInput" 
+            type="file" 
+            accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" 
+            @change="handleAvatarUpload" 
+            class="hidden"
+          />
+        </div>
+        <p class="text-xl mb-4 transition-colors duration-300"
+           :style="{ color: isDark ? '#e5e7eb' : '#4b5563' }">{{ user?.username }}</p>
+        <div class="inline-flex items-center space-x-4 text-sm transition-colors duration-300"
+             :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+          <span class="flex items-center">
+            <CalendarIcon class="w-4 h-4 mr-1" />
+            Member since {{ formatDate(user?.created_at) }}
+          </span>
+          <span v-if="isAdmin" class="flex items-center text-blue-600">
+            <ShieldCheckIcon class="w-4 h-4 mr-1" />
+            Administrator
+          </span>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="rounded-2xl p-6 border shadow-sm hover:shadow-md transition-all duration-300"
+             :style="{ 
+               backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+               borderColor: isDark ? '#374151' : '#e5e7eb'
+             }">
+          <div class="flex items-center">
+            <div class="p-3 rounded-xl transition-colors duration-300"
+                 :style="{ backgroundColor: isDark ? '#1e3a8a' : '#dbeafe' }">
+              <CloudArrowUpIcon class="w-6 h-6 transition-colors duration-300"
+                                :style="{ color: isDark ? '#60a5fa' : '#2563eb' }" />
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium transition-colors duration-300"
+                 :style="{ color: isDark ? '#9ca3af' : '#4b5563' }">Total Uploads</p>
+              <p class="text-2xl font-bold transition-colors duration-300"
+                 :style="{ color: isDark ? '#f9fafb' : '#111827' }">{{ uploads.length }}</p>
+            </div>
           </div>
         </div>
 
-        <!-- Window Content -->
-        <div class="xp-window-content">
-          <!-- User Info Header -->
-          <div class="xp-user-header">
-            <div class="user-avatar-section">
-              <div class="avatar-frame">
-                <img 
-                  v-if="user?.avatar" 
-                  :src="getAssetUrl(user.avatar)" 
-                  :alt="user.username"
-                  class="avatar-image"
-                  @error="handleAvatarError"
-                />
-                <UserIcon v-else class="avatar-placeholder" />
-                <button 
-                  @click="openAvatarUpload"
-                  class="xp-button avatar-change-btn"
-                  title="Change avatar"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  </svg>
-                  Change
-                </button>
-                <input 
-                  ref="avatarInput" 
-                  type="file" 
-                  accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" 
-                  @change="handleAvatarUpload" 
-                  class="hidden"
-                />
-              </div>
-              <div class="user-info">
-                <h2 class="username">{{ user?.username }}</h2>
-                <div class="user-meta">
-                  <span class="meta-item">
-                    <CalendarIcon class="meta-icon" />
-                    Member since {{ formatDate(user?.created_at) }}
-                  </span>
-                  <span v-if="isAdmin" class="meta-item admin-badge">
-                    <ShieldCheckIcon class="meta-icon" />
-                    Administrator
-                  </span>
-                </div>
-              </div>
+        <div class="rounded-2xl p-6 border shadow-sm hover:shadow-md transition-all duration-300"
+             :style="{ 
+               backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+               borderColor: isDark ? '#374151' : '#e5e7eb'
+             }">
+          <div class="flex items-center">
+            <div class="p-3 rounded-xl transition-colors duration-300"
+                 :style="{ backgroundColor: isDark ? '#059669' : '#dcfce7' }">
+              <ArchiveBoxIcon class="w-6 h-6 transition-colors duration-300"
+                              :style="{ color: isDark ? '#34d399' : '#16a34a' }" />
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium transition-colors duration-300"
+                 :style="{ color: isDark ? '#9ca3af' : '#4b5563' }">Total Size</p>
+              <p class="text-2xl font-bold transition-colors duration-300"
+                 :style="{ color: isDark ? '#f9fafb' : '#111827' }">{{ formatTotalSize() }}</p>
             </div>
           </div>
+        </div>
 
-          <!-- Stats Group Box -->
-          <div class="xp-group-box">
-            <div class="group-box-title">Account Statistics</div>
-            <div class="stats-grid">
-              <!-- Total Uploads -->
-              <div class="stat-item">
-                <div class="stat-icon uploads">
-                  <CloudArrowUpIcon class="icon" />
-                </div>
-                <div class="stat-info">
-                  <div class="stat-label">Total Uploads</div>
-                  <div class="stat-value">{{ uploads.length }}</div>
-                </div>
-              </div>
-
-              <!-- Total Size -->
-              <div class="stat-item">
-                <div class="stat-icon size">
-                  <ArchiveBoxIcon class="icon" />
-                </div>
-                <div class="stat-info">
-                  <div class="stat-label">Total Size</div>
-                  <div class="stat-value">{{ formatTotalSize() }}</div>
-                </div>
-              </div>
-
-              <!-- Active Files -->
-              <div class="stat-item">
-                <div class="stat-icon active">
-                  <ClockIcon class="icon" />
-                </div>
-                <div class="stat-info">
-                  <div class="stat-label">Active Files</div>
-                  <div class="stat-value">{{ activeUploads.length }}</div>
-                </div>
-              </div>
+        <div class="rounded-2xl p-6 border shadow-sm hover:shadow-md transition-all duration-300"
+             :style="{ 
+               backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+               borderColor: isDark ? '#374151' : '#e5e7eb'
+             }">
+          <div class="flex items-center">
+            <div class="p-3 rounded-xl transition-colors duration-300"
+                 :style="{ backgroundColor: isDark ? '#7c3aed' : '#f3e8ff' }">
+              <ClockIcon class="w-6 h-6 transition-colors duration-300"
+                         :style="{ color: isDark ? '#a78bfa' : '#7c3aed' }" />
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium transition-colors duration-300"
+                 :style="{ color: isDark ? '#9ca3af' : '#4b5563' }">Active Files</p>
+              <p class="text-2xl font-bold transition-colors duration-300"
+                 :style="{ color: isDark ? '#f9fafb' : '#111827' }">{{ activeUploads.length }}</p>
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- XP Tab Control -->
-          <div class="xp-tab-control">
-            <!-- Tab Headers -->
-            <div class="xp-tab-headers">
-              <button
-                @click="activeTab = 'uploads'"
-                class="xp-tab"
-                :class="{ 'active': activeTab === 'uploads' }"
-              >
-                <FolderIcon class="tab-icon" />
+      <!-- Main Content Tabs -->
+      <div class="rounded-2xl border shadow-sm transition-all duration-300"
+           :style="{ 
+             backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+             borderColor: isDark ? '#374151' : '#e5e7eb'
+           }">
+        <!-- Tab Navigation -->
+        <div class="border-b transition-colors duration-300"
+             :style="{ borderColor: isDark ? '#374151' : '#e5e7eb' }">
+          <nav class="flex space-x-4 sm:space-x-8 px-4 sm:px-6 overflow-x-auto scrollbar-hide">
+            <button
+              @click="activeTab = 'uploads'"
+              class="py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-300 whitespace-nowrap flex-shrink-0"
+              :style="{
+                borderBottomColor: activeTab === 'uploads' ? '#3b82f6' : 'transparent',
+                color: activeTab === 'uploads' 
+                  ? '#3b82f6' 
+                  : (isDark ? '#9ca3af' : '#6b7280')
+              }"
+            >
+              <div class="flex items-center space-x-1 sm:space-x-2">
+                <FolderIcon class="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>My Uploads</span>
-              </button>
-              <button
-                @click="activeTab = 'reverse'"
-                class="xp-tab"
-                :class="{ 'active': activeTab === 'reverse' }"
-              >
-                <ShareIcon class="tab-icon" />
+              </div>
+            </button>
+            <button
+              @click="activeTab = 'reverse'"
+              class="py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-300 whitespace-nowrap flex-shrink-0"
+              :style="{
+                borderBottomColor: activeTab === 'reverse' ? '#10b981' : 'transparent',
+                color: activeTab === 'reverse' 
+                  ? '#10b981' 
+                  : (isDark ? '#9ca3af' : '#6b7280')
+              }"
+            >
+              <div class="flex items-center space-x-1 sm:space-x-2">
+                <ShareIcon class="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Reverse Share</span>
-              </button>
-              <button
-                v-if="isAdmin"
-                @click="activeTab = 'statistics'"
-                class="xp-tab"
-                :class="{ 'active': activeTab === 'statistics' }"
-              >
-                <ChartBarIcon class="tab-icon" />
+              </div>
+            </button>
+            <button
+              v-if="isAdmin"
+              @click="activeTab = 'statistics'"
+              class="py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-300 whitespace-nowrap flex-shrink-0"
+              :style="{
+                borderBottomColor: activeTab === 'statistics' ? '#8b5cf6' : 'transparent',
+                color: activeTab === 'statistics' 
+                  ? '#8b5cf6' 
+                  : (isDark ? '#9ca3af' : '#6b7280')
+              }"
+            >
+              <div class="flex items-center space-x-1 sm:space-x-2">
+                <ChartBarIcon class="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Statistics</span>
-              </button>
-              <button
-                v-if="isAdmin"
-                @click="activeTab = 'users'"
-                class="xp-tab"
-                :class="{ 'active': activeTab === 'users' }"
-              >
-                <UsersIcon class="tab-icon" />
+              </div>
+            </button>
+            <button
+              v-if="isAdmin"
+              @click="activeTab = 'users'"
+              class="py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-300 whitespace-nowrap flex-shrink-0"
+              :style="{
+                borderBottomColor: activeTab === 'users' ? '#f59e0b' : 'transparent',
+                color: activeTab === 'users' 
+                  ? '#f59e0b' 
+                  : (isDark ? '#9ca3af' : '#6b7280')
+              }"
+            >
+              <div class="flex items-center space-x-2">
+                <UsersIcon class="w-4 h-4" />
                 <span>Users</span>
-              </button>
-              <button
-                v-if="isAdmin"
-                @click="activeTab = 'settings'"
-                class="xp-tab"
-                :class="{ 'active': activeTab === 'settings' }"
-              >
-                <CogIcon class="tab-icon" />
+              </div>
+            </button>
+            <button
+              v-if="isAdmin"
+              @click="activeTab = 'settings'"
+              class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-300"
+              :style="{
+                borderBottomColor: activeTab === 'settings' ? '#3b82f6' : 'transparent',
+                color: activeTab === 'settings' 
+                  ? '#3b82f6' 
+                  : (isDark ? '#9ca3af' : '#6b7280')
+              }"
+            >
+              <div class="flex items-center space-x-2">
+                <CogIcon class="w-4 h-4" />
                 <span>Settings</span>
-              </button>
-            </div>
-
-            <!-- Tab Content Area -->
-            <div class="xp-tab-content">
-              <!-- Uploads Tab -->
-              <div v-if="activeTab === 'uploads'">
-                <UploadsTab
-                  :uploads="uploads"
-                  :is-loading="isLoading"
-                  :show-expiration-dropdown="showExpirationDropdown"
-                  @copy-to-clipboard="copyToClipboard"
-                  @toggle-availability="toggleAvailability"
-                  @change-expiration="changeExpiration"
-                  @toggle-expiration-dropdown="toggleExpirationDropdown"
-                  @delete-upload="handleDeleteUpload"
-                />
               </div>
+            </button>
+          </nav>
+        </div>
 
-              <!-- Reverse Share Tab -->
-              <div v-if="activeTab === 'reverse'">
-                <ReverseShareTab
-                  :reverse-tokens="reverseTokens"
-                  :is-loading="isLoading"
-                  @create-reverse-token="createReverseToken"
-                  @delete-reverse-token="deleteReverseToken"
-                  @copy-to-clipboard="copyToClipboard"
-                />
-              </div>
+        <!-- Tab Content -->
+        <div class="p-6">
+          <!-- Uploads Tab -->
+          <div v-if="activeTab === 'uploads'">
+            <UploadsTab
+              :uploads="uploads"
+              :is-loading="isLoading"
+              :show-expiration-dropdown="showExpirationDropdown"
+              @copy-to-clipboard="copyToClipboard"
+              @toggle-availability="toggleAvailability"
+              @change-expiration="changeExpiration"
+              @toggle-expiration-dropdown="toggleExpirationDropdown"
+              @delete-upload="handleDeleteUpload"
+            />
+          </div>
 
-              <!-- Statistics Tab -->
-              <div v-if="activeTab === 'statistics' && isAdmin">
-                <StatisticsTab
-                  :admin-stats="adminStats"
-                  :is-loading="isLoadingAdminSettings"
-                />
-              </div>
+          <!-- Reverse Share Tab -->
+          <div v-if="activeTab === 'reverse'">
+            <ReverseShareTab
+              :reverse-tokens="reverseTokens"
+              :is-loading="isLoading"
+              @create-reverse-token="createReverseToken"
+              @delete-reverse-token="deleteReverseToken"
+              @copy-to-clipboard="copyToClipboard"
+            />
+          </div>
 
-              <!-- Users Tab -->
-              <div v-if="activeTab === 'users' && isAdmin">
-                <UsersTab
-                  :admin-users="adminUsers"
-                  :is-loading="isLoadingAdminSettings"
-                  @toggle-user-block="toggleUserBlock"
-                />
-              </div>
+          <!-- Statistics Tab -->
+          <div v-if="activeTab === 'statistics' && isAdmin">
+            <StatisticsTab
+              :admin-stats="adminStats"
+              :is-loading="isLoadingAdminSettings"
+            />
+          </div>
 
-              <!-- Settings Tab -->
-              <div v-if="activeTab === 'settings' && isAdmin">
-                <SettingsTab
-                  :is-admin="isAdmin"
-                  @settings-updated="fetchAdminData"
-                />
-              </div>
-            </div> <!-- Close xp-tab-content -->
-          </div> <!-- Close xp-tab-control -->
-        </div> <!-- Close xp-window-content -->
-      </div> <!-- Close xp-window -->
+          <!-- Users Tab -->
+          <div v-if="activeTab === 'users' && isAdmin">
+            <UsersTab
+              :admin-users="adminUsers"
+              :is-loading="isLoadingAdminSettings"
+              @toggle-user-block="toggleUserBlock"
+            />
+          </div>
 
-    <!-- XP Window - Success Toast -->
+          <!-- Settings Tab -->
+          <div v-if="activeTab === 'settings' && isAdmin">
+            <SettingsTab
+              :is-admin="isAdmin"
+              @settings-updated="fetchAdminData"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Message for Copy -->
     <div
       v-if="showCopySuccess"
-      class="xp-toast"
+      class="fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300"
+      :style="{ 
+        backgroundColor: isDark ? '#059669' : '#10b981',
+        color: '#ffffff'
+      }"
     >
-      <div class="toast-content">
-        <ClipboardDocumentIcon class="toast-icon" />
+      <div class="flex items-center">
+        <ClipboardDocumentIcon class="w-5 h-5 mr-2" />
         {{ successMessage }}
       </div>
     </div>
+  </div>
 
-    <!-- Avatar Upload Dialog - XP Style -->
+  <!-- Avatar Upload Dialog -->
   <div v-if="showAvatarDialog" 
-       class="xp-modal-overlay"
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-dialog-backdrop"
        @click="closeAvatarDialog">
-    <div class="xp-dialog">
-      <!-- Title Bar -->
-      <div class="xp-title-bar">
-        <div class="title-bar-left">
-          <svg class="title-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-          </svg>
-          <span class="title-text">Choose Avatar</span>
-        </div>
-        <div class="title-bar-buttons">
-          <button class="title-btn close" @click="closeAvatarDialog">
-            <svg width="10" height="10" viewBox="0 0 10 10">
-              <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-        </div>
-      </div>
+    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300"></div>
+    
+    <div class="relative bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-dialog-content"
+         :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }"
+         @click.stop>
+      
+      <!-- Close button -->
+      <button @click="closeAvatarDialog" 
+              class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200"
+              :style="{ 
+                backgroundColor: isDark ? '#374151' : '#f3f4f6',
+                color: isDark ? '#9ca3af' : '#6b7280'
+              }">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
 
       <!-- Dialog content -->
-      <div class="xp-dialog-content" @click.stop>
-        <div class="dialog-message">
-          <h2>Choose your avatar</h2>
-          <p>Select a PNG, JPG or GIF image</p>
+      <div class="text-center">
+        <!-- Animated avatar icon -->
+        <div class="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center animate-avatar-pulse"
+             :style="{ backgroundColor: isDark ? '#3b82f6' : '#60a5fa' }">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2-2H5a2 2 0 01-2-2V9z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
         </div>
 
-        <div class="dialog-buttons">
-          <button @click="openAvatarUpload" class="xp-button primary">
-            Browse Files
+        <!-- Animated title -->
+        <h2 class="text-3xl font-bold mb-2 animate-slide-up"
+            :style="{ color: isDark ? '#ffffff' : '#1a1a1a' }">
+          Choose your avatar
+        </h2>
+
+        <!-- Animated file types with text reveal loop -->
+        <p class="text-lg mb-8 animate-slide-up-delay flex items-center justify-center"
+           :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+          Supported formats: 
+          <span class="inline-block relative h-8 w-24 overflow-hidden ml-2">
+            <span 
+              v-for="(format, index) in fileFormats" 
+              :key="format"
+              class="absolute inset-0 flex items-center justify-start text-transparent bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 bg-clip-text font-semibold transition-all duration-700 ease-in-out"
+              :class="{
+                'animate-text-reveal-in': currentFileFormat === index,
+                'animate-text-reveal-out': currentFileFormat !== index
+              }"
+              :style="{
+                transform: currentFileFormat === index ? 'translateY(0)' : 'translateY(100%)',
+                opacity: currentFileFormat === index ? 1 : 0
+              }"
+            >
+              {{ format }}
+            </span>
+          </span>
+        </p>
+
+        <!-- Action buttons -->
+        <div class="space-y-3">
+          <button @click="selectAvatarFile"
+                  class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold transition-all duration-200 hover:scale-105 animate-slide-up-delay-2">
+            Select Avatar
           </button>
-          <button @click="closeAvatarDialog" class="xp-button">
+          
+          <button @click="closeAvatarDialog"
+                  class="w-full py-3 px-6 border border-gray-300 dark:border-gray-600 rounded-2xl font-medium transition-all duration-200 hover:scale-105 animate-slide-up-delay-3"
+                  :style="{ 
+                    color: isDark ? '#9ca3af' : '#6b7280',
+                    borderColor: isDark ? '#4b5563' : '#d1d5db'
+                  }">
             Cancel
           </button>
         </div>
+
+        <!-- Additional info -->
+        <p class="text-sm mt-4 animate-slide-up-delay-4"
+           :style="{ color: isDark ? '#6b7280' : '#9ca3af' }">
+          Maximum file size: 5MB
+        </p>
       </div>
     </div>
   </div>
 
-  <!-- Delete Confirmation Dialog - XP Style -->
+  <!-- Delete Confirmation Dialog -->
   <div v-if="showDeleteDialog" 
-       class="xp-modal-overlay"
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-dialog-backdrop"
        @click="cancelDelete">
-    <div class="xp-dialog small">
-      <!-- Title Bar -->
-      <div class="xp-title-bar">
-        <div class="title-bar-left">
-          <svg class="title-icon" width="16" height="16" viewBox="0 0 16 16" fill="red">
-            <path d="M8 1L1 15H15L8 1Z"/>
-            <text x="8" y="12" text-anchor="middle" fill="white" font-size="10" font-weight="bold">!</text>
-          </svg>
-          <span class="title-text">Confirm Delete</span>
-        </div>
-        <div class="title-bar-buttons">
-          <button class="title-btn close" @click="cancelDelete">
-            <svg width="10" height="10" viewBox="0 0 10 10">
-              <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-        </div>
-      </div>
+    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300"></div>
+    
+    <div class="relative bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-dialog-content"
+         :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }"
+         @click.stop>
+      
+      <!-- Close button -->
+      <button @click="cancelDelete" 
+              class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200"
+              :style="{ 
+                backgroundColor: isDark ? '#374151' : '#f3f4f6',
+                color: isDark ? '#9ca3af' : '#6b7280'
+              }">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
 
       <!-- Dialog content -->
-      <div class="xp-dialog-content" @click.stop>
-        <div class="dialog-message">
-          <h2>Delete Upload?</h2>
-          <p>Are you sure you want to delete this upload? This action cannot be undone.</p>
+      <div class="text-center">
+        <!-- Animated warning icon -->
+        <div class="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center animate-pulse"
+             :style="{ backgroundColor: isDark ? '#dc2626' : '#fca5a5' }">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
         </div>
 
-        <div class="dialog-buttons">
-          <button @click="confirmDelete" class="xp-button danger">
-            Yes, Delete
+        <!-- Title -->
+        <h2 class="text-3xl font-bold mb-4"
+            :style="{ color: isDark ? '#ffffff' : '#1a1a1a' }">
+          Delete Upload
+        </h2>
+
+        <!-- Message -->
+        <p class="text-lg mb-8"
+           :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
+          Are you sure you want to delete this upload? The files will be marked as deleted but remain visible in your list.
+        </p>
+
+        <!-- Action buttons -->
+        <div class="space-y-3">
+          <button @click="confirmDelete"
+                  class="w-full py-4 px-6 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-semibold transition-all duration-200 hover:scale-105">
+            Yes, Delete Upload
           </button>
-          <button @click="cancelDelete" class="xp-button">
+          
+          <button @click="cancelDelete"
+                  class="w-full py-3 px-6 border border-gray-300 dark:border-gray-600 rounded-2xl font-medium transition-all duration-200 hover:scale-105"
+                  :style="{ 
+                    color: isDark ? '#9ca3af' : '#6b7280',
+                    borderColor: isDark ? '#4b5563' : '#d1d5db'
+                  }">
             Cancel
           </button>
         </div>
       </div>
     </div>
   </div>
-  
-  </div> <!-- Close xp-account-container -->
-  </div> <!-- Close xp-account-page -->
 </template>
 
 <script setup lang="ts">
@@ -792,6 +896,12 @@ const closeAvatarDialog = () => {
   stopFileFormatAnimation()
 }
 
+const selectAvatarFile = () => {
+  showAvatarDialog.value = false
+  stopFileFormatAnimation()
+  avatarInput.value?.click()
+}
+
 // File format animation
 let formatInterval: number | null = null
 
@@ -892,718 +1002,6 @@ const handleAvatarUpload = async (event: Event) => {
 </script>
 
 <style scoped>
-/* ============================================================================
-   WINDOWS XP ACCOUNT PAGE - RETRO STYLING
-   Authentic Windows XP Luna theme for user account management
-   ============================================================================ */
-
-/* Main Page Container */
-.xp-account-page {
-  min-height: 100vh;
-  background: linear-gradient(to bottom, 
-    #5a8fd5 0%,
-    #6b9ddb 10%,
-    #a4d3ee 25%,
-    #b8e2f5 35%,
-    #96c9dc 50%,
-    #8ab9d0 60%,
-    #76a9d5 75%,
-    #6698c7 85%,
-    #5a8fd5 100%
-  );
-  background-attachment: fixed;
-  padding: 40px 20px;
-  padding-bottom: 60px; /* Space for taskbar */
-  font-family: 'Tahoma', 'Segoe UI', sans-serif;
-}
-
-.xp-account-page.theme-dark {
-  background: linear-gradient(to bottom, 
-    #1a1a2e 0%,
-    #16213e 50%,
-    #0f3460 100%
-  );
-}
-
-.xp-account-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* ============================================================================
-   XP WINDOW STYLING
-   ============================================================================ */
-
-.xp-window {
-  background: #ece9d8;
-  border: 3px solid;
-  border-color: #0054e3 #003db3 #003db3 #0054e3;
-  border-radius: 8px 8px 0 0;
-  box-shadow: 
-    0 0 0 1px #87ceeb inset,
-    4px 4px 12px rgba(0, 0, 0, 0.4);
-  margin-bottom: 20px;
-  overflow: hidden;
-}
-
-.xp-window.user-profile-window {
-  min-height: 600px;
-}
-
-/* Title Bar */
-.xp-title-bar {
-  height: 30px;
-  background: linear-gradient(to bottom,
-    #0054e3 0%,
-    #0054e3 100%
-  );
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 6px 0 8px;
-  border-bottom: 1px solid #003db3;
-}
-
-.title-bar-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.title-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.title-text {
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: bold;
-  font-family: 'Tahoma', sans-serif;
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-}
-
-.title-bar-buttons {
-  display: flex;
-  gap: 2px;
-}
-
-.title-btn {
-  width: 21px;
-  height: 21px;
-  border: 1px solid;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: none;
-}
-
-.title-btn.minimize {
-  background: linear-gradient(to bottom, #3d95ff 0%, #0054e3 100%);
-  border-color: #87ceeb #003db3 #003db3 #87ceeb;
-}
-
-.title-btn.minimize span {
-  width: 8px;
-  height: 2px;
-  background: #000;
-  display: block;
-}
-
-.title-btn.maximize {
-  background: linear-gradient(to bottom, #3d95ff 0%, #0054e3 100%);
-  border-color: #87ceeb #003db3 #003db3 #87ceeb;
-  color: #000;
-}
-
-.title-btn.close {
-  background: linear-gradient(to bottom, #ff6b6b 0%, #ee5050 100%);
-  border-color: #ff9999 #cc3333 #cc3333 #ff9999;
-  color: #ffffff;
-}
-
-.title-btn:hover {
-  filter: brightness(1.1);
-}
-
-.title-btn:active {
-  filter: brightness(0.9);
-}
-
-/* Window Content */
-.xp-window-content {
-  padding: 16px;
-  background: #ece9d8;
-}
-
-.theme-dark .xp-window {
-  background: #2d2d2d;
-  border-color: #1a4d8f #0d2a5c #0d2a5c #1a4d8f;
-}
-
-.theme-dark .xp-window-content {
-  background: #2d2d2d;
-}
-
-/* ============================================================================
-   USER HEADER SECTION
-   ============================================================================ */
-
-.xp-user-header {
-  background: #ffffff;
-  border: 2px solid;
-  border-color: #7f9db9 #ffffff #ffffff #7f9db9;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.user-avatar-section {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.avatar-frame {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.avatar-frame img,
-.avatar-frame svg {
-  width: 96px;
-  height: 96px;
-  border: 3px solid;
-  border-color: #003db3 #87ceeb #87ceeb #003db3;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-}
-
-.avatar-placeholder {
-  width: 96px;
-  height: 96px;
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  color: white;
-  padding: 20px;
-}
-
-.avatar-change-btn {
-  margin-top: 8px;
-  font-size: 10px;
-  padding: 4px 12px !important;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.username {
-  font-size: 18px;
-  font-weight: bold;
-  color: #003db3;
-  margin: 0 0 8px 0;
-  font-family: 'Tahoma', sans-serif;
-}
-
-.user-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: #000000;
-}
-
-.meta-icon {
-  width: 14px;
-  height: 14px;
-}
-
-.admin-badge {
-  color: #c00000;
-  font-weight: bold;
-}
-
-.theme-dark .xp-user-header {
-  background: #1a1a1a;
-  border-color: #444 #666 #666 #444;
-}
-
-.theme-dark .username {
-  color: #4a9eff;
-}
-
-.theme-dark .meta-item {
-  color: #cccccc;
-}
-
-/* ============================================================================
-   GROUP BOX (STATS)
-   ============================================================================ */
-
-.xp-group-box {
-  border: 2px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  padding: 16px;
-  margin-bottom: 16px;
-  position: relative;
-  background: #f0f0f0;
-}
-
-.group-box-title {
-  position: absolute;
-  top: -10px;
-  left: 12px;
-  background: #ece9d8;
-  padding: 0 6px;
-  font-size: 11px;
-  font-weight: bold;
-  color: #000000;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #ffffff;
-  border: 1px solid;
-  border-color: #7f9db9 #ffffff #ffffff #7f9db9;
-}
-
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-icon.uploads {
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-}
-
-.stat-icon.size {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-}
-
-.stat-icon.active {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-}
-
-.stat-icon .icon {
-  width: 24px;
-  height: 24px;
-  color: #ffffff;
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-label {
-  font-size: 10px;
-  color: #666666;
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: bold;
-  color: #000000;
-}
-
-.theme-dark .xp-group-box {
-  background: #2d2d2d;
-  border-color: #444 #666 #666 #444;
-}
-
-.theme-dark .group-box-title {
-  background: #2d2d2d;
-  color: #ffffff;
-}
-
-.theme-dark .stat-item {
-  background: #1a1a1a;
-  border-color: #444 #666 #666 #444;
-}
-
-.theme-dark .stat-label {
-  color: #999999;
-}
-
-.theme-dark .stat-value {
-  color: #ffffff;
-}
-
-/* ============================================================================
-   XP TAB CONTROL
-   ============================================================================ */
-
-.xp-tab-control {
-  border: 2px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  background: #ece9d8;
-}
-
-.xp-tab-headers {
-  display: flex;
-  gap: 2px;
-  padding: 4px 4px 0 4px;
-  background: #ece9d8;
-  overflow-x: auto;
-}
-
-.xp-tab {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 16px 8px;
-  background: #d4d0c8;
-  border: 2px solid;
-  border-color: #ffffff #7f9db9 transparent #ffffff;
-  border-radius: 4px 4px 0 0;
-  font-size: 11px;
-  font-family: 'Tahoma', sans-serif;
-  color: #000000;
-  cursor: pointer;
-  transition: none;
-  white-space: nowrap;
-}
-
-.xp-tab:hover {
-  background: #e0ddd7;
-}
-
-.xp-tab.active {
-  background: #ffffff;
-  border-bottom-color: #ffffff;
-  margin-bottom: -2px;
-  padding-bottom: 10px;
-  font-weight: bold;
-}
-
-.tab-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.xp-tab-content {
-  background: #ffffff;
-  border-top: 2px solid #7f9db9;
-  padding: 16px;
-  min-height: 400px;
-}
-
-.theme-dark .xp-tab-control {
-  background: #2d2d2d;
-  border-color: #444 #666 #666 #444;
-}
-
-.xp-tab-headers {
-  background: #2d2d2d;
-}
-
-.theme-dark .xp-tab {
-  background: #1a1a1a;
-  border-color: #444 #000 transparent #444;
-  color: #cccccc;
-}
-
-.theme-dark .xp-tab:hover {
-  background: #333333;
-}
-
-.theme-dark .xp-tab.active {
-  background: #2d2d2d;
-  border-bottom-color: #2d2d2d;
-  color: #ffffff;
-}
-
-.theme-dark .xp-tab-content {
-  background: #2d2d2d;
-  border-top-color: #444;
-}
-
-/* ============================================================================
-   XP BUTTONS
-   ============================================================================ */
-
-.xp-button {
-  padding: 6px 16px;
-  background: linear-gradient(to bottom,
-    #ffffff 0%,
-    #ece9d8 100%
-  );
-  border: 2px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  border-radius: 3px;
-  font-size: 11px;
-  font-family: 'Tahoma', sans-serif;
-  font-weight: normal;
-  color: #000000;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: none;
-}
-
-.xp-button:hover {
-  background: linear-gradient(to bottom,
-    #ffffef 0%,
-    #f5f2e8 100%
-  );
-  border-color: #f5f2e8 #6f8dad #6f8dad #f5f2e8;
-}
-
-.xp-button:active {
-  background: linear-gradient(to bottom,
-    #d4d0c8 0%,
-    #ece9d8 100%
-  );
-  border-color: #7f9db9 #ffffff #ffffff #7f9db9;
-  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.xp-button.primary {
-  background: linear-gradient(to bottom,
-    #3d95ff 0%,
-    #0054e3 100%
-  );
-  border-color: #87ceeb #003db3 #003db3 #87ceeb;
-  color: #ffffff;
-  font-weight: bold;
-}
-
-.xp-button.primary:hover {
-  background: linear-gradient(to bottom,
-    #5aa5ff 0%,
-    #1a64f3 100%
-  );
-}
-
-.xp-button.danger {
-  background: linear-gradient(to bottom,
-    #ff6b6b 0%,
-    #ee5050 100%
-  );
-  border-color: #ff9999 #cc3333 #cc3333 #ff9999;
-  color: #ffffff;
-  font-weight: bold;
-}
-
-.theme-dark .xp-button {
-  background: linear-gradient(to bottom, #3d3d3d 0%, #2d2d2d 100%);
-  border-color: #555 #111 #111 #555;
-  color: #cccccc;
-}
-
-.theme-dark .xp-button:hover {
-  background: linear-gradient(to bottom, #4d4d4d 0%, #3d3d3d 100%);
-}
-
-/* ============================================================================
-   TOAST NOTIFICATIONS
-   ============================================================================ */
-
-.xp-toast {
-  position: fixed;
-  bottom: 60px;
-  right: 20px;
-  z-index: 10000;
-  animation: toast-slide-in 0.3s ease-out;
-}
-
-.toast-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
-  background: linear-gradient(to bottom,
-    #3d95ff 0%,
-    #0054e3 100%
-  );
-  border: 2px solid;
-  border-color: #87ceeb #003db3 #003db3 #87ceeb;
-  border-radius: 4px;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: bold;
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.toast-icon {
-  width: 20px;
-  height: 20px;
-}
-
-@keyframes toast-slide-in {
-  from {
-    transform: translateX(400px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* ============================================================================
-   XP MODAL & DIALOGS
-   ============================================================================ */
-
-.xp-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10001;
-  padding: 20px;
-  animation: fade-in 0.2s ease-out;
-}
-
-.xp-dialog {
-  background: #ece9d8;
-  border: 3px solid;
-  border-color: #0054e3 #003db3 #003db3 #0054e3;
-  border-radius: 8px 8px 0 0;
-  box-shadow: 
-    0 0 0 1px #87ceeb inset,
-    4px 4px 16px rgba(0, 0, 0, 0.5);
-  width: 100%;
-  max-width: 450px;
-  animation: dialog-bounce 0.3s ease-out;
-}
-
-.xp-dialog.small {
-  max-width: 350px;
-}
-
-.xp-dialog-content {
-  padding: 20px;
-}
-
-.dialog-message h2 {
-  font-size: 14px;
-  font-weight: bold;
-  color: #003db3;
-  margin: 0 0 12px 0;
-}
-
-.dialog-message p {
-  font-size: 11px;
-  color: #000000;
-  margin: 0 0 20px 0;
-  line-height: 1.5;
-}
-
-.dialog-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.dialog-buttons .xp-button {
-  min-width: 80px;
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes dialog-bounce {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.theme-dark .xp-dialog {
-  background: #2d2d2d;
-}
-
-.theme-dark .xp-dialog-content {
-  background: #2d2d2d;
-}
-
-.theme-dark .dialog-message h2 {
-  color: #4a9eff;
-}
-
-.theme-dark .dialog-message p {
-  color: #cccccc;
-}
-
-/* ============================================================================
-   RESPONSIVE DESIGN
-   ============================================================================ */
-
-@media (max-width: 768px) {
-  .xp-account-page {
-    padding: 20px 10px 60px;
-  }
-
-  .xp-tab-headers {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .xp-tab {
-    font-size: 10px;
-    padding: 5px 12px 7px;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .user-avatar-section {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .dialog-buttons {
-    flex-direction: column;
-  }
-
-  .dialog-buttons .xp-button {
-    width: 100%;
-  }
-}
-
-/* Hide utility classes */
-.hidden {
-  display: none;
-}
-
 /* Dialog animations */
 @keyframes dialog-backdrop {
   from { opacity: 0; }

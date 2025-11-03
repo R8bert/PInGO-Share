@@ -83,7 +83,7 @@ pub async fn run_migrations(pool: &Pool<Postgres>) -> Result<(), sqlx::Error> {
             theme VARCHAR(50) DEFAULT 'light',
             logo_path VARCHAR(500),
             background_path VARCHAR(500),
-            navbar_title VARCHAR(255) DEFAULT 'PInGO Share',
+            navbar_title VARCHAR(255) DEFAULT 'RootDrop',
             max_upload_size BIGINT DEFAULT 104857600,
             upload_box_transparency INTEGER DEFAULT 0,
             blur_intensity INTEGER DEFAULT 0,
