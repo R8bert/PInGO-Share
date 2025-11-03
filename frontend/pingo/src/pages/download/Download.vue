@@ -383,7 +383,7 @@ const previewingFiles = ref<Set<number>>(new Set())
 // Methods
 const fetchFiles = async () => {
   try {
-    const response = await axios.get(`/files/${route.params.id}`)
+    const response = await axios.get(getApiUrl(`files/${route.params.id}`))
     files.value = response.data.files || []
     uploader.value = response.data.uploader || null
     loading.value = false
