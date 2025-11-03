@@ -1,6 +1,62 @@
 use sqlx::{Pool, Postgres};
 
 pub async fn run_migrations(pool: &Pool<Postgres>) -> Result<(), sqlx::Error> {
+    // Fix timestamp columns to use TIMESTAMP WITH TIME ZONE
+    // This handles the case where tables were created by Go backend without timezone
+    log::info!("Fixing timestamp columns...");
+    
+    // Fix users table
+    sqlx::query("ALTER TABLE users ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok(); // Ignore error if already correct type
+
+    // Fix settings table
+    sqlx::query("ALTER TABLE settings ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok();
+
+    // Fix uploads table
+    sqlx::query("ALTER TABLE uploads ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok();
+    sqlx::query("ALTER TABLE uploads ALTER COLUMN expires_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok();
+    sqlx::query("ALTER TABLE uploads ALTER COLUMN deleted_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok();
+
+    // Fix reverse_share_tokens table
+    sqlx::query("ALTER TABLE reverse_share_tokens ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok();
+    sqlx::query("ALTER TABLE reverse_share_tokens ALTER COLUMN expires_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok();
+
+    // Fix deletion_logs table
+    sqlx::query("ALTER TABLE deletion_logs ALTER COLUMN uploaded_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok();
+    sqlx::query("ALTER TABLE deletion_logs ALTER COLUMN deleted_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok();
+    sqlx::query("ALTER TABLE deletion_logs ALTER COLUMN expires_at TYPE TIMESTAMP WITH TIME ZONE")
+        .execute(pool)
+        .await
+        .ok();
+
+    log::info!("Timestamp columns fixed");
+
     // Users table
     sqlx::query(
         r#"

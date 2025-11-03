@@ -1,6 +1,5 @@
 use actix_multipart::Multipart;
 use actix_web::{error, web, Error, HttpRequest, HttpResponse};
-use chrono::Utc;
 use futures_util::StreamExt;
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
@@ -46,7 +45,11 @@ pub async fn update_settings(
     while let Some(item) = payload.next().await {
         let mut field = item.map_err(error::ErrorBadRequest)?;
         let content_disposition = field.content_disposition();
-        let field_name = content_disposition.get_name().unwrap_or("").to_string();
+        let field_name = content_disposition
+            .as_ref()
+            .and_then(|cd| cd.get_name())
+            .unwrap_or("")
+            .to_string();
 
         if field_name == "logo" {
             let mut data = Vec::new();

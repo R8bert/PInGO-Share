@@ -15,6 +15,7 @@
             <span class="brand-name">{{ navbarTitle }}</span>
           </div>
         </router-link>
+      </div>
 
       <!-- Right Side -->
       <div class="navbar-actions">
@@ -135,22 +136,21 @@ const { settings } = useSettings()
 
 // State
 const isMenuOpen = ref(false)
-const logoPath = ref<string>('')
+const isMobileMenuOpen = ref(false)
+const isScrolled = ref(false)
 const navbarTitle = ref('PinGO')
 
 // Methods
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
 
 const handleLogout = async () => {
   await logout()
   router.push('/auth')
   isMenuOpen.value = false
-}
-
-const handleImageError = () => {
-  logoPath.value = ''
+  isMobileMenuOpen.value = false
 }
 
 const handleAvatarError = (event: Event) => {
@@ -161,7 +161,6 @@ const handleAvatarError = (event: Event) => {
 // Load settings
 onMounted(() => {
   if (settings.value) {
-    logoPath.value = settings.value.logo || ''
     navbarTitle.value = settings.value.navbarTitle || 'PinGO'
   }
 })

@@ -14,16 +14,19 @@ export const getApiUrl = (path: string = '') => {
   // If path starts with /, remove it to avoid double slashes
   const cleanPath = path.startsWith('/') ? path.slice(1) : path
   
-  // In production, prepend /api to the path
+  // Always prepend /api to the path (backend routes are under /api scope)
+  const apiPath = `api/${cleanPath}`
+  
+  // In production, use relative path
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    const fullUrl = `/api/${cleanPath}`
+    const fullUrl = `/${apiPath}`
     console.log(`API URL constructed: ${fullUrl}`)
     return fullUrl
   }
   
-  // In development, use full base URL
+  // In development, use full base URL with /api prefix
   const baseUrl = getApiBaseUrl()
-  const fullUrl = `${baseUrl}/${cleanPath}`
+  const fullUrl = `${baseUrl}/${apiPath}`
   console.log(`API URL constructed: ${fullUrl}`)
   return fullUrl
 }

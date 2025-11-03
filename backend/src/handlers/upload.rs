@@ -56,22 +56,27 @@ pub async fn upload(
         let mut field = item.map_err(error::ErrorBadRequest)?;
         
         let content_disposition = field.content_disposition();
-        let field_name = content_disposition.get_name().unwrap_or("");
+        let field_name = content_disposition
+            .as_ref()
+            .and_then(|cd| cd.get_name())
+            .unwrap_or("");
 
         match field_name {
             "files" => {
                 let filename = content_disposition
-                    .get_filename()
-                    .ok_or_else(|| error::ErrorBadRequest("No filename"))?;
+                    .as_ref()
+                    .and_then(|cd| cd.get_filename())
+                    .ok_or_else(|| error::ErrorBadRequest("No filename"))?
+                    .to_string();
 
                 // Validate file type
-                if !is_allowed_file_type(filename) {
+                if !is_allowed_file_type(&filename) {
                     return Ok(HttpResponse::BadRequest().json(serde_json::json!({
                         "error": format!("File type not allowed: {}", filename)
                     })));
                 }
 
-                let sanitized = sanitize_filename_safe(filename);
+                let sanitized = sanitize_filename_safe(&filename);
                 if sanitized.is_empty() {
                     return Ok(HttpResponse::BadRequest().json(serde_json::json!({
                         "error": "Invalid filename"
@@ -167,10 +172,11 @@ pub async fn upload(
     .await
     .map_err(error::ErrorInternalServerError)?;
 
+    let files_count = uploaded_files.len();
     Ok(HttpResponse::Ok().json(UploadResponse {
         download_url,
         files: uploaded_files,
-        count: uploaded_files.len(),
+        count: files_count,
         expires_at,
     }))
 }

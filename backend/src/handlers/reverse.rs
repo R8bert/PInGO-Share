@@ -165,15 +165,20 @@ pub async fn reverse_upload(
     while let Some(item) = payload.next().await {
         let mut field = item.map_err(error::ErrorBadRequest)?;
         let content_disposition = field.content_disposition();
-        let field_name = content_disposition.get_name().unwrap_or("");
+        let field_name = content_disposition
+            .as_ref()
+            .and_then(|cd| cd.get_name())
+            .unwrap_or("");
 
         match field_name {
             "files" => {
                 let filename = content_disposition
-                    .get_filename()
-                    .ok_or_else(|| error::ErrorBadRequest("No filename"))?;
+                    .as_ref()
+                    .and_then(|cd| cd.get_filename())
+                    .ok_or_else(|| error::ErrorBadRequest("No filename"))?
+                    .to_string();
 
-                let sanitized = sanitize_filename_safe(filename);
+                let sanitized = sanitize_filename_safe(&filename);
                 if sanitized.is_empty() {
                     return Ok(HttpResponse::BadRequest().json(serde_json::json!({
                         "error": "Invalid filename"
@@ -201,7 +206,7 @@ pub async fn reverse_upload(
                 file.write_all(&file_data)
                     .map_err(error::ErrorInternalServerError)?;
 
-                uploaded_files.push(filename.to_string());
+                uploaded_files.push(filename);
             }
             "email" => {
                 while let Some(chunk) = field.next().await {
@@ -268,10 +273,11 @@ pub async fn reverse_upload(
             error::ErrorInternalServerError("Failed to update token usage")
         })?;
 
+    let files_count = uploaded_files.len();
     Ok(HttpResponse::Ok().json(UploadResponse {
         download_url,
         files: uploaded_files,
-        count: uploaded_files.len(),
+        count: files_count,
         expires_at,
     }))
 }
