@@ -1,2 +1,7 @@
-
 backend/.env
+backend/.env.local
+backend/uploads/
+backend/logs/error.log
+backend/logs/access.log
+backend/backgrounds/
+backend/avatars/
