@@ -302,13 +302,6 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- Watch now button (bottom right) -->
-                <div class="absolute bottom-8 right-8 animate-fade-in" style="animation-delay: 0.3s">
-                    <button class="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center text-xs font-medium hover:scale-110 transition-all duration-300 hover:shadow-2xl hover:shadow-white/20 active:scale-95">
-                        Watch<br/>now
-                    </button>
-                </div>
             </div>
         </div>
 

@@ -15,7 +15,7 @@ import { useTheme } from './composables/useTheme'
 import Navbar from './components/shared/Navbar.vue'
 
 const { fetchCurrentUser } = useAuth()
-const { } = useTheme() // Initialize theme system
+const { cleanupSystemThemeListener } = useTheme() // Initialize theme system
 
 let initTimeout: number | null = null
 
@@ -34,6 +34,10 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   if (initTimeout) {
     clearTimeout(initTimeout)
+  }
+  // Cleanup theme listener
+  if (cleanupSystemThemeListener) {
+    cleanupSystemThemeListener()
   }
 })
 </script>

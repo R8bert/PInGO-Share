@@ -1,5 +1,5 @@
 <template>
-  <nav class="compact-navbar">
+  <nav v-if="!isAuthPage" class="compact-navbar">
     <div class="navbar-content">
       <!-- Compact Navigation Buttons -->
       <div class="nav-items">
@@ -38,7 +38,7 @@
       </div>
 
       <!-- Sign In Button (when not authenticated) -->
-      <router-link v-else to="/login" class="signin-btn">
+      <router-link v-else to="/auth" class="signin-btn">
         <IconLogin class="icon" />
         <span>Sign In</span>
       </router-link>
@@ -46,7 +46,7 @@
   </nav>
 
   <!-- Theme Toggle Button (bottom-right) -->
-  <button @click="toggleTheme" class="theme-toggle" :title="isDark ? 'Light Mode' : 'Dark Mode'">
+  <button v-if="!isAuthPage" @click="toggleTheme" class="theme-toggle" :title="isDark ? 'Light Mode' : 'Dark Mode'">
     <IconLightMode v-if="isDark" class="icon" />
     <IconDarkMode v-else class="icon" />
   </button>
@@ -54,8 +54,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
+import { useTheme } from '../../composables/useTheme'
 import { getAssetUrl } from '../../utils/apiUtils'
 import IconHome from '~icons/mdi/home'
 import IconFolder from '~icons/mdi/folder'
@@ -66,37 +67,21 @@ import IconLightMode from '~icons/mdi/white-balance-sunny'
 import IconDarkMode from '~icons/mdi/moon-waning-crescent'
 
 const router = useRouter()
+const route = useRoute()
 const { user, isAuthenticated, logout } = useAuth()
+const { isDark, toggleTheme } = useTheme()
 
 const navbarTitle = ref('RootDrop')
-const isDark = ref(false)
 
 const isAdmin = computed(() => user.value?.is_admin || false)
+const isAuthPage = computed(() => route.path.startsWith('/auth'))
 
 const handleLogout = async () => {
   await logout()
-  router.push('/login')
-}
-
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-    localStorage.setItem('theme', 'dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-    localStorage.setItem('theme', 'light')
-  }
+  router.push('/auth')
 }
 
 onMounted(async () => {
-  // Load theme preference
-  const savedTheme = localStorage.getItem('theme')
-  isDark.value = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-  }
-
   try {
     const response = await fetch('/api/settings')
     if (response.ok) {

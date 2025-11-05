@@ -107,11 +107,11 @@ pub async fn login(
     config: web::Data<Config>,
     req: web::Json<LoginRequest>,
 ) -> Result<HttpResponse, Error> {
-    // Get user
+    // Get user by username or email
     let user: Option<User> = sqlx::query_as(
-        "SELECT id, username, email, password_hash, is_admin, is_blocked, avatar, created_at FROM users WHERE email = $1"
+        "SELECT id, username, email, password_hash, is_admin, is_blocked, avatar, created_at FROM users WHERE email = $1 OR username = $1"
     )
-    .bind(&req.email)
+    .bind(&req.username_or_email)
     .fetch_optional(pool.as_ref())
     .await
     .map_err(error::ErrorInternalServerError)?;

@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { getApiUrl } from '../utils/apiUtils'
+import { useTheme } from './useTheme'
 
 interface User {
   id: number
@@ -124,11 +125,11 @@ export const useAuth = () => {
     }
   }
 
-  const login = async (email: string, password: string) => {
+  const login = async (usernameOrEmail: string, password: string) => {
     try {
       isLoading.value = true
       const response = await axios.post(getApiUrl('/login'), {
-        email,
+        username_or_email: usernameOrEmail,
         password
       })
       
@@ -151,6 +152,10 @@ export const useAuth = () => {
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
+      // Reset theme to browser preference on logout
+      const { resetThemeToBrowser } = useTheme()
+      resetThemeToBrowser()
+      
       clearAuth()
     }
   }
