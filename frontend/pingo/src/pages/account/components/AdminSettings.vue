@@ -13,7 +13,7 @@
            :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
         <h3 class="text-lg font-semibold mb-4 flex items-center"
             :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <ClockIcon class="w-5 h-5 mr-2"
+          <IconClock class="w-5 h-5 mr-2"
                      :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
           Maximum File Validity
         </h3>
@@ -55,7 +55,7 @@
            :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
         <h3 class="text-lg font-semibold mb-4 flex items-center"
             :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <UserGroupIcon class="w-5 h-5 mr-2"
+          <IconUserGroup class="w-5 h-5 mr-2"
                          :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
           User Registration
         </h3>
@@ -87,7 +87,7 @@
            :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
         <h3 class="text-lg font-semibold mb-4 flex items-center"
             :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <ClockIcon class="w-5 h-5 mr-2"
+          <IconClock class="w-5 h-5 mr-2"
                      :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
           File Expiration Behavior
         </h3>
@@ -169,7 +169,7 @@
              }">
           <h3 class="text-lg font-semibold mb-4 flex items-center transition-colors duration-300"
               :style="{ color: isDark ? '#d1fae5' : '#111827' }">
-            <CloudArrowUpIcon class="w-5 h-5 mr-2"
+            <IconCloudArrowUp class="w-5 h-5 mr-2"
                               :style="{ color: isDark ? '#34d399' : '#059669' }" />
             Upload Settings
           </h3>
@@ -216,7 +216,7 @@
            :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
         <h3 class="text-lg font-semibold mb-4 flex items-center"
             :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <PhotoIcon class="w-5 h-5 mr-2"
+          <IconPhoto class="w-5 h-5 mr-2"
                      :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
           Branding
         </h3>
@@ -299,7 +299,7 @@
            :class="isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'">
         <h3 class="text-lg font-semibold mb-4 flex items-center"
             :class="isDark ? 'text-gray-100' : 'text-gray-900'">
-          <SwatchIcon class="w-5 h-5 mr-2"
+          <IconSwatch class="w-5 h-5 mr-2"
                       :class="isDark ? 'text-gray-400' : 'text-gray-600'" />
           Color Customization
         </h3>
@@ -384,7 +384,7 @@
           class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
         >
           <div class="flex items-center">
-            <ScaleIcon v-if="!isLoading" class="w-5 h-5 mr-2" />
+            <IconScale v-if="!isLoading" class="w-5 h-5 mr-2" />
             <div v-else class="w-5 h-5 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
             {{ isLoading ? 'Saving...' : 'Save Settings' }}
           </div>
@@ -402,7 +402,7 @@
              ? 'bg-green-900/20 border-green-500/30 text-green-300' 
              : 'bg-green-50 border-green-200 text-green-800'">
         <div class="flex items-center">
-          <CheckCircleIcon class="w-5 h-5 mr-2" />
+          <IconCheckCircle class="w-5 h-5 mr-2" />
           <span class="font-medium">Settings saved successfully!</span>
         </div>
       </div>
@@ -428,17 +428,15 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useTheme } from '../../../composables/useTheme'
 import { getAssetUrl } from '../../../utils/apiUtils'
-import {
-  ClockIcon,
-  CloudArrowUpIcon,
-  PhotoIcon,
-  ScaleIcon,
-  CheckCircleIcon,
-  UserGroupIcon,
-  SwatchIcon
-} from '@heroicons/vue/24/outline'
 import ColorPicker from '../../../components/ColorPicker.vue'
 import GradientDialog from '../../../components/GradientDialog.vue'
+import IconClock from '~icons/solar/clock-circle-bold'
+import IconUserGroup from '~icons/solar/users-group-two-rounded-bold'
+import IconCloudArrowUp from '~icons/solar/cloud-upload-bold'
+import IconPhoto from '~icons/solar/gallery-bold'
+import IconSwatch from '~icons/solar/palette-bold'
+import IconScale from '~icons/solar/scale-bold'
+import IconCheckCircle from '~icons/solar/check-circle-bold'
 
 const { isDark } = useTheme()
 

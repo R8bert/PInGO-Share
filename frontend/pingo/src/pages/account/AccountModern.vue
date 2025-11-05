@@ -13,7 +13,7 @@
               class="w-full h-full object-cover"
               @error="handleAvatarError"
             />
-            <UserIcon v-else class="w-12 h-12 text-white" />
+            <IconUser v-else class="w-12 h-12 text-white" />
           </div>
           <button 
             @click="openAvatarUpload"
@@ -38,11 +38,11 @@
         <div class="inline-flex items-center space-x-4 text-sm transition-colors duration-300"
              :style="{ color: isDark ? '#9ca3af' : '#6b7280' }">
           <span class="flex items-center">
-            <CalendarIcon class="w-4 h-4 mr-1" />
+            <IconCalendar class="w-4 h-4 mr-1" />
             Member since {{ formatDate(user?.created_at) }}
           </span>
           <span v-if="isAdmin" class="flex items-center text-blue-600">
-            <ShieldCheckIcon class="w-4 h-4 mr-1" />
+            <IconShieldCheck class="w-4 h-4 mr-1" />
             Administrator
           </span>
         </div>
@@ -58,7 +58,7 @@
           <div class="flex items-center">
             <div class="p-3 rounded-xl transition-colors duration-300"
                  :style="{ backgroundColor: isDark ? '#1e3a8a' : '#dbeafe' }">
-              <CloudArrowUpIcon class="w-6 h-6 transition-colors duration-300"
+              <IconCloudArrowUp class="w-6 h-6 transition-colors duration-300"
                                 :style="{ color: isDark ? '#60a5fa' : '#2563eb' }" />
             </div>
             <div class="ml-4">
@@ -78,7 +78,7 @@
           <div class="flex items-center">
             <div class="p-3 rounded-xl transition-colors duration-300"
                  :style="{ backgroundColor: isDark ? '#059669' : '#dcfce7' }">
-              <ArchiveBoxIcon class="w-6 h-6 transition-colors duration-300"
+              <IconArchiveBox class="w-6 h-6 transition-colors duration-300"
                               :style="{ color: isDark ? '#34d399' : '#16a34a' }" />
             </div>
             <div class="ml-4">
@@ -98,7 +98,7 @@
           <div class="flex items-center">
             <div class="p-3 rounded-xl transition-colors duration-300"
                  :style="{ backgroundColor: isDark ? '#7c3aed' : '#f3e8ff' }">
-              <ClockIcon class="w-6 h-6 transition-colors duration-300"
+              <IconClock class="w-6 h-6 transition-colors duration-300"
                          :style="{ color: isDark ? '#a78bfa' : '#7c3aed' }" />
             </div>
             <div class="ml-4">
@@ -132,7 +132,7 @@
               }"
             >
               <div class="flex items-center space-x-1 sm:space-x-2">
-                <FolderIcon class="w-3 h-3 sm:w-4 sm:h-4" />
+                <IconFolder class="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>My Uploads</span>
               </div>
             </button>
@@ -147,7 +147,7 @@
               }"
             >
               <div class="flex items-center space-x-1 sm:space-x-2">
-                <ShareIcon class="w-3 h-3 sm:w-4 sm:h-4" />
+                <IconShare class="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Reverse Share</span>
               </div>
             </button>
@@ -163,7 +163,7 @@
               }"
             >
               <div class="flex items-center space-x-1 sm:space-x-2">
-                <ChartBarIcon class="w-3 h-3 sm:w-4 sm:h-4" />
+                <IconChartBar class="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Statistics</span>
               </div>
             </button>
@@ -179,7 +179,7 @@
               }"
             >
               <div class="flex items-center space-x-2">
-                <UsersIcon class="w-4 h-4" />
+                <IconUsers class="w-4 h-4" />
                 <span>Users</span>
               </div>
             </button>
@@ -195,7 +195,7 @@
               }"
             >
               <div class="flex items-center space-x-2">
-                <CogIcon class="w-4 h-4" />
+                <IconCog class="w-4 h-4" />
                 <span>Settings</span>
               </div>
             </button>
@@ -267,7 +267,7 @@
       }"
     >
       <div class="flex items-center">
-        <ClipboardDocumentIcon class="w-5 h-5 mr-2" />
+        <IconClipboardDocument class="w-5 h-5 mr-2" />
         {{ successMessage }}
       </div>
     </div>
@@ -436,20 +436,20 @@ import ReverseShareTab from './components/ReverseShareTab.vue'
 import StatisticsTab from './components/StatisticsTab.vue'
 import UsersTab from './components/UsersTab.vue'
 import SettingsTab from './components/SettingsTab.vue'
-import {
-  UserIcon,
-  CloudArrowUpIcon,
-  ArchiveBoxIcon,
-  ClockIcon,
-  FolderIcon,
-  CogIcon,
-  ClipboardDocumentIcon,
-  CalendarIcon,
-  ShieldCheckIcon,
-  ShareIcon,
-  ChartBarIcon,
-  UsersIcon
-} from '@heroicons/vue/24/outline'
+
+// Iconify imports
+import IconUser from '~icons/heroicons/user'
+import IconCalendar from '~icons/heroicons/calendar'
+import IconShieldCheck from '~icons/heroicons/shield-check'
+import IconCloudArrowUp from '~icons/heroicons/cloud-arrow-up'
+import IconArchiveBox from '~icons/heroicons/archive-box'
+import IconClock from '~icons/heroicons/clock'
+import IconFolder from '~icons/heroicons/folder'
+import IconShare from '~icons/heroicons/share'
+import IconChartBar from '~icons/heroicons/chart-bar'
+import IconUsers from '~icons/heroicons/users'
+import IconCog from '~icons/heroicons/cog'
+import IconClipboardDocument from '~icons/heroicons/clipboard-document'
 
 
 const { user, uploads, isAuthenticated, isAdmin, isLoading, fetchCurrentUser, fetchUploads, deleteUpload } = useAuth()

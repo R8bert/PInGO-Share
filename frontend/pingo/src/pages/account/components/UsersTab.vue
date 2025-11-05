@@ -67,7 +67,7 @@
                     class="w-full h-full object-cover"
                     @error="handleAvatarError"
                   />
-                  <UserIcon v-else class="w-6 h-6 text-white" />
+                  <IconUser v-else class="w-6 h-6 text-white" />
                 </div>
                 <!-- Status indicator -->
                 <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 transition-colors duration-300"
@@ -109,6 +109,20 @@
 
             <!-- Actions -->
             <div class="flex items-center gap-3">
+              <!-- Admin Status Badge -->
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold transition-colors duration-300"
+                    :style="user.is_admin 
+                      ? { 
+                          backgroundColor: isDark ? '#7c3aed' : '#ddd6fe',
+                          color: isDark ? '#e9d5ff' : '#7c3aed'
+                        }
+                      : { 
+                          backgroundColor: isDark ? '#374151' : '#f3f4f6',
+                          color: isDark ? '#d1d5db' : '#6b7280'
+                        }">
+                {{ user.is_admin ? 'Admin' : 'User' }}
+              </span>
+
               <!-- Status Badge -->
               <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold transition-colors duration-300"
                     :style="user.isBlocked 
@@ -123,25 +137,51 @@
                 {{ user.isBlocked ? 'Blocked' : 'Active' }}
               </span>
 
-              <!-- Action Button -->
-              <button
-                @click="toggleUserBlock(user.id, !user.isBlocked)"
-                class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 hover:scale-105 hover:shadow-md"
-                :style="user.isBlocked 
-                  ? { 
-                      backgroundColor: isDark ? '#059669' : '#10b981',
-                      color: '#ffffff'
-                    }
-                  : { 
-                      backgroundColor: isDark ? '#dc2626' : '#ef4444',
-                      color: '#ffffff'
-                    }"
-                :class="user.isBlocked 
-                  ? 'hover:brightness-110' 
-                  : 'hover:brightness-110'"
-              >
-                {{ user.isBlocked ? 'Unblock User' : 'Block User' }}
-              </button>
+              <!-- Action Buttons -->
+              <div class="flex gap-2">
+                <!-- Promote Button -->
+                <button
+                  v-if="!user.is_admin && currentUser?.id === 1"
+                  @click="promoteUser(user.id, true)"
+                  class="px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-300 hover:scale-105 hover:shadow-md hover:brightness-110"
+                  :style="{ 
+                    backgroundColor: isDark ? '#7c3aed' : '#8b5cf6',
+                    color: '#ffffff'
+                  }"
+                >
+                  Promote to Admin
+                </button>
+
+                <!-- Demote Button -->
+                <button
+                  v-if="user.is_admin && currentUser?.id === 1"
+                  @click="promoteUser(user.id, false)"
+                  class="px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-300 hover:scale-105 hover:shadow-md hover:brightness-110"
+                  :style="{ 
+                    backgroundColor: isDark ? '#f59e0b' : '#f97316',
+                    color: '#ffffff'
+                  }"
+                >
+                  Demote from Admin
+                </button>
+
+                <!-- Block/Unblock Button -->
+                <button
+                  @click="toggleUserBlock(user.id, !user.isBlocked)"
+                  class="px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-300 hover:scale-105 hover:shadow-md hover:brightness-110"
+                  :style="user.isBlocked 
+                    ? { 
+                        backgroundColor: isDark ? '#059669' : '#10b981',
+                        color: '#ffffff'
+                      }
+                    : { 
+                        backgroundColor: isDark ? '#dc2626' : '#ef4444',
+                        color: '#ffffff'
+                      }"
+                >
+                  {{ user.isBlocked ? 'Unblock' : 'Block' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -149,7 +189,7 @@
 
       <!-- Empty State -->
       <div v-if="adminUsers.length === 0" class="text-center py-12">
-        <UserIcon class="w-16 h-16 mx-auto mb-4 transition-colors duration-300"
+        <IconUser class="w-16 h-16 mx-auto mb-4 transition-colors duration-300"
                   :style="{ color: isDark ? '#4b5563' : '#d1d5db' }" />
         <h3 class="text-lg font-medium mb-2 transition-colors duration-300"
             :style="{ color: isDark ? '#f9fafb' : '#111827' }">
@@ -169,9 +209,9 @@ import { ref, onMounted } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useTheme } from '../../../composables/useTheme'
 import { getAssetUrl } from '../../../utils/apiUtils'
-import { UserIcon } from '@heroicons/vue/24/outline'
+import IconUser from '~icons/solar/user-bold'
 
-const { adminUsers, fetchAdminUsers, toggleUserBlock } = useAuth()
+const { adminUsers, fetchAdminUsers, toggleUserBlock, promoteUser, user: currentUser } = useAuth()
 const { isDark } = useTheme()
 const isLoading = ref(true)
 

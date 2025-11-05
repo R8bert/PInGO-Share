@@ -36,7 +36,7 @@
                 <p class="text-3xl font-bold transition-colors duration-300"
                    :style="{ color: isDark ? '#93c5fd' : '#2563eb' }">{{ adminStats.totalUsers }}</p>
               </div>
-              <UserGroupIcon class="w-12 h-12 opacity-20 transition-colors duration-300"
+              <IconUserGroup class="w-12 h-12 opacity-20 transition-colors duration-300"
                              :style="{ color: isDark ? '#60a5fa' : '#3b82f6' }" />
             </div>
           </div>
@@ -53,7 +53,7 @@
                 <p class="text-3xl font-bold transition-colors duration-300"
                    :style="{ color: isDark ? '#86efac' : '#16a34a' }">{{ adminStats.totalUploads }}</p>
               </div>
-              <CloudArrowUpIcon class="w-12 h-12 opacity-20 transition-colors duration-300"
+              <IconCloudArrowUp class="w-12 h-12 opacity-20 transition-colors duration-300"
                                 :style="{ color: isDark ? '#34d399' : '#10b981' }" />
             </div>
           </div>
@@ -70,7 +70,7 @@
                 <p class="text-3xl font-bold transition-colors duration-300"
                    :style="{ color: isDark ? '#c4b5fd' : '#9333ea' }">{{ formatBytes(adminStats.totalStorage) }}</p>
               </div>
-              <ArchiveBoxIcon class="w-12 h-12 opacity-20 transition-colors duration-300"
+              <IconArchiveBox class="w-12 h-12 opacity-20 transition-colors duration-300"
                               :style="{ color: isDark ? '#a78bfa' : '#8b5cf6' }" />
             </div>
           </div>
@@ -82,11 +82,9 @@
 
 <script setup lang="ts">
 import { useTheme } from '../../../composables/useTheme'
-import {
-  UserGroupIcon,
-  CloudArrowUpIcon,
-  ArchiveBoxIcon
-} from '@heroicons/vue/24/outline'
+import IconUserGroup from '~icons/solar/users-group-two-rounded-bold'
+import IconCloudArrowUp from '~icons/solar/cloud-upload-bold'
+import IconArchiveBox from '~icons/solar/archive-bold'
 
 const { isDark } = useTheme()
 

@@ -13,7 +13,7 @@
       >
         <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div class="relative flex items-center">
-          <PlusIcon class="w-5 h-5 mr-2" />
+          <IconPlus class="w-5 h-5 mr-2" />
           Create Token
         </div>
       </button>
@@ -117,7 +117,7 @@
     <div v-if="reverseTokens.length === 0" class="text-center py-20">
       <div class="relative inline-block mb-6">
         <div class="w-20 h-20 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-          <ShareIcon class="w-10 h-10 text-white" />
+          <IconShare class="w-10 h-10 text-white" />
         </div>
       </div>
       <h3 class="text-2xl font-bold mb-4 transition-colors duration-300"
@@ -145,7 +145,7 @@
             <div class="flex-1">
               <div class="flex items-center space-x-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                  <ShareIcon class="w-5 h-5 text-white" />
+                  <IconShare class="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h4 class="text-lg font-semibold transition-colors duration-300"
@@ -198,7 +198,7 @@
                       color: '#22c55e'
                     }"
                     title="Copy upload URL">
-                    <ClipboardDocumentIcon class="w-4 h-4" />
+                    <IconClipboardDocument class="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -214,7 +214,7 @@
                 color: '#ef4444'
               }"
               title="Delete token">
-              <TrashIcon class="w-5 h-5" />
+              <IconTrash class="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -226,12 +226,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useTheme } from '../../../composables/useTheme'
-import {
-  ShareIcon,
-  PlusIcon,
-  ClipboardDocumentIcon,
-  TrashIcon
-} from '@heroicons/vue/24/outline'
+import IconPlus from '~icons/solar/add-circle-bold'
+import IconShare from '~icons/solar/share-bold'
+import IconClipboardDocument from '~icons/solar/clipboard-bold'
+import IconTrash from '~icons/solar/trash-bin-minimalistic-bold'
 
 const { isDark } = useTheme()
 

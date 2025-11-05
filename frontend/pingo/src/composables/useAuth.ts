@@ -274,6 +274,21 @@ export const useAuth = () => {
     }
   }
 
+  const promoteUser = async (userId: number, promote: boolean) => {
+    try {
+      await axios.post(getApiUrl(`/admin/users/${userId}/promote`), { promote })
+      // Update local state
+      const userIndex = adminUsers.value.findIndex(u => u.id === userId)
+      if (userIndex !== -1) {
+        adminUsers.value[userIndex].is_admin = promote
+      }
+      return { success: true, message: `User ${promote ? 'promoted to admin' : 'demoted from admin'} successfully` }
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to update user admin status'
+      return { success: false, message }
+    }
+  }
+
   // Initialize auth state
   loadTokenFromStorage()
 
@@ -294,6 +309,7 @@ export const useAuth = () => {
     saveAdminSettings,
     getSettings,
     fetchAdminUsers,
-    toggleUserBlock
+    toggleUserBlock,
+    promoteUser
   }
 }

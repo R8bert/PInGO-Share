@@ -114,7 +114,7 @@
                                 <button @click.stop="removeFile(index)" 
                                     class="w-9 h-9 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
                                     :class="isDark ? 'hover:bg-red-500/20 text-neutral-400 hover:text-red-400' : 'hover:bg-red-500/10 text-neutral-600 hover:text-red-600'">
-                                    <XMarkIcon class="w-5 h-5" />
+                                    <IconXMark class="w-5 h-5" />
                                 </button>
                             </div>
                         </div>
@@ -314,11 +314,7 @@ import { useAuth } from "../../composables/useAuth";
 import { useTheme } from "../../composables/useTheme";
 import { getApiUrl } from "../../utils/apiUtils";
 import axios from "axios";
-import {
-    XMarkIcon,
-    EyeIcon,
-    EyeSlashIcon,
-} from "@heroicons/vue/24/outline";
+import IconXMark from '~icons/solar/close-circle-bold-duotone'
 
 const { isAuthenticated } = useAuth();
 const { isDark } = useTheme();

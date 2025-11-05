@@ -6,7 +6,7 @@ use sqlx::PgPool;
 use std::io::Write;
 
 use crate::config::Config;
-use crate::models::{AdminStats, AdminUser, BlockUserRequest, QuickSettingRequest, Settings};
+use crate::models::{AdminStats, AdminUser, BlockUserRequest, PromoteUserRequest, QuickSettingRequest, Settings};
 use crate::utils::{check_is_admin, extract_user_id_from_request, parse_size, sanitize_filename_safe};
 
 pub async fn update_settings(
@@ -297,7 +297,7 @@ pub async fn get_stats(
         .map_err(error::ErrorInternalServerError)?;
 
     let storage_used: (Option<i64>,) = sqlx::query_as(
-        "SELECT COALESCE(SUM(total_size), 0) as total_size FROM uploads"
+        "SELECT COALESCE(SUM(total_size), 0)::BIGINT as total_size FROM uploads"
     )
     .fetch_one(pool.as_ref())
     .await
@@ -330,7 +330,7 @@ pub async fn get_users(
             COALESCE(u.is_blocked, false) as is_blocked,
             u.created_at,
             COUNT(CASE WHEN up.id IS NOT NULL THEN 1 END) as upload_count,
-            COALESCE(SUM(up.total_size), 0) as storage_used,
+            COALESCE(SUM(up.total_size), 0)::BIGINT as storage_used,
             MAX(up.created_at) as last_activity
         FROM users u
         LEFT JOIN uploads up ON u.id = up.user_id
@@ -383,6 +383,75 @@ pub async fn block_user(
         .map_err(error::ErrorInternalServerError)?;
 
     let action = if body.blocked { "blocked" } else { "unblocked" };
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "message": format!("User {} successfully", action)
+    })))
+}
+
+pub async fn promote_user(
+    pool: web::Data<PgPool>,
+    config: web::Data<Config>,
+    req: HttpRequest,
+    target_user_id: web::Path<i32>,
+    body: web::Json<PromoteUserRequest>,
+) -> Result<HttpResponse, Error> {
+    let admin_id = extract_user_id_from_request(&req, &config)?;
+
+    // Only allow user ID 1 (super admin) to promote/demote users
+    if admin_id != 1 {
+        return Ok(HttpResponse::Forbidden().json(serde_json::json!({
+            "error": "Only the super admin can manage user roles"
+        })));
+    }
+
+    // Check if target user exists
+    let user_exists: (bool,) = sqlx::query_as(
+        "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)"
+    )
+    .bind(*target_user_id)
+    .fetch_one(pool.as_ref())
+    .await
+    .map_err(error::ErrorInternalServerError)?;
+
+    if !user_exists.0 {
+        return Ok(HttpResponse::NotFound().json(serde_json::json!({
+            "error": "User not found"
+        })));
+    }
+
+    // Prevent self-demotion
+    if *target_user_id == admin_id && !body.promote {
+        return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "Cannot demote yourself"
+        })));
+    }
+
+    // Check if there would be no admins left
+    if !body.promote {
+        let admin_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM users WHERE is_admin = TRUE AND id != $1"
+        )
+        .bind(*target_user_id)
+        .fetch_one(pool.as_ref())
+        .await
+        .map_err(error::ErrorInternalServerError)?;
+
+        if admin_count.0 == 0 {
+            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "Cannot demote the last admin user"
+            })));
+        }
+    }
+
+    sqlx::query("UPDATE users SET is_admin = $1 WHERE id = $2")
+        .bind(body.promote)
+        .bind(*target_user_id)
+        .execute(pool.as_ref())
+        .await
+        .map_err(error::ErrorInternalServerError)?;
+
+    let action = if body.promote { "promoted to admin" } else { "demoted from admin" };
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "message": format!("User {} successfully", action)

@@ -173,6 +173,11 @@ pub struct BlockUserRequest {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct PromoteUserRequest {
+    pub promote: bool,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct QuickSettingRequest {
     pub setting: String,
     pub value: serde_json::Value,

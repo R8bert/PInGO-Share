@@ -114,6 +114,7 @@ async fn main() -> std::io::Result<()> {
                     .route("/admin/stats", web::get().to(handlers::admin::get_stats))
                     .route("/admin/users", web::get().to(handlers::admin::get_users))
                     .route("/admin/users/{id}/block", web::post().to(handlers::admin::block_user))
+                    .route("/admin/users/{id}/promote", web::post().to(handlers::admin::promote_user))
                     .route("/admin/quick-settings", web::post().to(handlers::admin::quick_settings))
                     // Settings route (public)
                     .route("/settings", web::get().to(handlers::settings::get_settings))

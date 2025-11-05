@@ -24,7 +24,7 @@
                     backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                     color: isDark ? '#f9fafb' : '#111827'
                   }">
-            <XMarkIcon class="w-6 h-6" />
+            <IconXMark class="w-6 h-6" />
           </button>
         </div>
       </div>
@@ -141,9 +141,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { XMarkIcon } from '@heroicons/vue/24/outline'
 import { useTheme } from '../composables/useTheme'
 import ColorPicker from './ColorPicker.vue'
+import IconXMark from '~icons/solar/close-circle-bold-duotone'
 
 const { isDark } = useTheme()
 
