@@ -439,8 +439,8 @@ import SettingsTab from './components/SettingsTab.vue'
 
 // Iconify imports
 import IconUser from '~icons/heroicons/user'
-import IconCalendar from '~icons/heroicons/calendar'
-import IconShieldCheck from '~icons/heroicons/shield-check'
+import IconCalendar from '~icons/solar/calendar-minimalistic-bold-duotone'
+import IconShieldCheck from '~icons/solar/verified-check-bold-duotone'
 import IconCloudArrowUp from '~icons/heroicons/cloud-arrow-up'
 import IconArchiveBox from '~icons/heroicons/archive-box'
 import IconClock from '~icons/heroicons/clock'

@@ -1,12 +1,58 @@
 <template>
     <div class="min-h-screen flex relative overflow-hidden" :class="isDark ? 'bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900'">
+        <!-- Interactive Background -->
+        <div class="fixed inset-0 pointer-events-none">
+            <!-- Animated gradient orbs with parallax -->
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-float-slow parallax-element"
+                 :style="{ transform: `translate(${mouseX * 0.01}px, ${mouseY * 0.01}px)` }"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-pink-400/10 to-orange-400/10 rounded-full blur-3xl animate-float-delayed parallax-element"
+                 :style="{ transform: `translate(${mouseX * -0.005}px, ${mouseY * -0.005}px)` }"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-green-400/10 to-blue-400/10 rounded-full blur-3xl animate-morph parallax-element"
+                 :style="{ transform: `translate(${mouseX * 0.008}px, ${mouseY * 0.008}px)` }"></div>
+
+            <!-- Floating particles -->
+            <div class="absolute inset-0 overflow-hidden">
+                <div v-for="particle in particles" :key="particle.id"
+                     class="absolute w-1 h-1 bg-white/20 rounded-full animate-float-particle"
+                     :style="{
+                         left: particle.x + '%',
+                         top: particle.y + '%',
+                         animationDelay: particle.delay + 's',
+                         animationDuration: particle.duration + 's'
+                     }"></div>
+            </div>
+
+            <!-- Subtle animated pattern overlay -->
+            <div class="absolute inset-0 opacity-5">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="0.5"/>
+                        </pattern>
+                        <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <circle cx="10" cy="10" r="1" fill="currentColor" opacity="0.3"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+                    <rect width="100%" height="100%" fill="url(#dots)" />
+                </svg>
+            </div>
+
+            <!-- Animated mesh gradient -->
+            <div class="absolute inset-0 opacity-30">
+                <div class="absolute inset-0 bg-gradient-to-br from-transparent via-blue-500/5 to-transparent animate-gradient-shift"></div>
+                <div class="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-500/5 to-transparent animate-gradient-shift-reverse"></div>
+            </div>
+        </div>
 
         <!-- Left Side - Form Container -->
         <div class="w-full lg:flex-1 flex items-center justify-center p-8 lg:p-12">
             
             <!-- Form Card -->
-            <div class="w-full max-w-xl p-8 rounded-3xl shadow-2xl backdrop-blur-sm border border-white/5 transition-all duration-500 hover:shadow-3xl" 
+            <div class="w-full max-w-xl p-8 rounded-3xl shadow-xl border border-white/10 relative overflow-hidden"
                 :class="isDark ? 'bg-neutral-900/95' : 'bg-white/95'">
+                
+                <div class="relative z-10">
                 
                 <!-- Compact Logo/Brand -->
                 <div class="mb-8 animate-fade-in">
@@ -31,38 +77,51 @@
                     <!-- Add Files Buttons -->
                     <div class="space-y-3">
                             <button @click="triggerFileInput"
-                                class="group w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 text-white bg-blue-600 hover:bg-blue-700 text-sm flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-600/30 hover:scale-[1.02] active:scale-[0.98]">
-                                <svg class="w-4 h-4 transition-transform duration-300 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="w-full px-4 py-3 rounded-lg font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-sm flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
-                                Add files
+                                <span>Add files</span>
                             </button>
 
-                            <button @click="triggerFileInput"
-                                class="group w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 text-white border border-neutral-700 hover:bg-neutral-800 hover:border-neutral-600 text-sm flex items-center justify-center gap-2 hover:shadow-md hover:scale-[1.01] active:scale-[0.99]">
-                                <svg class="w-4 h-4 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button @click="triggerFolderInput"
+                                class="w-full px-4 py-3 rounded-lg font-medium text-white border border-neutral-700 hover:bg-neutral-800 text-sm flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
                                 </svg>
-                                Add folder
+                                <span>Add folder</span>
                             </button>
                         </div>
 
-                        <!-- Hidden File Input -->
+                        <!-- Hidden File Inputs -->
                         <input ref="fileInput" type="file" multiple @change="onFileChange" class="hidden" />
+                        <input ref="folderInput" type="file" webkitdirectory @change="onFolderChange" class="hidden" />
 
-                        <!-- Drag and Drop Zone - more compact -->
+                        <!-- Drag and Drop Zone -->
                         <div v-if="selectedFiles.length === 0"
                             @drop.prevent="onDrop"
                             @dragover.prevent="isDragging = true"
                             @dragleave.prevent="isDragging = false"
-                            class="relative mt-4 p-8 rounded-lg border border-dashed cursor-pointer transition-all duration-300 group"
+                            class="mt-4 p-8 rounded-lg border border-dashed cursor-pointer transition-colors duration-200"
                             :class="[
-                                isDragging ? 'border-blue-500 bg-blue-500/10 scale-[1.02]' : 'border-neutral-700 hover:border-neutral-600 hover:bg-neutral-800/30',
-                            ]"
-                            @click="triggerFileInput">
+                                isDragging 
+                                    ? 'border-blue-500 bg-blue-500/10' 
+                                    : 'border-neutral-700 hover:border-neutral-600 hover:bg-neutral-800/30'
+                            ]">
+                            
                             <div class="text-center">
-                                <p class="text-sm text-neutral-400 transition-all duration-300 group-hover:text-neutral-300">
-                                    or drop files here
+                                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-neutral-700 to-neutral-600 flex items-center justify-center"
+                                     :class="isDragging ? 'bg-gradient-to-br from-blue-500 to-purple-600' : ''">
+                                    <svg class="w-8 h-8 text-neutral-400" 
+                                         :class="isDragging ? 'text-white' : ''" 
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                                    </svg>
+                                </div>
+                                
+                                <p class="text-sm text-neutral-400"
+                                   :class="isDragging ? 'text-blue-300 font-semibold' : ''">
+                                    {{ isDragging ? 'Drop files here!' : 'or drop files here' }}
                                 </p>
                             </div>
                         </div>
@@ -78,73 +137,58 @@
                                 </span>
                             </div>
 
-                            <div v-for="(file, index) in selectedFiles" :key="index"
-                                class="group flex items-center gap-3 p-3 rounded-xl transition-all duration-300 animate-scale-in"
-                                :style="{ animationDelay: `${0.3 + index * 0.05}s` }"
-                                :class="isDark ? 'bg-neutral-800/50 hover:bg-neutral-800 hover:shadow-lg' : 'bg-neutral-100 hover:bg-neutral-200 hover:shadow-md'">
-                                
-                                <div class="relative">
-                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold uppercase flex-shrink-0 transition-transform group-hover:scale-110"
-                                        :class="isDark ? 'bg-gradient-to-br from-neutral-700 to-neutral-600' : 'bg-gradient-to-br from-neutral-300 to-neutral-400'">
-                                        {{ getFileExtension(file).slice(0, 3) }}
+                            <!-- Tree View for Folders -->
+                            <div v-if="isFolderMode && folderTree" class="space-y-1">
+                                <TreeNode :node="folderTree" :level="0" />
+                            </div>
+
+                            <!-- Flat List for Individual Files -->
+                            <div v-else class="space-y-2">
+                                <div v-for="(file, index) in selectedFiles" :key="index"
+                                    class="group flex items-center gap-3 p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer"
+                                    :class="isDark ? 'bg-neutral-800/50 hover:bg-neutral-800/70' : 'bg-neutral-100 hover:bg-neutral-200'">
+                                    
+                                    <!-- File icon with animation -->
+                                    <div class="relative">
+                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold uppercase flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                                            :class="isDark ? 'bg-gradient-to-br from-neutral-700 to-neutral-600' : 'bg-gradient-to-br from-neutral-300 to-neutral-400'">
+                                            {{ getFileExtension(file).slice(0, 3) }}
+                                        </div>
+                                        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110"
+                                            :class="getFileTypeColor(file)">
+                                            <svg class="w-3 h-3 text-white drop-shadow-sm transition-transform duration-300 group-hover:rotate-12" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
+                                                <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
                                     </div>
-                                    <!-- File type icon overlay -->
-                                    <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center shadow-lg"
-                                        :class="getFileTypeColor(file)">
-                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
-                                            <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                                        </svg>
+                                    
+                                    <!-- File info with enhanced interactions -->
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold truncate transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ file.name }}</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <p class="text-xs transition-colors duration-300" :class="isDark ? 'text-neutral-500 group-hover:text-neutral-400' : 'text-neutral-600 group-hover:text-neutral-700'">
+                                                {{ formatFileSize(file.size) }}
+                                            </p>
+                                            <span class="text-xs px-2 py-0.5 rounded-full font-medium transition-all duration-300 group-hover:scale-105"
+                                                :class="isDark ? 'bg-neutral-700 text-neutral-300 group-hover:bg-neutral-600' : 'bg-neutral-200 text-neutral-700 group-hover:bg-neutral-300'">
+                                                {{ getFileExtension(file).toUpperCase() }}
+                                            </span>
+                                        </div>
                                     </div>
+                                    
+                                    <!-- Remove button with enhanced animation -->
+                                    <button @click.stop="removeFile(index)" 
+                                        class="w-9 h-9 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hover:rotate-90"
+                                        :class="isDark ? 'hover:bg-red-500/20 text-neutral-400 hover:text-red-400' : 'hover:bg-red-500/10 text-neutral-600 hover:text-red-600'">
+                                        <IconXMark class="w-5 h-5 transition-transform duration-200" />
+                                    </button>
                                 </div>
-                                
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold truncate group-hover:text-blue-600 transition-colors">{{ file.name }}</p>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <p class="text-xs" :class="isDark ? 'text-neutral-500' : 'text-neutral-600'">
-                                            {{ formatFileSize(file.size) }}
-                                        </p>
-                                        <span class="text-xs px-2 py-0.5 rounded-full font-medium"
-                                            :class="isDark ? 'bg-neutral-700 text-neutral-300' : 'bg-neutral-200 text-neutral-700'">
-                                            {{ getFileExtension(file).toUpperCase() }}
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <button @click.stop="removeFile(index)" 
-                                    class="w-9 h-9 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
-                                    :class="isDark ? 'hover:bg-red-500/20 text-neutral-400 hover:text-red-400' : 'hover:bg-red-500/10 text-neutral-600 hover:text-red-600'">
-                                    <IconXMark class="w-5 h-5" />
-                                </button>
                             </div>
                         </div>
 
                         <!-- Options - Compact Style -->
                         <div v-if="selectedFiles.length > 0" class="mt-6 space-y-3">
-                            <!-- Email input -->
-                            <div class="group">
-                                <label class="text-xs text-neutral-500 mb-1.5 block transition-colors duration-300 group-hover:text-neutral-400">Email to</label>
-                                <input v-model="recipientEmail" type="email" placeholder="friend@email.com"
-                                    class="w-full px-3 py-2 rounded-lg border bg-transparent outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 text-sm text-white placeholder-neutral-600"
-                                    :class="'border-neutral-700 hover:border-neutral-600'" />
-                            </div>
-
-                            <!-- Title input -->
-                            <div class="group">
-                                <label class="text-xs text-neutral-500 mb-1.5 block transition-colors duration-300 group-hover:text-neutral-400">Title</label>
-                                <input type="text" placeholder="Untitled"
-                                    class="w-full px-3 py-2 rounded-lg border bg-transparent outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 text-sm text-white placeholder-neutral-600"
-                                    :class="'border-neutral-700 hover:border-neutral-600'" />
-                            </div>
-
-                            <!-- Message textarea -->
-                            <div class="group">
-                                <label class="text-xs text-neutral-500 mb-1.5 block transition-colors duration-300 group-hover:text-neutral-400">Message</label>
-                                <textarea v-model="transferMessage" placeholder="Add a note..." rows="2"
-                                    class="w-full px-3 py-2 rounded-lg border bg-transparent outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 resize-none text-sm text-white placeholder-neutral-600"
-                                    :class="'border-neutral-700 hover:border-neutral-600'"></textarea>
-                            </div>
-
                             <!-- Expiry select -->
                             <div class="flex items-center gap-2 group">
                                 <svg class="w-4 h-4 text-neutral-500 transition-all duration-300 group-hover:text-neutral-400 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,24 +204,16 @@
                                 </select>
                             </div>
 
-                            <!-- More options link -->
-                            <button @click="showAdvanced = !showAdvanced" 
-                                class="text-xs text-blue-500 hover:text-blue-400 transition-all duration-300 flex items-center gap-1 hover:gap-2">
-                                <svg class="w-3 h-3 transition-transform duration-300" :class="{ 'rotate-45': showAdvanced }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                </svg>
-                                More options
-                            </button>
-
                             <!-- Transfer Button -->
                             <button @click="uploadFiles" :disabled="isUploading"
-                                class="group w-full py-3 rounded-lg font-medium transition-all duration-300 text-white mt-4 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-                                :class="isUploading ? 'bg-blue-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-600/30'">
+                                class="w-full py-3 rounded-lg font-medium text-white mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                                :class="isUploading ? 'bg-blue-500 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'">
+                                
                                 <span class="flex items-center justify-center gap-2">
                                     <svg v-if="isUploading" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>
-                                    <svg v-else class="w-4 h-4 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                                     </svg>
                                     {{ isUploading ? 'Transferring...' : 'Transfer' }}
@@ -226,8 +262,8 @@
                                 <div class="relative">
                                     <div class="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-xl animate-bounce-once">
                                         <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                        </svg>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
                                     </div>
                                     <div class="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
                                 </div>
@@ -274,68 +310,230 @@
                         </div>
                     </transition>
                 
-            </div>
-            <!-- End Form Card -->
-        </div>
-        <!-- End Left Side -->
+                <!-- Floating Action Button -->
+                <transition
+                    enter-active-class="transition-all duration-300"
+                    enter-from-class="opacity-0 scale-75 translate-y-4"
+                    enter-to-class="opacity-100 scale-100 translate-y-0"
+                    leave-active-class="transition-all duration-200"
+                    leave-from-class="opacity-100 scale-100 translate-y-0"
+                    leave-to-class="opacity-0 scale-75 translate-y-4">
+                    <button v-if="selectedFiles.length > 0 && !uploadComplete"
+                            @click="uploadFiles"
+                            :disabled="isUploading"
+                            class="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-110 active:scale-95 group z-40"
+                            :class="isUploading ? 'animate-pulse' : 'animate-bounce-subtle'">
+                        
+                        <!-- Ripple effect -->
+                        <div class="absolute inset-0 rounded-full bg-white/20 scale-0 group-active:scale-100 transition-transform duration-300"></div>
+                        
+                        <!-- Icon with rotation -->
+                        <div class="relative z-10 flex items-center justify-center">
+                            <svg v-if="!isUploading" class="w-6 h-6 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                            <svg v-else class="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </div>
+                        
+                        <!-- Tooltip -->
+                        <div class="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                            {{ isUploading ? 'Uploading...' : 'Upload files' }}
+                            <div class="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                    </button>
+                </transition>
 
-        <!-- Right Side - Hero Image -->
-        <div class="hidden lg:flex flex-1 relative overflow-hidden">
-            
-            <!-- Hero Image/Content -->
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 transition-all duration-700">
-                <!-- Subtle animated gradient overlay -->
-                <div class="absolute inset-0 bg-gradient-to-tr from-purple-900/20 via-transparent to-blue-900/20 animate-pulse-slow"></div>
-                
-                <!-- You can replace this with an actual image -->
-                <div class="absolute inset-0 flex items-end justify-start p-12 animate-fade-in">
-                    <div class="max-w-2xl">
-                        <h2 class="text-6xl font-serif italic text-white mb-4 transition-all duration-500 hover:scale-105 origin-left">
-                            Digital consciousness
-                        </h2>
-                        <p class="text-lg text-white/90 transition-opacity duration-300 hover:text-white">
-                            Inés Sieulle's experimental film explores our relationship<br/>
-                            with artificial intelligence
-                        </p>
-                        <button class="mt-6 px-6 py-2 border border-white/30 rounded-full text-white text-sm hover:bg-white/10 transition-all duration-300 hover:border-white/50 hover:shadow-lg hover:shadow-white/10">
-                            Experience our award-winning wallpapers
-                        </button>
-                    </div>
                 </div>
             </div>
+
         </div>
 
+
+
     </div>
+
+    <!-- Toast Notifications -->
+    <transition
+        enter-active-class="transition-all duration-300"
+        enter-from-class="opacity-0 translate-y-4"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-4">
+        <div v-if="toast.show" 
+            class="fixed top-6 right-6 z-50 max-w-sm w-full">
+            <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-2xl border border-neutral-200 dark:border-neutral-700 p-4 flex items-start gap-3"
+                :class="toast.type === 'success' ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'">
+                
+                <!-- Icon -->
+                <div class="flex-shrink-0">
+                    <div v-if="toast.type === 'success'" class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <div v-else class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100">{{ toast.title }}</p>
+                    <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">{{ toast.message }}</p>
+                </div>
+                
+                <!-- Close button -->
+                <button @click="hideToast" 
+                    class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </transition>
+
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
-import { useAuth } from "../../composables/useAuth";
-import { useTheme } from "../../composables/useTheme";
-import { getApiUrl } from "../../utils/apiUtils";
-import axios from "axios";
-import IconXMark from '~icons/solar/close-circle-bold-duotone'
+import { ref, onMounted, onUnmounted, defineComponent } from 'vue';
+import type { PropType } from 'vue';
+import { useAuth } from '../../composables/useAuth';
+import { useTheme } from '../../composables/useTheme';
+import { getApiUrl } from '../../utils/apiUtils';
+import axios from 'axios';
+import IconXMark from '~icons/solar/close-circle-bold';
+
+// TreeNode Component Definition
+const TreeNode = defineComponent({
+    name: 'TreeNode',
+    props: {
+        node: {
+            type: Object as PropType<any>,
+            required: true
+        },
+        level: {
+            type: Number,
+            default: 0
+        }
+    },
+    setup(props) {
+        const toggleExpanded = () => {
+            if (props.node.type === 'folder') {
+                props.node.expanded = !props.node.expanded;
+            }
+        };
+
+        const formatFileSize = (bytes: number): string => {
+            if (bytes === 0) return "0 Bytes";
+            const k = 1024;
+            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+        };
+
+        return {
+            toggleExpanded,
+            formatFileSize
+        };
+    },
+    template: `
+        <div class="tree-node">
+            <div 
+                class="flex items-center gap-2 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                :style="{ paddingLeft: \`\${level * 16 + 8}px\` }"
+                @click="toggleExpanded"
+            >
+                <!-- Expand/Collapse Icon for folders -->
+                <div v-if="node.type === 'folder'" class="w-4 h-4 flex items-center justify-center">
+                    <svg 
+                        class="w-3 h-3 transition-transform duration-200" 
+                        :class="{ 'rotate-90': node.expanded }"
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+                
+                <!-- File/Folder Icon -->
+                <div class="w-4 h-4 flex items-center justify-center">
+                    <svg v-if="node.type === 'folder'" class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                    </svg>
+                    <svg v-else class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                
+                <!-- Node Name -->
+                <span class="text-sm font-medium truncate flex-1">{{ node.name }}</span>
+                
+                <!-- Size -->
+                <span class="text-xs text-neutral-500">{{ formatFileSize(node.size) }}</span>
+            </div>
+            
+            <!-- Children -->
+            <div v-if="node.type === 'folder' && node.expanded && node.children.length > 0">
+                <TreeNode 
+                    v-for="child in node.children" 
+                    :key="child.path" 
+                    :node="child" 
+                    :level="level + 1" 
+                />
+            </div>
+        </div>
+    `
+});
 
 const { isAuthenticated } = useAuth();
 const { isDark } = useTheme();
 
 // Refs
 const fileInput = ref<HTMLInputElement | null>(null);
+const folderInput = ref<HTMLInputElement | null>(null);
 const uploadSection = ref<HTMLElement | null>(null);
 const { getSettings } = useAuth();
+
+// Mouse tracking for interactive background
+const mouseX = ref(0);
+const mouseY = ref(0);
+
+// Mouse move handler
+const handleMouseMove = (e: MouseEvent) => {
+    mouseX.value = e.clientX;
+    mouseY.value = e.clientY;
+};
+
+// Floating particles
+const particles = ref<Array<{id: number, x: number, y: number, delay: number, duration: number}>>([]);
+
+// Toast notifications
+const toast = ref({
+    show: false,
+    type: 'success' as 'success' | 'error',
+    title: '',
+    message: ''
+});
+
 // State
 const selectedFiles = ref<File[]>([]);
+const folderTree = ref<any>(null);
+const isFolderMode = ref(false);
 const isDragging = ref(false);
 const isUploading = ref(false);
 const progress = ref(0);
 const uploadComplete = ref(false);
 
 // New upload options
-const uploadPassword = ref('');
 const transferMessage = ref('');
 const recipientEmail = ref('');
-const showPassword = ref(false);
-const showAdvanced = ref(false);
 
 // Upload statistics
 const uploadSpeed = ref(0);
@@ -348,9 +546,6 @@ const uploadedUrl = ref("");
 const uploadLink = ref("");
 const copied = ref(false);
 const message = ref({ text: "", type: "success" as "success" | "error" });
-const previewingFiles = ref<Set<number>>(new Set());
-const previewUrls = ref<Map<number, string>>(new Map());
-const textPreviews = ref<Map<number, string>>(new Map());
 const maxUploadSize = ref<number>(104857600); // Default 100 MB
 
 const validityOptions = ref([
@@ -368,118 +563,105 @@ const triggerFileInput = () => {
     fileInput.value?.click();
 };
 
+const triggerFolderInput = () => {
+    folderInput.value?.click();
+};
+
+const buildFolderTree = (files: FileList) => {
+    const tree: any = {
+        name: 'Root',
+        type: 'folder',
+        children: [],
+        path: '',
+        size: 0,
+        expanded: true
+    };
+
+    Array.from(files).forEach(file => {
+        const path = (file as any).webkitRelativePath || file.name;
+        const parts = path.split('/');
+        let current = tree;
+
+        parts.forEach((part: string, index: number) => {
+            let child = current.children.find((c: any) => c.name === part);
+            
+            if (!child) {
+                child = {
+                    name: part,
+                    type: index === parts.length - 1 ? 'file' : 'folder',
+                    children: [],
+                    path: parts.slice(0, index + 1).join('/'),
+                    size: 0,
+                    expanded: true,
+                    file: index === parts.length - 1 ? file : null
+                };
+                current.children.push(child);
+            }
+
+            if (index === parts.length - 1) {
+                child.size = file.size;
+                current.size += file.size;
+            } else {
+                current = child;
+            }
+        });
+    });
+
+    // Calculate folder sizes recursively
+    const calculateFolderSize = (node: any) => {
+        if (node.type === 'file') return node.size;
+        
+        node.size = node.children.reduce((sum: number, child: any) => {
+            return sum + calculateFolderSize(child);
+        }, 0);
+        
+        return node.size;
+    };
+    
+    calculateFolderSize(tree);
+    
+    return tree;
+};
+
 const onFileChange = (event: Event) => {
     const target = event.target as HTMLInputElement;
     if (target.files) {
         selectedFiles.value = Array.from(target.files);
+        isFolderMode.value = false;
+        folderTree.value = null;
+    }
+};
+
+const onFolderChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files) {
+        selectedFiles.value = Array.from(target.files);
+        isFolderMode.value = true;
+        folderTree.value = buildFolderTree(target.files);
     }
 };
 
 const onDrop = (event: DragEvent) => {
     isDragging.value = false;
     if (event.dataTransfer?.files) {
-        selectedFiles.value = Array.from(event.dataTransfer.files);
+        const files = Array.from(event.dataTransfer.files);
+        selectedFiles.value = files;
+        
+        // Check if any file has webkitRelativePath (indicating folder structure)
+        const hasFolderStructure = files.some(file => (file as any).webkitRelativePath && (file as any).webkitRelativePath.includes('/'));
+        
+        if (hasFolderStructure) {
+            isFolderMode.value = true;
+            folderTree.value = buildFolderTree(event.dataTransfer.files);
+        } else {
+            isFolderMode.value = false;
+            folderTree.value = null;
+        }
     }
 };
 
 const removeFile = (index: number) => {
-    // Clean up preview URLs and refs when removing file
-    if (previewingFiles.value.has(index)) {
-        const url = previewUrls.value.get(index);
-        if (url) URL.revokeObjectURL(url);
-        previewUrls.value.delete(index);
-        textPreviews.value.delete(index);
-        previewingFiles.value.delete(index);
-    }
-
     selectedFiles.value.splice(index, 1);
-
-    // Re-index remaining files
-    const newPreviewingFiles = new Set<number>();
-    const newPreviewUrls = new Map<number, string>();
-    const newTextPreviews = new Map<number, string>();
-
-    previewingFiles.value.forEach((previewIndex) => {
-        if (previewIndex > index) {
-            newPreviewingFiles.add(previewIndex - 1);
-            const url = previewUrls.value.get(previewIndex);
-            if (url) newPreviewUrls.set(previewIndex - 1, url);
-            const textPreview = textPreviews.value.get(previewIndex);
-            if (textPreview) newTextPreviews.set(previewIndex - 1, textPreview);
-        } else if (previewIndex < index) {
-            newPreviewingFiles.add(previewIndex);
-            const url = previewUrls.value.get(previewIndex);
-            if (url) newPreviewUrls.set(previewIndex, url);
-            const textPreview = textPreviews.value.get(previewIndex);
-            if (textPreview) newTextPreviews.set(previewIndex, textPreview);
-        }
-    });
-
-    previewingFiles.value = newPreviewingFiles;
-    previewUrls.value = newPreviewUrls;
-    textPreviews.value = newTextPreviews;
-};
-
-const togglePreview = (index: number) => {
-    if (previewingFiles.value.has(index)) {
-        // Hide preview
-        previewingFiles.value.delete(index);
-        const url = previewUrls.value.get(index);
-        if (url) {
-            URL.revokeObjectURL(url);
-            previewUrls.value.delete(index);
-        }
-        textPreviews.value.delete(index);
-    } else {
-        // Show preview
-        previewingFiles.value.add(index);
-        const file = selectedFiles.value[index];
-        const fileExtension = getFileExtension(file);
-
-        if (["txt", "md", "json", "csv", "xml"].includes(fileExtension)) {
-            // Handle text file preview
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const content = e.target?.result as string;
-                const truncatedContent =
-                    content.length > 1000
-                        ? content.substring(0, 1000) + "\n\n... (truncated)"
-                        : content;
-                textPreviews.value.set(index, truncatedContent);
-            };
-            reader.readAsText(file);
-        } else {
-            // Handle other file types (images, videos, audio)
-            createPreviewUrl(file, index);
-        }
-    }
-};
-
-const createPreviewUrl = (file: File, index: number) => {
-    const url = URL.createObjectURL(file);
-    previewUrls.value.set(index, url);
-};
-
-const canPreview = (file: File): boolean => {
-    const ext = getFileExtension(file);
-    return [
-        "mp4",
-        "pdf",
-        "jpg",
-        "jpeg",
-        "png",
-        "gif",
-        "webp",
-        "txt",
-        "md",
-        "json",
-        "csv",
-        "xml",
-        "torrent",
-        "mp3",
-        "wav",
-        "flac",
-    ].includes(ext);
 };
 
 const formatFileSize = (bytes: number): string => {
@@ -531,9 +713,6 @@ const uploadFiles = async () => {
         });
 
         // Add upload options
-        if (uploadPassword.value) {
-            formData.append("password", uploadPassword.value);
-        }
         if (transferMessage.value) {
             formData.append("message", transferMessage.value);
         }
@@ -617,12 +796,6 @@ const uploadFiles = async () => {
                     block: "center",
                 });
             }, 100);
-
-            // Clean up preview URLs
-            previewUrls.value.forEach((url) => URL.revokeObjectURL(url));
-            previewUrls.value.clear();
-            textPreviews.value.clear();
-            previewingFiles.value.clear();
         }
     } catch (error) {
         console.error("Upload error:", error);
@@ -649,12 +822,6 @@ const uploadNew = () => {
     selectedFiles.value = [];
     progress.value = 0;
     message.value = { text: "", type: "success" };
-
-    // Clean up any remaining preview URLs
-    previewUrls.value.forEach((url) => URL.revokeObjectURL(url));
-    previewUrls.value.clear();
-    textPreviews.value.clear();
-    previewingFiles.value.clear();
 };
 
 const copyLink = async () => {
@@ -698,16 +865,37 @@ const loadSettings = async () => {
     }
 };
 
+// Toast methods
+const hideToast = () => {
+    toast.value.show = false;
+};
+
 onMounted(() => {
     // Scroll to top smoothly when page loads
     loadSettings();
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Initialize floating particles
+    for (let i = 0; i < 50; i++) {
+        particles.value.push({
+            id: i,
+            x: Math.random() * 100,
+            y: Math.random() * 100,
+            delay: Math.random() * 10,
+            duration: 8 + Math.random() * 12
+        });
+    }
+
+    // Add mouse tracking for interactive background
+    window.addEventListener('mousemove', handleMouseMove);
 });
 
 onUnmounted(() => {
-    // Clean up preview URLs
-    previewUrls.value.forEach((url) => URL.revokeObjectURL(url));
+    // Clean up event listeners
+    window.removeEventListener('mousemove', handleMouseMove);
 });
+
+
 </script>
 
 <style scoped>
@@ -884,8 +1072,327 @@ html {
     animation: pulse-slow 4s ease-in-out infinite;
 }
 
-/* Rotate utility */
-.rotate-180 {
-    transform: rotate(180deg);
+/* Gradient radial background */
+@keyframes gradient-radial {
+    0%, 100% {
+        background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+    }
+    50% {
+        background: radial-gradient(circle at 80% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 20% 80%, rgba(147, 51, 234, 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 60% 20%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+    }
+}
+
+/* Floating particle animation */
+@keyframes float-particle {
+    0%, 100% {
+        transform: translateY(0px) translateX(0px);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translateY(-20px) translateX(10px);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateY(-10px) translateX(-15px);
+        opacity: 0.4;
+    }
+    75% {
+        transform: translateY(-30px) translateX(5px);
+        opacity: 0.7;
+    }
+}
+
+/* Morphing animation for background elements */
+@keyframes morph {
+    0%, 100% {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        transform: rotate(0deg) scale(1);
+    }
+    25% {
+        border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+        transform: rotate(90deg) scale(1.1);
+    }
+    50% {
+        border-radius: 50% 40% 60% 50% / 40% 70% 50% 40%;
+        transform: rotate(180deg) scale(0.9);
+    }
+    75% {
+        border-radius: 40% 50% 40% 60% / 70% 40% 60% 50%;
+        transform: rotate(270deg) scale(1.05);
+    }
+}
+
+/* Morphing blob animations */
+@keyframes morph-blob-1 {
+    0%, 100% {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        transform: scale(1) rotate(0deg);
+    }
+    25% {
+        border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+        transform: scale(1.1) rotate(90deg);
+    }
+    50% {
+        border-radius: 50% 40% 60% 50% / 40% 70% 50% 40%;
+        transform: scale(0.9) rotate(180deg);
+    }
+    75% {
+        border-radius: 40% 50% 40% 60% / 70% 40% 60% 50%;
+        transform: scale(1.05) rotate(270deg);
+    }
+}
+
+@keyframes morph-blob-2 {
+    0%, 100% {
+        border-radius: 70% 30% 50% 50% / 35% 65% 35% 65%;
+        transform: scale(1) rotate(0deg);
+    }
+    33% {
+        border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
+        transform: scale(1.15) rotate(120deg);
+    }
+    66% {
+        border-radius: 50% 50% 30% 70% / 50% 50% 70% 30%;
+        transform: scale(0.85) rotate(240deg);
+    }
+}
+
+@keyframes morph-blob-3 {
+    0%, 100% {
+        border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+        transform: scale(1);
+    }
+    20% {
+        border-radius: 60% 40% 40% 60% / 40% 60% 60% 40%;
+        transform: scale(1.2);
+    }
+    40% {
+        border-radius: 30% 70% 70% 30% / 70% 30% 30% 70%;
+        transform: scale(0.8);
+    }
+    60% {
+        border-radius: 45% 55% 55% 45% / 55% 45% 45% 55%;
+        transform: scale(1.1);
+    }
+    80% {
+        border-radius: 65% 35% 35% 65% / 35% 65% 65% 35%;
+        transform: scale(0.9);
+    }
+}
+
+@keyframes morph-blob-4 {
+    0%, 100% {
+        border-radius: 40% 60% 70% 30% / 60% 40% 30% 70%;
+        transform: scale(1) rotate(0deg);
+    }
+    25% {
+        border-radius: 70% 30% 40% 60% / 30% 70% 60% 40%;
+        transform: scale(1.25) rotate(90deg);
+    }
+    50% {
+        border-radius: 50% 50% 60% 40% / 40% 60% 50% 50%;
+        transform: scale(0.75) rotate(180deg);
+    }
+    75% {
+        border-radius: 60% 40% 50% 50% / 50% 50% 40% 60%;
+        transform: scale(1.1) rotate(270deg);
+    }
+}
+
+@keyframes morph-blob-5 {
+    0%, 100% {
+        border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+        transform: scale(1);
+    }
+    30% {
+        border-radius: 60% 40% 30% 70% / 40% 60% 70% 30%;
+        transform: scale(1.3);
+    }
+    60% {
+        border-radius: 30% 70% 60% 40% / 70% 30% 40% 60%;
+        transform: scale(0.7);
+    }
+}
+
+@keyframes morph-blob-6 {
+    0%, 100% {
+        border-radius: 45% 55% 65% 35% / 55% 45% 35% 65%;
+        transform: scale(1) rotate(0deg);
+    }
+    20% {
+        border-radius: 65% 35% 45% 55% / 35% 65% 55% 45%;
+        transform: scale(1.2) rotate(72deg);
+    }
+    40% {
+        border-radius: 35% 65% 55% 45% / 65% 35% 45% 55%;
+        transform: scale(0.8) rotate(144deg);
+    }
+    60% {
+        border-radius: 55% 45% 35% 65% / 45% 55% 65% 35%;
+        transform: scale(1.15) rotate(216deg);
+    }
+    80% {
+        border-radius: 50% 50% 60% 40% / 60% 40% 50% 50%;
+        transform: scale(0.9) rotate(288deg);
+    }
+}
+
+/* Text glow effect */
+@keyframes text-glow {
+    0%, 100% {
+        text-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+        text-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4);
+    }
+}
+
+/* Enhanced animations */
+.animate-float-particle {
+    animation: float-particle 8s ease-in-out infinite;
+}
+
+.animate-morph {
+    animation: morph 20s ease-in-out infinite;
+}
+
+.animate-morph-blob-1 {
+    animation: morph-blob-1 15s ease-in-out infinite;
+}
+
+.animate-morph-blob-2 {
+    animation: morph-blob-2 18s ease-in-out infinite;
+}
+
+.animate-morph-blob-3 {
+    animation: morph-blob-3 12s ease-in-out infinite;
+}
+
+.animate-morph-blob-4 {
+    animation: morph-blob-4 20s ease-in-out infinite;
+}
+
+.animate-morph-blob-5 {
+    animation: morph-blob-5 10s ease-in-out infinite;
+}
+
+.animate-morph-blob-6 {
+    animation: morph-blob-6 16s ease-in-out infinite;
+}
+
+.animate-text-glow {
+    animation: text-glow 3s ease-in-out infinite;
+}
+
+/* Glassmorphism effect */
+.glass-effect {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Enhanced hover effects */
+.hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient shift animation */
+@keyframes gradient-shift {
+    0%, 100% {
+        transform: translateX(0%) translateY(0%) rotate(0deg);
+    }
+    25% {
+        transform: translateX(10%) translateY(-5%) rotate(1deg);
+    }
+    50% {
+        transform: translateX(-5%) translateY(10%) rotate(-1deg);
+    }
+    75% {
+        transform: translateX(5%) translateY(-10%) rotate(0.5deg);
+    }
+}
+
+@keyframes gradient-shift-reverse {
+    0%, 100% {
+        transform: translateX(0%) translateY(0%) rotate(0deg);
+    }
+    25% {
+        transform: translateX(-10%) translateY(5%) rotate(-1deg);
+    }
+    50% {
+        transform: translateX(5%) translateY(-10%) rotate(1deg);
+    }
+    75% {
+        transform: translateX(-5%) translateY(10%) rotate(-0.5deg);
+    }
+}
+
+/* Bounce subtle animation */
+@keyframes bounce-subtle {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+/* Parallax element animation */
+@keyframes parallax-float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Loading skeleton animation */
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+/* Enhanced animations */
+.animate-gradient-shift {
+    animation: gradient-shift 20s ease-in-out infinite;
+}
+
+.animate-gradient-shift-reverse {
+    animation: gradient-shift-reverse 25s ease-in-out infinite;
+}
+
+.animate-bounce-subtle {
+    animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.animate-parallax-float {
+    animation: parallax-float 15s ease-in-out infinite;
+}
+
+.animate-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+/* Dark mode skeleton */
+.dark .animate-skeleton {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200px 100%;
 }
 </style>

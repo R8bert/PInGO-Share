@@ -32,9 +32,7 @@
               <div class="flex items-center gap-2 sm:gap-3">
                 <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                      :class="isDark ? 'bg-green-900/30' : 'bg-green-100'">
-                  <svg class="w-5 h-5 sm:w-6 sm:h-6" :class="isDark ? 'text-green-400' : 'text-green-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <IconCheckCircle class="w-5 h-5 sm:w-6 sm:h-6" :class="isDark ? 'text-green-400' : 'text-green-600'" />
                 </div>
                 <div class="min-w-0">
                   <div class="text-lg sm:text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ activeUploads.length }}</div>
@@ -152,9 +150,7 @@
                           ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
                           : 'bg-orange-100 text-orange-700 border border-orange-200'"
                       >
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
-                        </svg>
+                        <IconArrowUp class="w-3 h-3" />
                         Reverse Share
                       </span>
                       
@@ -199,9 +195,7 @@
                     @click="openFile(upload)"
                     class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center gap-2 flex-1 sm:flex-none justify-center"
                   >
-                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
+                    <IconArrowUpRight class="w-3 h-3 sm:w-4 sm:h-4" />
                     <span class="hidden sm:inline">Open</span>
                   </button>
                   
@@ -211,9 +205,7 @@
                     :class="isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'"
                     title="Copy Link"
                   >
-                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
+                    <IconCopy class="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
                   
                   <button
@@ -222,15 +214,10 @@
                     :class="isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'"
                     title="More Options"
                   >
-                    <svg 
+                    <IconChevronDown 
                       class="w-4 h-4 transition-transform duration-200" 
                       :class="selectedUpload?.id === upload.id ? 'rotate-180' : ''"
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    />
                   </button>
                 </div>
               </div>
@@ -273,18 +260,14 @@
                       @click="downloadSingleFile(upload)"
                       class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2"
                     >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
+                      <IconDownload class="w-4 h-4" />
                       Download Files
                     </button>
                     
                     <!-- Change Expiration -->
                     <div v-if="!upload.is_deleted" class="space-y-2">
                       <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-                          🕐 Expiration
-                        </span>
+                        <IconClock class="w-4 h-4" />
                         <button
                           @click="toggleExpirationEdit(upload.upload_id)"
                           class="text-xs px-2 py-1 rounded transition-colors duration-200"
@@ -345,11 +328,8 @@
                           : 'bg-blue-600 hover:bg-blue-700 text-white'
                       ]"
                     >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path v-if="upload.is_available" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-3-3m5.5 5.5l3 3m-3-3l3-3m-3 3l-3 3" />
-                        <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path v-if="!upload.is_available" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
+                      <IconEye v-if="upload.is_available" class="w-4 h-4" />
+                      <IconEyeSlash v-else class="w-4 h-4" />
                       {{ upload.is_available ? 'Hide Upload' : 'Show Upload' }}
                     </button>
                     
@@ -357,9 +337,7 @@
                       @click="$emit('deleteUpload', upload.upload_id)"
                       class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2"
                     >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                      <IconTrash class="w-4 h-4" />
                       Delete Upload
                     </button>
                   </div>
@@ -399,6 +377,16 @@ import { ref, computed, watch } from 'vue'
 import { useTheme } from '../../../composables/useTheme'
 import { useIcons } from '../../../composables/useIcons'
 import { getApiUrl } from '../../../utils/apiUtils'
+import IconCheckCircle from '~icons/solar/check-circle-bold'
+import IconArrowUpRight from '~icons/tabler/folder-symlink'
+import IconCopy from '~icons/solar/copy-bold'
+import IconChevronDown from '~icons/solar/alt-arrow-down-line-duotone'
+import IconDownload from '~icons/solar/download-bold'
+import IconEye from '~icons/solar/eye-bold'
+import IconEyeSlash from '~icons/solar/eye-closed-bold'
+import IconTrash from '~icons/solar/trash-bin-minimalistic-bold'
+import IconClock from '~icons/solar/clock-circle-bold'
+import IconArrowUp from '~icons/solar/arrow-up-bold'
 
 // Use composables
 const { isDark } = useTheme()
