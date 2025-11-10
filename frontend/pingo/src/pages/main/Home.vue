@@ -2,26 +2,6 @@
     <div class="min-h-screen flex relative overflow-hidden" :class="isDark ? 'bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900'">
         <!-- Interactive Background -->
         <div class="fixed inset-0 pointer-events-none">
-            <!-- Animated gradient orbs with parallax -->
-            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-float-slow parallax-element"
-                 :style="{ transform: `translate(${mouseX * 0.01}px, ${mouseY * 0.01}px)` }"></div>
-            <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-pink-400/10 to-orange-400/10 rounded-full blur-3xl animate-float-delayed parallax-element"
-                 :style="{ transform: `translate(${mouseX * -0.005}px, ${mouseY * -0.005}px)` }"></div>
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-green-400/10 to-blue-400/10 rounded-full blur-3xl animate-morph parallax-element"
-                 :style="{ transform: `translate(${mouseX * 0.008}px, ${mouseY * 0.008}px)` }"></div>
-
-            <!-- Floating particles -->
-            <div class="absolute inset-0 overflow-hidden">
-                <div v-for="particle in particles" :key="particle.id"
-                     class="absolute w-1 h-1 bg-white/20 rounded-full animate-float-particle"
-                     :style="{
-                         left: particle.x + '%',
-                         top: particle.y + '%',
-                         animationDelay: particle.delay + 's',
-                         animationDuration: particle.duration + 's'
-                     }"></div>
-            </div>
-
             <!-- Subtle animated pattern overlay -->
             <div class="absolute inset-0 opacity-5">
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -36,12 +16,6 @@
                     <rect width="100%" height="100%" fill="url(#grid)" />
                     <rect width="100%" height="100%" fill="url(#dots)" />
                 </svg>
-            </div>
-
-            <!-- Animated mesh gradient -->
-            <div class="absolute inset-0 opacity-30">
-                <div class="absolute inset-0 bg-gradient-to-br from-transparent via-blue-500/5 to-transparent animate-gradient-shift"></div>
-                <div class="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-500/5 to-transparent animate-gradient-shift-reverse"></div>
             </div>
         </div>
 
@@ -511,9 +485,6 @@ const handleMouseMove = (e: MouseEvent) => {
     mouseY.value = e.clientY;
 };
 
-// Floating particles
-const particles = ref<Array<{id: number, x: number, y: number, delay: number, duration: number}>>([]);
-
 // Toast notifications
 const toast = ref({
     show: false,
@@ -875,17 +846,6 @@ onMounted(() => {
     loadSettings();
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    // Initialize floating particles
-    for (let i = 0; i < 50; i++) {
-        particles.value.push({
-            id: i,
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            delay: Math.random() * 10,
-            duration: 8 + Math.random() * 12
-        });
-    }
-
     // Add mouse tracking for interactive background
     window.addEventListener('mousemove', handleMouseMove);
 });
@@ -958,25 +918,6 @@ html {
     }
 }
 
-/* Floating animations */
-@keyframes float-slow {
-    0%, 100% {
-        transform: translate(0, 0);
-    }
-    50% {
-        transform: translate(40px, -40px);
-    }
-}
-
-@keyframes float-delayed {
-    0%, 100% {
-        transform: translate(0, 0);
-    }
-    50% {
-        transform: translate(-30px, 30px);
-    }
-}
-
 /* Bounce once animation */
 @keyframes bounce-once {
     0%, 100% {
@@ -1042,14 +983,6 @@ html {
     animation: scale-in 0.6s ease-out both;
 }
 
-.animate-float-slow {
-    animation: float-slow 25s ease-in-out infinite;
-}
-
-.animate-float-delayed {
-    animation: float-delayed 30s ease-in-out infinite;
-}
-
 .animate-bounce-once {
     animation: bounce-once 0.6s ease-out;
 }
@@ -1083,26 +1016,6 @@ html {
         background: radial-gradient(circle at 80% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
                     radial-gradient(circle at 20% 80%, rgba(147, 51, 234, 0.15) 0%, transparent 50%),
                     radial-gradient(circle at 60% 20%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
-    }
-}
-
-/* Floating particle animation */
-@keyframes float-particle {
-    0%, 100% {
-        transform: translateY(0px) translateX(0px);
-        opacity: 0.3;
-    }
-    25% {
-        transform: translateY(-20px) translateX(10px);
-        opacity: 0.6;
-    }
-    50% {
-        transform: translateY(-10px) translateX(-15px);
-        opacity: 0.4;
-    }
-    75% {
-        transform: translateY(-30px) translateX(5px);
-        opacity: 0.7;
     }
 }
 
@@ -1252,10 +1165,6 @@ html {
 }
 
 /* Enhanced animations */
-.animate-float-particle {
-    animation: float-particle 8s ease-in-out infinite;
-}
-
 .animate-morph {
     animation: morph 20s ease-in-out infinite;
 }
@@ -1306,37 +1215,6 @@ html {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* Gradient shift animation */
-@keyframes gradient-shift {
-    0%, 100% {
-        transform: translateX(0%) translateY(0%) rotate(0deg);
-    }
-    25% {
-        transform: translateX(10%) translateY(-5%) rotate(1deg);
-    }
-    50% {
-        transform: translateX(-5%) translateY(10%) rotate(-1deg);
-    }
-    75% {
-        transform: translateX(5%) translateY(-10%) rotate(0.5deg);
-    }
-}
-
-@keyframes gradient-shift-reverse {
-    0%, 100% {
-        transform: translateX(0%) translateY(0%) rotate(0deg);
-    }
-    25% {
-        transform: translateX(-10%) translateY(5%) rotate(-1deg);
-    }
-    50% {
-        transform: translateX(5%) translateY(-10%) rotate(1deg);
-    }
-    75% {
-        transform: translateX(-5%) translateY(10%) rotate(-0.5deg);
-    }
-}
-
 /* Bounce subtle animation */
 @keyframes bounce-subtle {
     0%, 100% {
@@ -1368,14 +1246,6 @@ html {
 }
 
 /* Enhanced animations */
-.animate-gradient-shift {
-    animation: gradient-shift 20s ease-in-out infinite;
-}
-
-.animate-gradient-shift-reverse {
-    animation: gradient-shift-reverse 25s ease-in-out infinite;
-}
-
 .animate-bounce-subtle {
     animation: bounce-subtle 2s ease-in-out infinite;
 }
