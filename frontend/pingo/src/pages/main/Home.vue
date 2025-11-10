@@ -1,22 +1,17 @@
 <template>
-    <div class="min-h-screen flex relative overflow-hidden" :class="isDark ? 'bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900'">
-        <!-- Interactive Background -->
-        <div class="fixed inset-0 pointer-events-none">
-            <!-- Subtle animated pattern overlay -->
-            <div class="absolute inset-0 opacity-5">
-                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="0.5"/>
-                        </pattern>
-                        <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
-                            <circle cx="10" cy="10" r="1" fill="currentColor" opacity="0.3"/>
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#grid)" />
-                    <rect width="100%" height="100%" fill="url(#dots)" />
-                </svg>
-            </div>
+    <div class="min-h-screen flex relative overflow-hidden bg-white dark:bg-black text-neutral-900 dark:text-white">
+        <!-- Interactive Galaxy Background -->
+        <div class="fixed inset-0">
+
+                <Galaxy 
+                    v-if="galaxyLoaded"
+                    :mouse-repulsion="false"
+                    :mouse-interaction="false"
+                    :density="1.5"
+                    :glow-intensity="0.25"
+                    :saturation="0.1"
+                    :hue-shift="120"
+                />
         </div>
 
         <!-- Left Side - Form Container -->
@@ -382,6 +377,7 @@ import { useTheme } from '../../composables/useTheme';
 import { getApiUrl } from '../../utils/apiUtils';
 import axios from 'axios';
 import IconXMark from '~icons/solar/close-circle-bold';
+import Galaxy from '../../blocks/Backgrounds/Galaxy/Galaxy.vue';
 
 // TreeNode Component Definition
 const TreeNode = defineComponent({
@@ -518,6 +514,9 @@ const uploadLink = ref("");
 const copied = ref(false);
 const message = ref({ text: "", type: "success" as "success" | "error" });
 const maxUploadSize = ref<number>(104857600); // Default 100 MB
+
+// Galaxy background loading state
+const galaxyLoaded = ref(false);
 
 const validityOptions = ref([
     { value: "7days", label: "7 Days", description: "One week" },
@@ -827,7 +826,7 @@ const loadSettings = async () => {
             );
         }
 
-        // Set default validity to first available option
+        // Set default validity to the first available option
         if (validityOptions.value.length > 0) {
             selectedValidity.value = validityOptions.value[0].value;
         }
@@ -848,6 +847,11 @@ onMounted(() => {
 
     // Add mouse tracking for interactive background
     window.addEventListener('mousemove', handleMouseMove);
+
+    // Delay galaxy loading to prevent freeze on refresh
+    setTimeout(() => {
+        galaxyLoaded.value = true;
+    }, 100);
 });
 
 onUnmounted(() => {
@@ -934,7 +938,7 @@ html {
         background-position: -200% 0;
     }
     100% {
-        background-position: 200% 0;
+        background-position: calc(200px + 100%) 0;
     }
 }
 
@@ -1235,6 +1239,118 @@ html {
     }
 }
 
+/* Background Animations */
+@keyframes gradient-flow {
+    0%, 100% {
+        transform: translateX(0%) translateY(0%) scale(1);
+        opacity: 0.15;
+    }
+    50% {
+        transform: translateX(5%) translateY(-3%) scale(1.05);
+        opacity: 0.25;
+    }
+}
+
+@keyframes gradient-flow-reverse {
+    0%, 100% {
+        transform: translateX(0%) translateY(0%) scale(1);
+        opacity: 0.15;
+    }
+    50% {
+        transform: translateX(-5%) translateY(3%) scale(1.05);
+        opacity: 0.25;
+    }
+}
+
+@keyframes gradient-flow-slow {
+    0%, 100% {
+        transform: translateX(0%) translateY(0%) scale(1);
+        opacity: 0.15;
+    }
+    50% {
+        transform: translateX(3%) translateY(5%) scale(1.03);
+        opacity: 0.2;
+    }
+}
+
+@keyframes float-gentle {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes float-delayed {
+    0%, 100% {
+        transform: translateY(0px) rotate(45deg);
+    }
+    50% {
+        transform: translateY(-15px) rotate(47deg);
+    }
+}
+
+@keyframes float-slow {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-25px);
+    }
+}
+
+@keyframes float-reverse {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(15px);
+    }
+}
+
+@keyframes pattern-shift {
+    0% {
+        transform: translateX(0px) translateY(0px);
+    }
+    100% {
+        transform: translateX(20px) translateY(-10px);
+    }
+}
+
+/* Animation Classes */
+.animate-gradient-flow {
+    animation: gradient-flow 8s ease-in-out infinite;
+}
+
+.animate-gradient-flow-reverse {
+    animation: gradient-flow-reverse 10s ease-in-out infinite;
+}
+
+.animate-gradient-flow-slow {
+    animation: gradient-flow-slow 12s ease-in-out infinite;
+}
+
+.animate-float-gentle {
+    animation: float-gentle 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+    animation: float-delayed 8s ease-in-out infinite 2s;
+}
+
+.animate-float-slow {
+    animation: float-slow 10s ease-in-out infinite 1s;
+}
+
+.animate-float-reverse {
+    animation: float-reverse 7s ease-in-out infinite 3s;
+}
+
+.animate-pattern-shift {
+    animation: pattern-shift 15s linear infinite;
+}
+
 /* Loading skeleton animation */
 @keyframes skeleton-loading {
     0% {
@@ -1245,24 +1361,84 @@ html {
     }
 }
 
-/* Enhanced animations */
-.animate-bounce-subtle {
-    animation: bounce-subtle 2s ease-in-out infinite;
-}
-
-.animate-parallax-float {
-    animation: parallax-float 15s ease-in-out infinite;
-}
-
-.animate-skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200px 100%;
-    animation: skeleton-loading 1.5s infinite;
-}
-
 /* Dark mode skeleton */
 .dark .animate-skeleton {
     background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
     background-size: 200px 100%;
 }
+
+/* Animated Background Styles */
+@keyframes gradient-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes gradient-flow-reverse {
+    0% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes gradient-flow-slow {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes float-gentle {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes float-delayed {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes float-slow {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes pattern-shift {
+    0% {
+        transform: translate(0) rotate(0);
+    }
+    100% {
+        transform: translate(-10px, 10px) rotate(1deg);
+    }
+}
+
+
 </style>

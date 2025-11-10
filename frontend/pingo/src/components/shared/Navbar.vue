@@ -1,6 +1,7 @@
 <template>
   <nav v-if="!isAuthPage" class="compact-navbar">
-    <div class="navbar-content">
+    <!-- add liquid glass effect -->
+    <div class="navbar-content backdrop-blur-md bg-white/30 dark:bg-black/30 rounded-lg p-2">
       <!-- Compact Navigation Buttons -->
       <div class="nav-items">
         <template v-if="isAuthenticated">
