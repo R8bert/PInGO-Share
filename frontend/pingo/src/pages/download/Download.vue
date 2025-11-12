@@ -1,26 +1,40 @@
 <template>
-  <div class="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-    <!-- Enhanced Background with Subtle Effects -->
+  <div class="min-h-screen flex relative overflow-hidden bg-white dark:bg-black text-neutral-900 dark:text-white">
+    <!-- Interactive Galaxy Background -->
     <div class="fixed inset-0">
-      <!-- Subtle animated gradient overlay -->
-      <div class="absolute inset-0 bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-pink-400/5 animate-gradient-shift"></div>
-
-      <!-- Floating orbs for ambient effect -->
-      <div class="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-float-slow"></div>
-      <div class="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-float-slower"></div>
-      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-indigo-400/6 to-blue-400/6 rounded-full blur-3xl animate-float"></div>
+      <Galaxy 
+        v-if="galaxyLoaded"
+        :mouse-repulsion="false"
+        :mouse-interaction="false"
+        :density="1.5"
+        :glow-intensity="0.25"
+        :saturation="0.1"
+        :hue-shift="120"
+      />
     </div>
 
     <!-- Main Content -->
-    <div class="relative z-10 w-full min-h-screen flex items-center justify-center p-6 lg:p-8">
-
-      <!-- Enhanced Content Card -->
-      <div class="w-full max-w-5xl">
-        <!-- Glass morphism container with enhanced styling -->
-        <div class="backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl shadow-black/10 dark:shadow-black/40 overflow-hidden">
+    <div class="w-full flex items-center justify-center p-8 lg:p-12">
+      
+      <!-- Download Card -->
+      <div class="w-full max-w-4xl p-8 rounded-3xl shadow-xl border border-white/10 relative overflow-hidden"
+          :class="isDark ? 'bg-neutral-900/95' : 'bg-white/95'">
+          
+        <div class="relative z-10">
+        
+          <!-- Compact Logo/Brand -->
+          <div class="mb-8 animate-fade-in">
+            <h2 class="text-lg font-semibold tracking-tight transition-colors duration-300" 
+                :class="isDark ? 'text-white' : 'text-neutral-900'">
+              File sharing 
+            </h2>
+            <p class="text-xs mt-1 transition-colors duration-300" :class="isDark ? 'text-neutral-500' : 'text-neutral-500'">
+              by rootdrop
+            </p>
+          </div>
 
           <!-- Enhanced Loading State -->
-          <div v-if="loading" class="relative p-8 lg:p-12 text-center space-y-10 animate-fade-in">
+          <div v-if="loading" class="relative text-center space-y-10 animate-fade-in">
             <!-- Modern loading spinner -->
             <div class="relative mx-auto w-32 h-32">
               <div class="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 animate-spin">
@@ -55,260 +69,191 @@
           </div>
 
           <!-- Enhanced Content State -->
-          <div v-else-if="files.length > 0" class="space-y-12">
+          <div v-else-if="files.length > 0" class="space-y-8">
 
             <!-- Modern Header Section -->
-            <div class="text-center space-y-8 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="text-center space-y-6 animate-fade-in" style="animation-delay: 0.1s;">
               <!-- Status badge -->
               <div class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 backdrop-blur-sm">
                 <div class="w-3 h-3 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full animate-pulse"></div>
                 <span class="text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                  {{ files.length }} file{{ files.length > 1 ? 's' : '' }} ready for download
+                  {{ files.length }} file{{ files.length > 1 ? 's' : '' }} ready
                 </span>
               </div>
 
-              <!-- Main title with enhanced gradient -->
-              <div class="space-y-4">
-                <h1 class="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient-x leading-tight">
+              <!-- Main title -->
+              <div class="space-y-2">
+                <h1 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient-x leading-tight">
                   Download Files
                 </h1>
-                <p class="text-xl lg:text-2xl text-slate-600 dark:text-slate-400 animate-fade-in" style="animation-delay: 0.3s;">
-                  Secure, instant, and beautifully organized
+                <p class="text-base text-slate-600 dark:text-slate-400">
+                  Secure and instant
                 </p>
               </div>
             </div>
 
-            <!-- Enhanced Uploader Card -->
-            <div v-if="uploader" class="animate-fade-in" style="animation-delay: 0.2s;">
-              <div class="relative overflow-hidden backdrop-blur-xl bg-gradient-to-r from-white/60 to-white/40 dark:from-slate-800/60 dark:to-slate-900/40 border border-white/30 dark:border-slate-700/50 rounded-3xl p-8 shadow-xl shadow-black/5 dark:shadow-black/20">
-
-                <!-- Subtle background pattern -->
-                <div class="absolute inset-0 opacity-5">
-                  <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur-2xl"></div>
-                  <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-2xl"></div>
-                </div>
-
-                <div class="relative flex flex-col lg:flex-row lg:items-center gap-8">
-
-                  <!-- Enhanced Avatar Section -->
-                  <div class="flex flex-col items-center lg:items-start gap-4">
-                    <div class="relative group">
-                      <!-- Avatar with enhanced styling -->
-                      <div class="w-24 h-24 rounded-2xl overflow-hidden backdrop-blur-sm border-2 border-white/50 dark:border-slate-600/50 shadow-lg ring-4 ring-white/20 dark:ring-slate-700/30 transition-all duration-300 group-hover:ring-white/40 dark:group-hover:ring-slate-600/50">
-                        <img v-if="uploader.avatar"
-                             :src="getAssetUrl(uploader.avatar)"
-                             :alt="uploader.username"
-                             class="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-                             @error="handleAvatarError" />
-                        <div v-else class="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
-                          <span class="text-white text-3xl font-bold">{{ uploader.username.charAt(0).toUpperCase() }}</span>
-                        </div>
-                      </div>
-
-                      <!-- Enhanced online indicator -->
-                      <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full border-4 border-white dark:border-slate-900 shadow-lg animate-pulse">
-                        <div class="w-full h-full bg-gradient-to-r from-emerald-300 to-teal-300 rounded-full animate-ping"></div>
-                      </div>
-
-                      <!-- Decorative ring -->
-                      <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 -z-10"></div>
-                    </div>
-
-                    <!-- Quick stats -->
-                    <div class="flex gap-2">
-                      <div class="px-3 py-1 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-full text-xs font-semibold text-blue-600 dark:text-blue-400">
-                        {{ files.length }} files
-                      </div>
-                      <div class="px-3 py-1 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-full text-xs font-semibold text-purple-600 dark:text-purple-400">
-                        {{ formatTotalSize() }}
+            <!-- Uploader Info Card -->
+            <div v-if="uploader" class="animate-fade-in p-6 rounded-2xl" style="animation-delay: 0.2s;"
+                :class="isDark ? 'bg-neutral-800/50' : 'bg-neutral-100'">
+              <div class="flex flex-col lg:flex-row lg:items-center gap-6">
+                
+                <!-- Avatar - Enhanced Size -->
+                <div class="flex items-center gap-6">
+                  <div class="relative group">
+                    <div class="w-24 h-24 rounded-2xl overflow-hidden backdrop-blur-sm border-4 border-white/50 dark:border-slate-600/50 shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:border-blue-500/50">
+                      <img v-if="uploader.avatar"
+                           :src="getAssetUrl(uploader.avatar)"
+                           :alt="uploader.username"
+                           class="w-full h-full object-cover"
+                           @error="handleAvatarError" />
+                      <div v-else class="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
+                        <span class="text-white text-4xl font-bold">{{ uploader.username.charAt(0).toUpperCase() }}</span>
                       </div>
                     </div>
+                    <!-- Decorative ring -->
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300 -z-10"></div>
                   </div>
 
-                  <!-- Enhanced User Info -->
-                  <div class="flex-1 space-y-4">
-                    <div>
-                      <h3 class="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent mb-2">
-                        {{ uploader.username }}
-                      </h3>
-                      <p class="text-lg text-slate-600 dark:text-slate-400">
-                        {{ uploader.email }}
-                      </p>
+                  <!-- User Info -->
+                  <div>
+                    <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{{ uploader.username }}</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">{{ uploader.email }}</p>
+                  </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div class="text-center p-3 rounded-xl" :class="isDark ? 'bg-neutral-700/50' : 'bg-neutral-200'">
+                    <div class="text-lg font-bold text-blue-600">{{ files.length }}</div>
+                    <div class="text-xs text-slate-600 dark:text-slate-400">Files</div>
+                  </div>
+                  
+                  <div class="text-center p-3 rounded-xl" :class="isDark ? 'bg-neutral-700/50' : 'bg-neutral-200'">
+                    <div class="text-lg font-bold text-purple-600">{{ formatTotalSize() }}</div>
+                    <div class="text-xs text-slate-600 dark:text-slate-400">Size</div>
+                  </div>
+                  
+                  <div v-if="uploader?.expirationDate" class="text-center p-3 rounded-xl" :class="isDark ? 'bg-neutral-700/50' : 'bg-neutral-200'">
+                    <div class="text-sm font-bold" :class="formatExpirationDate(uploader.expirationDate).isExpired ? 'text-red-500' : 'text-emerald-600'">
+                      {{ formatExpirationDate(uploader.expirationDate).timeLeft }}
                     </div>
-
-                    <!-- Enhanced Stats Grid -->
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div class="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20 rounded-2xl p-4 text-center backdrop-blur-sm">
-                        <div class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{{ files.length }}</div>
-                        <div class="text-sm text-slate-600 dark:text-slate-400">Files</div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20 rounded-2xl p-4 text-center backdrop-blur-sm">
-                        <div class="text-lg font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">{{ formatTotalSize() }}</div>
-                        <div class="text-sm text-slate-600 dark:text-slate-400">Total Size</div>
-                      </div>
-
-                      <div v-if="uploader.expirationDate" class="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-2xl p-4 text-center backdrop-blur-sm">
-                        <div class="text-lg font-bold" :class="formatExpirationDate(uploader.expirationDate).isExpired ? 'text-red-500' : 'bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent'">
-                          {{ formatExpirationDate(uploader.expirationDate).timeLeft }}
-                        </div>
-                        <div class="text-sm text-slate-600 dark:text-slate-400">Expires</div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-pink-500/10 to-rose-500/10 border border-pink-500/20 rounded-2xl p-4 text-center backdrop-blur-sm">
-                        <div class="text-2xl font-bold bg-gradient-to-r from-pink-600 to-rose-500 bg-clip-text text-transparent">✓</div>
-                        <div class="text-sm text-slate-600 dark:text-slate-400">Secure</div>
-                      </div>
-                    </div>
+                    <div class="text-xs text-slate-600 dark:text-slate-400">Expires</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Enhanced Download All Button -->
+            <!-- Download All Button -->
             <div class="text-center animate-fade-in" style="animation-delay: 0.3s;">
-              <div class="relative group">
-                <!-- Background glow effect -->
-                <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300"></div>
-
-                <button
-                  @click="downloadAll"
-                  :disabled="downloadingAll"
-                  class="relative px-10 py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold text-xl rounded-3xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25 disabled:opacity-50 disabled:hover:scale-100 shadow-xl shadow-blue-500/20"
-                >
-                  <span v-if="downloadingAll" class="flex items-center justify-center gap-4">
-                    <div class="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    <span>Downloading All Files...</span>
-                  </span>
-                  <span v-else class="flex items-center gap-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                    <span>Download All Files</span>
-                    <span class="text-lg opacity-80">({{ formatTotalSize() }})</span>
-                  </span>
-                </button>
-              </div>
+              <button
+                @click="downloadAll"
+                :disabled="downloadingAll"
+                class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 shadow-lg"
+              >
+                <span v-if="downloadingAll" class="flex items-center justify-center gap-3">
+                  <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Downloading All...</span>
+                </span>
+                <span v-else class="flex items-center gap-3">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                  </svg>
+                  <span>Download All Files</span>
+                  <span class="text-sm opacity-80">({{ formatTotalSize() }})</span>
+                </span>
+              </button>
             </div>
 
-            <!-- Enhanced Files List -->
-            <div class="space-y-6 animate-fade-in" style="animation-delay: 0.4s;">
-              <div class="text-center">
-                <h2 class="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent mb-2">
-                  Files ({{ files.length }})
-                </h2>
-                <p class="text-slate-600 dark:text-slate-400">Choose individual files or download everything</p>
+            <!-- Files List -->
+            <div class="space-y-3 animate-fade-in" style="animation-delay: 0.4s;">
+              <div class="text-center mb-4">
+                <h2 class="text-xl font-bold">Files ({{ files.length }})</h2>
               </div>
 
-              <div class="grid gap-4 md:gap-6">
+              <div class="space-y-3">
                 <div v-for="(file, index) in files" :key="'file-' + index + '-' + file.name"
-                     class="group relative overflow-hidden backdrop-blur-xl bg-gradient-to-r from-white/60 to-white/40 dark:from-slate-800/60 dark:to-slate-900/40 border border-white/30 dark:border-slate-700/50 rounded-3xl p-6 shadow-xl shadow-black/5 dark:shadow-black/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/10">
+                     class="group flex flex-col rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                     :class="isDark ? 'bg-neutral-800/50 hover:bg-neutral-800/70' : 'bg-neutral-100 hover:bg-neutral-200'">
 
-                  <!-- Subtle background pattern -->
-                  <div class="absolute inset-0 opacity-5">
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur-xl"></div>
-                  </div>
-
-                  <div class="relative flex flex-col lg:flex-row lg:items-center gap-6">
-
-                    <!-- Enhanced File Icon and Info -->
-                    <div class="flex items-center gap-4 flex-1 min-w-0">
-                      <div class="relative group/icon">
-                        <!-- File icon with enhanced styling -->
-                        <div class="w-16 h-16 rounded-2xl overflow-hidden backdrop-blur-sm border-2 border-white/50 dark:border-slate-600/50 shadow-lg ring-4 ring-white/20 dark:ring-slate-700/30 transition-all duration-300 group-hover/icon:ring-white/40 dark:group-hover/icon:ring-slate-600/50">
-                          <div class="w-full h-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                            <img
-                              :src="getFileIconPath(file.name)"
-                              :alt="getFileIconAltText(file.name)"
-                              class="w-8 h-8 object-contain transition-transform duration-300 group-hover/icon:scale-110"
-                            />
-                          </div>
-                        </div>
-                        <!-- Decorative ring -->
-                        <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl opacity-0 group-hover/icon:opacity-20 transition-opacity duration-300 -z-10"></div>
+                  <!-- File info and buttons row -->
+                  <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4">
+                    <!-- File Icon and Info -->
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <!-- File icon -->
+                      <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                          :class="isDark ? 'bg-neutral-700' : 'bg-neutral-300'">
+                        <img
+                          :src="getFileIconPath(file.name)"
+                          :alt="getFileIconAltText(file.name)"
+                          class="w-6 h-6 object-contain"
+                        />
                       </div>
 
                       <!-- File details -->
                       <div class="flex-1 min-w-0">
-                        <h3 class="text-xl font-bold truncate mb-1" :class="isDark ? 'text-white' : 'text-slate-900'" :title="file.name">
+                        <h3 class="text-base font-bold truncate" :title="file.name">
                           {{ file.name }}
                         </h3>
-                        <div class="flex items-center gap-3 text-sm">
-                          <span class="px-3 py-1 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-full text-blue-600 dark:text-blue-400 font-medium">
+                        <div class="flex items-center gap-2 text-sm mt-1">
+                          <span class="text-slate-600 dark:text-slate-400">
                             {{ formatFileSize(file.size) }}
                           </span>
-                          <span class="px-3 py-1 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-full text-purple-600 dark:text-purple-400 font-medium">
+                          <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                              :class="isDark ? 'bg-neutral-700' : 'bg-neutral-200'">
                             {{ getFileExtension(file.name).toUpperCase() }}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <!-- Enhanced Action Buttons -->
-                    <div class="flex flex-wrap items-center gap-3 lg:flex-nowrap">
-
-                      <!-- Preview Button -->
-                      <button v-if="canPreview(file)"
-                              @click="togglePreview(index)"
-                              class="group/btn relative px-4 py-3 rounded-2xl transition-all duration-200 hover:scale-105 flex-1 lg:flex-none"
-                              :class="previewingFiles.has(index)
-                                ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-500/30 text-red-600 dark:text-red-400'
-                                : 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400'">
-                        <div class="flex items-center justify-center gap-2">
-                          <svg v-if="!previewingFiles.has(index)" class="w-5 h-5 transition-transform duration-200 group-hover/btn:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                      <!-- Preview Button (for images and PDFs) -->
+                      <button v-if="canPreview(file.name)"
+                              @click="togglePreview(file.name)"
+                              class="px-4 py-2 rounded-lg font-semibold transition-all duration-200 hover:scale-105 shadow-md text-sm"
+                              :class="isDark ? 'bg-neutral-700 hover:bg-neutral-600 text-white' : 'bg-neutral-300 hover:bg-neutral-400 text-neutral-900'">
+                        <span class="flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            <path stroke-linecap="round" stroke-liejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                           </svg>
-                          <svg v-else class="w-5 h-5 transition-transform duration-200 group-hover/btn:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
-                          </svg>
-                          <span class="hidden lg:inline font-medium">{{ previewingFiles.has(index) ? 'Hide' : 'Preview' }}</span>
-                        </div>
+                          <span>Preview</span>
+                        </span>
                       </button>
-
-                      <!-- Full-page View Button for Documents -->
-                      <button v-if="isDocument(file)"
-                              @click="openFullPageView(file)"
-                              class="group/btn px-4 py-3 bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30 text-orange-600 dark:text-orange-400 rounded-2xl transition-all duration-200 hover:scale-105 flex-1 lg:flex-none"
-                              title="Open in new tab">
-                        <div class="flex items-center justify-center gap-2">
-                          <svg class="w-5 h-5 transition-transform duration-200 group-hover/btn:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4a1 1 0 011-1h4m0 0l-3 3m3-3v3M20 8V4a1 1 0 00-1-1h-4m0 0l3 3m-3-3v3M4 16v4a1 1 0 001 1h4m0 0l-3-3m3 3h-3M20 16v4a1 1 0 01-1 1h-4m0 0l3-3m-3 3h3"/>
-                          </svg>
-                          <span class="hidden lg:inline font-medium">View</span>
-                        </div>
-                      </button>
-
-                      <!-- Enhanced Download Button -->
+                      
+                      <!-- Download Button -->
                       <button @click="downloadFile(file, index)"
                               :disabled="downloadingStates[index]"
-                              class="group/btn relative px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-2xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex-1 lg:flex-none shadow-lg shadow-blue-500/20">
-                        <span v-if="downloadingStates[index]" class="flex items-center justify-center gap-2">
-                          <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          <span class="hidden lg:inline">Downloading</span>
-                          <span class="lg:hidden">...</span>
+                              class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 shadow-md text-sm">
+                        <span v-if="downloadingStates[index]" class="flex items-center gap-2">
+                          <div class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>...</span>
                         </span>
                         <span v-else class="flex items-center gap-2">
-                          <svg class="w-4 h-4 transition-transform duration-200 group-hover/btn:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                           </svg>
-                          <span class="font-medium">Download</span>
+                          <span>Download</span>
                         </span>
                       </button>
                     </div>
                   </div>
 
-                  <!-- Enhanced Preview Section -->
-                  <div v-if="previewingFiles.has(index)" class="mt-6 pt-6 border-t border-white/20 dark:border-slate-700/50">
-                    <div class="bg-gradient-to-r from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-2xl p-6 backdrop-blur-sm border border-white/30 dark:border-slate-600/30">
-
-                      <!-- Image preview -->
-                      <div v-if="['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(getFileExtension(file.name))">
-                        <div class="text-center">
-                          <img :src="getFilePreviewUrl(file.name)" :alt="file.name" class="max-w-full max-h-96 mx-auto rounded-2xl shadow-2xl border border-white/50 dark:border-slate-600/50" />
-                        </div>
+                  <!-- Preview Section -->
+                  <div v-if="previewingFiles[file.name]" 
+                       class="px-4 pb-4">
+                    <div class="p-4 rounded-xl overflow-hidden"
+                         :class="isDark ? 'bg-neutral-900/50' : 'bg-neutral-200/50'">
+                      <div class="relative">
+                        <img v-if="isImage(file.name)"
+                             :src="getFilePreviewUrl(file.name)"
+                             :alt="file.name"
+                             class="max-w-full max-h-96 mx-auto rounded-lg shadow-lg" />
+                        <iframe v-else-if="isPDF(file.name)"
+                                :src="getFilePreviewUrl(file.name)"
+                                class="w-full h-96 rounded-lg shadow-lg border-0"></iframe>
                       </div>
-
                     </div>
                   </div>
                 </div>
@@ -317,59 +262,55 @@
 
           </div>
 
-            <!-- Enhanced Error State -->
-            <div v-else class="text-center space-y-8 animate-fade-in">
-              <div class="relative mx-auto w-32 h-32">
-                <!-- Error icon with enhanced styling -->
-                <div class="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-full p-1 animate-pulse">
-                  <div class="w-full h-full bg-white dark:bg-slate-900 rounded-full flex items-center justify-center">
-                    <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>
-                  </div>
-                </div>
-              </div>
+          <!-- Error State -->
+          <div v-else class="text-center space-y-6 animate-fade-in">
+            <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center"
+                :class="isDark ? 'bg-red-500/20' : 'bg-red-100'">
+              <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+            </div>
 
-              <div class="space-y-6">
-                <div>
-                  <h1 class="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-4">
-                    Share Not Found
-                  </h1>
-                  <p class="text-xl text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-                    This share may have expired or been removed by the uploader
-                  </p>
-                </div>
+            <div>
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                Share Not Found
+              </h1>
+              <p class="text-base text-slate-600 dark:text-slate-400">
+                This share may have expired or been removed
+              </p>
+            </div>
 
-                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <button
-                    @click="$router.push('/')"
-                    class="group relative px-8 py-4 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-105 shadow-lg shadow-slate-500/20"
-                  >
-                    <span class="flex items-center gap-3">
-                      <svg class="w-5 h-5 transition-transform duration-200 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                      </svg>
-                      Go Back Home
-                    </span>
-                  </button>
+            <div class="flex gap-3 justify-center">
+              <button
+                @click="$router.push('/')"
+                class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105"
+              >
+                <span class="flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                  </svg>
+                  Go Home
+                </span>
+              </button>
 
-                  <button
-                    @click="$router.go(-1)"
-                    class="px-6 py-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 dark:from-slate-700 dark:to-slate-600 dark:hover:from-slate-600 dark:hover:to-slate-500 text-slate-700 dark:text-slate-300 font-medium rounded-2xl transition-all duration-300 hover:scale-105"
-                  >
-                    <span class="flex items-center gap-2">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                      </svg>
-                      Go Back
-                    </span>
-                  </button>
-                </div>
-              </div>
+              <button
+                @click="$router.go(-1)"
+                class="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+                :class="isDark ? 'bg-neutral-700 hover:bg-neutral-600 text-white' : 'bg-neutral-200 hover:bg-neutral-300 text-neutral-900'"
+              >
+                <span class="flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                  </svg>
+                  Go Back
+                </span>
+              </button>
             </div>
           </div>
+
         </div>
       </div>
+    </div>
 
     <!-- Success Message -->
     <div v-if="message" 
@@ -395,7 +336,6 @@
     </a>
 
   </div>
-
 </template>
 
 <script setup lang="ts">
@@ -404,6 +344,7 @@ import { useRoute } from 'vue-router'
 import { useTheme } from '../../composables/useTheme'
 import { useIcons } from '../../composables/useIcons'
 import { getApiUrl, getAssetUrl } from '../../utils/apiUtils'
+import Galaxy from '../../blocks/Backgrounds/Galaxy/Galaxy.vue'
 import axios from 'axios'
 
 // Interfaces
@@ -451,19 +392,37 @@ const uploader = ref<UploaderInfo | null>(null)
 const downloadingAll = ref(false)
 const downloadingStates = ref<Record<number, boolean>>({})
 const message = ref<Message | null>(null)
-const previewingFiles = ref<Set<number>>(new Set())
+const previewingFiles = ref<Record<string, boolean>>({})
 
 // Computed properties for API URLs
-const getFilePreviewUrl = (fileName: string) => {
-  return getApiUrl(`/file/${route.params.id}/${fileName}?preview=true`)
+const getFileDownloadUrl = (fileName: string) => {
+  return getApiUrl(`/file/${route.params.id}/${fileName}`)
 }
 
-const getFileDownloadUrl = (fileName: string) => {
+const getFilePreviewUrl = (fileName: string) => {
   return getApiUrl(`/file/${route.params.id}/${fileName}`)
 }
 
 const getDownloadAllUrl = () => {
   return getApiUrl(`/download/${route.params.id}`)
+}
+
+// Preview helper functions
+const isImage = (fileName: string): boolean => {
+  const ext = fileName.split('.').pop()?.toLowerCase()
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext || '')
+}
+
+const isPDF = (fileName: string): boolean => {
+  return fileName.toLowerCase().endsWith('.pdf')
+}
+
+const canPreview = (fileName: string): boolean => {
+  return isImage(fileName) || isPDF(fileName)
+}
+
+const togglePreview = (fileName: string) => {
+  previewingFiles.value[fileName] = !previewingFiles.value[fileName]
 }
 
 // Methods
@@ -532,29 +491,6 @@ const downloadAll = async () => {
   } finally {
     downloadingAll.value = false
   }
-}
-
-const togglePreview = (index: number) => {
-  if (previewingFiles.value.has(index)) {
-    previewingFiles.value.delete(index)
-  } else {
-    previewingFiles.value.add(index)
-  }
-}
-
-const canPreview = (file: FileInfo): boolean => {
-  const ext = getFileExtension(file.name)
-  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mp3', 'wav', 'flac', 'pdf'].includes(ext)
-}
-
-const isDocument = (file: FileInfo): boolean => {
-  const ext = getFileExtension(file.name)
-  return ['pdf', 'txt', 'md', 'markdown', 'doc', 'docx'].includes(ext)
-}
-
-const openFullPageView = (file: FileInfo) => {
-  const fileUrl = getFileDownloadUrl(file.name)
-  window.open(fileUrl, '_blank')
 }
 
 const formatFileSize = (bytes: number): string => {
