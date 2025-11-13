@@ -249,7 +249,21 @@ export const useAuth = () => {
     try {
       isLoading.value = true
       const response = await axios.get(getApiUrl('/admin/users'))
-      adminUsers.value = response.data || []
+      // Backend returns snake_case fields (upload_count, storage_used, is_blocked, last_activity)
+      // Normalize to frontend expected AdminUser shape
+      const users = (response.data || []).map((u: any) => ({
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        avatar: u.avatar,
+        is_admin: u.is_admin,
+        isBlocked: u.is_blocked ?? false,
+        uploadCount: Number(u.upload_count || 0),
+        storageUsed: Number(u.storage_used || 0),
+        created_at: u.created_at,
+        last_activity: u.last_activity ?? null
+      }))
+      adminUsers.value = users
       return { success: true }
     } catch (error: any) {
       const message = error.response?.data?.error || 'Failed to fetch admin users'
